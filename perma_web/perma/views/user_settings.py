@@ -1,5 +1,6 @@
 import itertools
 import uuid
+import waffle
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -157,7 +158,8 @@ def settings_usage_plan(request):
         'update_url': reverse('settings_subscription_update'),
         'accounts': accounts,
         'purchase_history': purchase_history,
-        'bonus_packages': request.user.get_bonus_packages()
+        'bonus_packages': request.user.get_bonus_packages(),
+        'display_cybersource_freeze_message': waffle.switch_is_active('display_cybersource_freeze_message')
 
     }
     return render(request, 'settings/settings-usage-plan.html', context)
