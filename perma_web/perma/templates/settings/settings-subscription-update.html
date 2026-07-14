@@ -12,6 +12,10 @@
       {% endif %}
     </h2>
 
+    {% if customer_type == 'Registrar' %}
+      <p class="page-dek">Please contact <a href="mailto:info@perma.cc">info@perma.cc</a> to make changes to your current subscription.</p>
+    {% endif %}
+
     {% if account.can_change_tiers %}
       <h3 class="body-bh">Change Plan</h3>
 
@@ -86,11 +90,12 @@
       {% endif %}
     {% endif %}
 
-    <h3 class="body-bh">Update Credit Card Information</h3>
+    <h3 class="body-bh">Manage Payment and Billing</h3>
+    <p class="page-dek">Update payment information, view invoices and receipts, or cancel your subscription via Stripe's secure customer portal.</p>
     <form method="post" action="{{ update_url }}">
       <input type="hidden" name="encrypted_data" value={{ update_encrypted_data }}>
       <button class="btn btn-primary" type="submit">
-        Update Credit Card Information
+        Manage Payment and Billing
       </button>
     </form>
 

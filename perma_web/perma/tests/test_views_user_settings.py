@@ -234,10 +234,10 @@ def test_update_button_cancel_button_and_subscription_info_present_if_standing_s
 
     assert b'Rate' in response.content
     assert b'Paid Through' in response.content
-    assert b'Modify Subscription' in response.content
-    assert b'Cancel Subscription' in response.content
+    assert b'Manage Subscription and Billing' in response.content
+    assert b'Cancel Subscription' not in response.content
     assert b'Your subscription is <span class="blue-text">current</span>' in response.content
-    assert response.content.count(b'<input type="hidden" name="account_type"') == 2
+    assert response.content.count(b'<input type="hidden" name="account_type"') == 1
 
 
 def test_help_present_if_subscription_on_hold(client, user_with_on_hold_subscription):
@@ -338,7 +338,7 @@ def test_update_page_if_standing_subscription(model_prepped, view_prepped, clien
     # Should be able to up/downgrade to all monthly individual tiers, except the current tier
     available_tiers = len([tier for tier in settings.TIERS['Individual'] if tier['period'] == 'monthly']) - 1
 
-    assert b'Update Credit Card Information' in response.content
+    assert b'Manage Payment and Billing' in response.content
     assert response.content.count(b'<input type="hidden" name="encrypted_data"') == 1
     assert b'Change Plan' in response.content
     assert b'Cancel Scheduled Downgrade' not in response.content
@@ -361,7 +361,7 @@ def test_update_page_if_downgrade_scheduled(model_prepped, view_prepped, client,
         data={'account_type':'Individual'}
     )
 
-    assert b'Update Credit Card Information' in response.content
+    assert b'Manage Payment and Billing' in response.content
     assert b'Cancel Scheduled Downgrade' in response.content
     assert response.content.count(b'<input type="hidden" name="encrypted_data"') == 2
     assert b'<input required type="radio" name="encrypted_data"' not in response.content
@@ -381,7 +381,7 @@ def test_update_page_if_subscription_on_hold(prepped, client, user_with_on_hold_
         data={'account_type':'Individual'}
     )
 
-    assert b'Update Credit Card Information' in response.content
+    assert b'Manage Payment and Billing' in response.content
     assert response.content.count(b'<input type="hidden" name="encrypted_data"') == 1
     assert response.content.count(prepped.return_value) == 1
     assert b'Change Plan' not in response.content
@@ -399,7 +399,7 @@ def test_update_page_if_cancellation_requested(prepped, client, user_with_reques
         data={'account_type':'Individual'}
     )
 
-    assert b'Update Credit Card Information' in response.content
+    assert b'Manage Payment and Billing' in response.content
     assert response.content.count(b'<input type="hidden" name="encrypted_data"') == 1
     assert response.content.count(prepped.return_value) == 1
     assert b'Change Plan' not in response.content
@@ -479,9 +479,9 @@ def test_paying_registrar_user_sees_subscriptions_independently(prepped, client,
 
     assert b'Rate' in response.content
     assert b'Paid Through' in response.content
-    assert b'Modify Subscription' in response.content
-    assert response.content.count(b'<input type="hidden" name="account_type"') == 2
-    assert b'Cancel Subscription' in response.content
+    assert b'Manage Subscription and Billing' in response.content
+    assert response.content.count(b'<input type="hidden" name="account_type"') == 1
+    assert b'Cancel Subscription' not in response.content
 
 
 @patch('perma.views.user_settings.prep_for_perma_payments', autospec=True)
@@ -549,6 +549,8 @@ def test_paying_registrar_user_institutional_update_form(client, registrar_user_
 
     assert user.registrar.name.encode() in response.content
     assert b'Personal' not in response.content
+    assert b'Please contact' in response.content
+    assert b'info@perma.cc' in response.content
 
 
 #
