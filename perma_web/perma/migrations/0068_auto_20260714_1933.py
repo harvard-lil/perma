@@ -3,13 +3,13 @@
 from django.db import migrations
 
 MESSAGE_SWITCH_NAME = "display_cybersource_freeze_message"
-FREEZE_SWITCH_NAME = "freeze_cybersource_transactions"
+ALLOW_SWITCH_NAME = "allow_cybersource_transactions"
 
-def create_switch(apps, switch_name):
+def create_switch(apps, switch_name, active=False):
     Switch = apps.get_model("waffle", "Switch")
     switch = Switch(
         name=switch_name,
-        active=False
+        active=active
     )
     switch.save()
 
@@ -24,11 +24,11 @@ def create_message_switch(apps, schema_editor):
 def delete_message_switch(apps, schema_editor):
     delete_switch(apps, MESSAGE_SWITCH_NAME)
 
-def create_freeze_switch(apps, schema_editor):
-    create_switch(apps, FREEZE_SWITCH_NAME)
+def create_allow_switch(apps, schema_editor):
+    create_switch(apps, ALLOW_SWITCH_NAME, active=True)
 
-def delete_freeze_switch(apps, schema_editor):
-    delete_switch(apps, FREEZE_SWITCH_NAME)
+def delete_allow_switch(apps, schema_editor):
+    delete_switch(apps, ALLOW_SWITCH_NAME)
 
 
 class Migration(migrations.Migration):
@@ -40,5 +40,5 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(create_message_switch, delete_message_switch),
-        migrations.RunPython(create_freeze_switch, delete_freeze_switch),
+        migrations.RunPython(create_allow_switch, delete_allow_switch),
     ]
