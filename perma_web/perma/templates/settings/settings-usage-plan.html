@@ -7,6 +7,9 @@
 {% load humanize %}
 {% block title %} | Settings{% endblock %}
 {% block dashboardContent %}
+  {% if payment_status_message %}
+    <div class="alert alert-{{ payment_status_level }} alert-block">{{ payment_status_message }}</div>
+  {% endif %}
   {% for account in accounts %}
     {% with subscription=account.subscription %}
       {% with customer=account.customer %}

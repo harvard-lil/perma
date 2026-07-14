@@ -137,6 +137,26 @@ def settings_tools(request):
 def settings_usage_plan(request):
     accounts = []
     purchase_history = {}
+    # Messages for redirects back from the payments app after Stripe checkout,
+    # e.g. settings/usage-plan/?subscription=success
+    payment_redirect_messages = {
+        ('subscription', 'success'): ('success', 'Your subscription has been created.'),
+        ('subscription', 'canceled'): ('info', 'Subscription checkout was canceled. You were not charged.'),
+        ('purchase', 'success'): ('success', 'Your link purchase succeeded.'),
+        ('purchase', 'canceled'): ('info', 'Link purchase checkout was canceled. You were not charged.'),
+        ('change', 'success'): ('success', (
+            'Your subscription change was submitted. Upgrades may be billed immediately; '
+            'downgrades take effect at the end of the current billing period.'
+        )),
+        ('update', 'success'): ('success', 'Your payment information was updated.'),
+    }
+    payment_status_level = payment_status_message = None
+    for param in ('subscription', 'purchase', 'change', 'update'):
+        match = payment_redirect_messages.get((param, request.GET.get(param)))
+        if match:
+            payment_status_level, payment_status_message = match
+            break
+
     try:
         if request.user.is_registrar_user() and not request.user.registrar.nonpaying:
             accounts.append(request.user.registrar.get_subscription_info(timezone.now()))
@@ -157,8 +177,9 @@ def settings_usage_plan(request):
         'update_url': reverse('settings_subscription_update'),
         'accounts': accounts,
         'purchase_history': purchase_history,
-        'bonus_packages': request.user.get_bonus_packages()
-
+        'bonus_packages': request.user.get_bonus_packages(),
+        'payment_status_level': payment_status_level,
+        'payment_status_message': payment_status_message,
     }
     return render(request, 'settings/settings-usage-plan.html', context)
 

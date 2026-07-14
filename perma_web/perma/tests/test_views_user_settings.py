@@ -183,6 +183,32 @@ def test_regular_user_can_see_usage_plan_page(client, link_user):
     assert response.status_code == 200
 
 
+def test_payment_success_message_shown_after_redirect(client, user_without_subscription_or_purchase_history):
+    client.force_login(user_without_subscription_or_purchase_history)
+    response = client.get(reverse('settings_usage_plan') + '?subscription=success', secure=True)
+
+    assert response.status_code == 200
+    assert b'alert-success' in response.content
+    assert b'Your subscription has been created.' in response.content
+
+
+def test_payment_canceled_message_shown_as_info_after_redirect(client, user_without_subscription_or_purchase_history):
+    client.force_login(user_without_subscription_or_purchase_history)
+    response = client.get(reverse('settings_usage_plan') + '?purchase=canceled', secure=True)
+
+    assert response.status_code == 200
+    assert b'alert-info' in response.content
+    assert b'Link purchase checkout was canceled. You were not charged.' in response.content
+
+
+def test_no_payment_message_for_unrecognized_params(client, user_without_subscription_or_purchase_history):
+    client.force_login(user_without_subscription_or_purchase_history)
+    response = client.get(reverse('settings_usage_plan') + '?subscription=bogus&foo=success', secure=True)
+
+    assert response.status_code == 200
+    assert b'alert-block' not in response.content
+
+
 def test_no_purchase_history_section_if_no_one_time_purchases(client, user_without_subscription_or_purchase_history):
     user = user_without_subscription_or_purchase_history
 
