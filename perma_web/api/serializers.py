@@ -236,7 +236,9 @@ class AuthenticatedLinkSerializer(LinkSerializer):
     def validate_url(self, url):
         # Clean up the user submitted url
         url = url.strip()
-        if url and url[:4] != 'http':
+        # Schemes are case-insensitive, and a host that merely starts with
+        # "http" (httpbin.org) still needs one.
+        if url and not url.lower().startswith(('http://', 'https://')):
             url = 'http://' + url
         return url
 

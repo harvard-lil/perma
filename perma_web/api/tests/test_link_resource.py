@@ -434,6 +434,18 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                              user=self.org_user)
 
 
+    def test_should_capture_url_with_uppercase_scheme(self):
+        submitted_url = "HTTP://" + self.server_url.split("//")[1] + "/test.html"
+        obj = self.successful_post(self.list_url,
+                                   data={'url': submitted_url},
+                                   user=self.org_user)
+
+        link = Link.objects.get(guid=obj['guid'])
+        self.assertEqual(link.submitted_url, submitted_url)
+        self.assertEqual(link.capture_job.status, 'completed')
+        self.assertEqual(link.primary_capture.status, 'success')
+
+
     def test_should_not_use_bonus_link_if_regular_limit_is_available(self):
         # give our user a bonus link
         user = self.org_user
@@ -640,6 +652,27 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
             self.assertEqual(link.submitted_url, 'http://asdf.asdf')
             self.assertRecordsInArchive(link, upload=True)
             self.assertEqual(link.primary_capture.user_upload, True)
+
+    def test_should_add_http_to_url_beginning_with_http(self):
+        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.jpg'), 'rb') as test_file:
+            obj = self.successful_post(self.list_url,
+                                       format='multipart',
+                                       data=dict(self.post_data.copy(), url='httpasdf.asdf', file=test_file),
+                                       user=self.org_user)
+
+            link = Link.objects.get(guid=obj['guid'])
+            self.assertEqual(link.submitted_url, 'http://httpasdf.asdf')
+
+    def test_should_preserve_uppercase_https_scheme(self):
+        with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.jpg'), 'rb') as test_file:
+            obj = self.successful_post(self.list_url,
+                                       format='multipart',
+                                       data=dict(self.post_data.copy(), url='HTTPS://asdf.asdf', file=test_file),
+                                       user=self.org_user)
+
+            link = Link.objects.get(guid=obj['guid'])
+            self.assertEqual(link.submitted_url, 'HTTPS://asdf.asdf')
+            self.assertEqual(link.ascii_safe_url, 'https://asdf.asdf/')
 
     def test_should_reject_invalid_file(self):
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.html'), 'rb') as test_file:
