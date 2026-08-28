@@ -152,9 +152,9 @@ decorator==5.1.1 \
     # via
     #   ipdb
     #   ipython
-django==4.2.23 \
-    --hash=sha256:42fdeaba6e6449d88d4f66de47871015097dc6f1b87910db00a91946295cfae4 \
-    --hash=sha256:dafbfaf52c2f289bd65f4ab935791cb4fb9a198f2a5ba9faf35d7338a77e9803
+django==4.2.30 \
+    --hash=sha256:4d07aaf1c62f9984842b67c2874ebbf7056a17be253860299b93ae1881faad65 \
+    --hash=sha256:4ebc7a434e3819db6cf4b399fb5b3f536310a30e8486f08b66886840be84b37c
     # via
     #   django-admin-smoke-tests
     #   django-axes
