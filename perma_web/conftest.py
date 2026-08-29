@@ -177,7 +177,8 @@ def pytest_runtest_teardown(item: pytest.Item, nextitem: pytest.Item):
             aws_secret_access_key=settings.STORAGES[storage_option]["OPTIONS"]["secret_key"],
             verify=False
         ).Bucket(settings.STORAGES[storage_option]["OPTIONS"]["bucket_name"])
-        storage.objects.delete()
+        for stored_object in storage.objects.all():
+            stored_object.delete()
 
 
 @pytest.fixture(scope='session', autouse=True)

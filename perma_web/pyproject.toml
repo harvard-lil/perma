@@ -3,7 +3,7 @@ name = "perma"
 version = "0.0.0"
 requires-python = ">=3.14,<3.15"
 dependencies = [
-    "boto3~=1.35.12",
+    "boto3~=1.43.81",
     "celery~=5.6.3",
     "django==5.2.17",
     "django-axes~=8.3.1",
@@ -29,8 +29,8 @@ dependencies = [
     "psycopg2~=2.9.12",
     "pynacl~=1.6.2",
     "redis~=4.5.4",
-    "requests~=2.32.4",
-    "sentry-sdk~=2.12.0",
+    "requests~=2.34.2",
+    "sentry-sdk~=2.68.1",
     "surt~=0.3.1",
     "tempdir~=0.7.1",
     "timegate",

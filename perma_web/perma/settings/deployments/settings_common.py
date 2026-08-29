@@ -2,6 +2,8 @@
 import os, sys
 from copy import deepcopy
 
+from botocore.config import Config
+
 # PROJECT_ROOT is the absolute path to the perma_web folder
 # We determine this robustly thanks to http://stackoverflow.com/a/2632297
 this_module = sys.executable if hasattr(sys, "frozen") else __file__
@@ -44,14 +46,22 @@ STORAGES = {
         "BACKEND": 'perma.storage_backends.S3MediaStorage',
         "OPTIONS": {
             "signature_version": 's3v4',
-            "default_acl": 'private'
+            "default_acl": 'private',
+            "client_config": Config(
+                signature_version='s3v4',
+                request_checksum_calculation='when_required',
+            ),
         }
     },
     "secondary": {
         "BACKEND": 'perma.storage_backends.S3MediaStorage',
         "OPTIONS": {
             "signature_version": 's3v4',
-            "default_acl": 'private'
+            "default_acl": 'private',
+            "client_config": Config(
+                signature_version='s3v4',
+                request_checksum_calculation='when_required',
+            ),
         }
     },
     "staticfiles": {
