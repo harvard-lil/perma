@@ -132,6 +132,17 @@ def test_timegate_with_target_date(client, memento_link_set):
     assert f'<https://testserver/timemap/html/{link_set["domain"]}>; rel=timemap; type=text/html,' in response.headers['link']
 
 
+def test_timegate_rejects_malformed_accept_datetime(client, memento_link_set):
+    response = client.get(
+        reverse('timegate', args=[memento_link_set['domain']]),
+        secure=True,
+        HTTP_ACCEPT_DATETIME='not-a-date',
+    )
+
+    assert response.status_code == 400
+    assert response.content == b'Invalid value for Accept-Datetime.'
+
+
 def test_timegate_not_found(client, memento_link_set):
     destination = memento_link_set['domain'] + "?foo=bar"
     response = client.get(
