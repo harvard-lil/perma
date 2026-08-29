@@ -87,7 +87,7 @@ def user_passes_test_or_403(test_func):
         return _wrapped_view
     return decorator
 
-def cooloff_time():
+def cooloff_time(request=None):
     return timedelta(minutes=settings.AXES_COOLOFF_MINUTES)
 
 ### password helper ###

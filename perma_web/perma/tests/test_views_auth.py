@@ -7,6 +7,7 @@ from django.test.utils import override_settings
 from django.urls import reverse
 
 from perma.models import LinkUser
+from perma.utils import cooloff_time
 
 from conftest import TEST_USER_PASSWORD, randomize_capitalization, submit_form
 
@@ -24,6 +25,10 @@ def attempt_login(perma_client, username, password, expect_success=True):
     else:
         assert '_auth_user_id' not in perma_client.session
     return response
+
+
+def test_axes_cooloff_callback_accepts_request_argument(rf):
+    assert cooloff_time(rf.get('/')) == datetime.timedelta(minutes=30)
 
 def test_login(perma_client, link_user):
     """

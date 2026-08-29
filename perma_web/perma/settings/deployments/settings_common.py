@@ -131,7 +131,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'perma.middleware.AdminAuthMiddleware',
-    'ratelimit.middleware.RatelimitMiddleware',
+    'django_ratelimit.middleware.RatelimitMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',  # record request.user for model history
     'waffle.middleware.WaffleMiddleware',
     # Uncomment the next line for simple clickjacking protection:
@@ -171,7 +171,7 @@ INSTALLED_APPS = (
     'reporting',
 
     # third party apps
-    'ratelimit',
+    'django_ratelimit',
     'settings_context_processor',
     'simple_history',  # record model changes
     'taggit',  # model tagging
@@ -226,7 +226,9 @@ AXES_FAILURE_LIMIT = 6
 AXES_LOCK_OUT_AT_FAILURE = True
 AXES_COOLOFF_MINUTES = 30
 AXES_COOLOFF_TIME = 'perma.utils.cooloff_time'
-AXES_ONLY_USER_FAILURES = True  # If True, only lock based on username, and never lock based on IP if attempts exceed the limit. Otherwise utilize the existing IP and user locking logic. Default: False
+AXES_LOCKOUT_PARAMETERS = ['username']
+AXES_USERNAME_FORM_FIELD = 'username'
+AXES_HTTP_RESPONSE_CODE = 403
 AXES_RESET_ON_SUCCESS = True  # If True, a successful login will reset the number of failed logins. Default: False
 
 AUTH_PASSWORD_VALIDATORS = [

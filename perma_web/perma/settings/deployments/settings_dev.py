@@ -5,6 +5,15 @@ import re
 
 DEBUG = True
 
+CACHES["default"] = {
+    "BACKEND": "django_redis.cache.RedisCache",
+    "LOCATION": "redis://perma-redis:6379/0",
+    "OPTIONS": {
+        "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        "IGNORE_EXCEPTIONS": True,
+    }
+}
+
 # logging
 LOGGING_DIR = os.path.join(SERVICES_DIR, 'logs')
 LOGGING['handlers']['file']['filename'] = os.path.join(LOGGING_DIR, 'django.log')

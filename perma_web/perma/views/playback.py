@@ -1,6 +1,6 @@
 from datetime import timedelta
 from link_header import Link as Rel, LinkHeader
-from ratelimit.decorators import ratelimit
+from django_ratelimit.decorators import ratelimit
 from warcio.timeutils import datetime_to_http_date
 
 from django.conf import settings

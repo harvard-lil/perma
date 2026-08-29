@@ -7,7 +7,7 @@ from django.db import transaction
 from django.http import HttpRequest, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from ratelimit.decorators import ratelimit
+from django_ratelimit.decorators import ratelimit
 
 from perma.email import (
     send_admin_email,

@@ -1,10 +1,10 @@
 # Extract Playwright version from uv.lock prior to building main image
-FROM registry.lil.tools/library/python:3.11-bookworm AS extract-playwright-version
+FROM python:3.14-slim-trixie@sha256:cae66f2ef0ec51a9891263eeee7f987dacf0a9879e8aa9353d5606e0530619a5 AS extract-playwright-version
 COPY perma_web/uv.lock /tmp/uv.lock
 RUN grep -A 1 '^name = "playwright"$' /tmp/uv.lock | grep version | cut -d'"' -f2 > /tmp/.playwright-version
 
 # Main image
-FROM registry.lil.tools/library/python:3.11-bookworm
+FROM python:3.14-slim-trixie@sha256:cae66f2ef0ec51a9891263eeee7f987dacf0a9879e8aa9353d5606e0530619a5
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     PYTHONUNBUFFERED=1 \
@@ -17,9 +17,8 @@ ENV LANG=C.UTF-8 \
 RUN mkdir -p /perma/perma_web
 WORKDIR /perma/perma_web
 
-# For fonts-roboto and ttf-mscorefonts-installer
-RUN echo "deb http://deb.debian.org/debian bookworm main contrib" > /etc/apt/sources.list \
-    && echo "deb https://deb.debian.org/debian-security bookworm-security main contrib" >> /etc/apt/sources.list \
+# ttf-mscorefonts-installer is distributed through Debian contrib.
+RUN sed -i 's/^Components: main$/Components: main contrib/' /etc/apt/sources.list.d/debian.sources \
     && echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections
 
 # Get build dependencies and packages required by the app
@@ -28,6 +27,7 @@ RUN apt-get update \
         wget \
         curl \
         bzip2 \
+        build-essential \
         gnupg \
         python3-pip \
         python3-dev \
@@ -48,7 +48,7 @@ RUN apt-get update \
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs=20.13.0-1nodesource1
 
 # uv package manager
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.12.7@sha256:95f2aa1fe59274951cfe9b0cbc7972e879ff1004bc8945d130a32eb0dbd85945 /uv /uvx /bin/
 
 # Copy Playwright version extracted in first stage
 COPY --from=extract-playwright-version /tmp/.playwright-version /tmp/.playwright-version
@@ -103,3 +103,4 @@ COPY perma_web/pyproject.toml perma_web/uv.lock /perma/perma_web/
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 RUN uv sync --frozen
 ENV PATH="/opt/venv/bin:$PATH"
+ENV PYTHONPATH="/perma/perma_web"

@@ -30,6 +30,11 @@ expect.set_options(timeout=15_000)
 os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 
 
+@pytest.fixture(scope="session")
+def browser_context_args(browser_context_args):
+    return {**browser_context_args, "locale": "en-US"}
+
+
 # patch django-liveserver-ssl to be compatible with changes made to the LiveTestServer in Django 4.2
 # https://github.com/django/django/commit/823a9e6bac38d38f7b0347497b833eec732bd384
 from pytest_django_liveserver_ssl.live_server_ssl_helper import (
@@ -460,9 +465,8 @@ class CaptureJobFactory(DjangoModelFactory):
     link_can_play_back = None
     link = factory.Maybe(
         'create_link',
-        yes_declaration=factory.RelatedFactory(
+        yes_declaration=factory.SubFactory(
             'conftest.LinkFactory',
-            factory_related_name='capture_job',
             created_by=factory.SelfAttribute('..created_by'),
             submitted_url=factory.SelfAttribute('..submitted_url'),
             cached_can_play_back=factory.SelfAttribute('..link_can_play_back'),
@@ -474,8 +478,6 @@ class CaptureJobFactory(DjangoModelFactory):
         ),
         no_declaration=None
     )
-    # Required to update CaptureJob.link_id from None, after the Link is generated
-    _ = factory.PostGenerationMethodCall("save")
 
 
 @register_factory

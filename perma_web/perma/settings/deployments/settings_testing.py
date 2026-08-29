@@ -55,7 +55,7 @@ PASSWORD_HASHERS = [
 # Exclude middleware that isn't needed for testing
 MIDDLEWARE_EXCLUDED = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'ratelimit.middleware.RatelimitMiddleware',
+    'django_ratelimit.middleware.RatelimitMiddleware',
     'api.middleware.CORSMiddleware',
 ]
 MIDDLEWARE = [key for key in MIDDLEWARE if key not in MIDDLEWARE_EXCLUDED]

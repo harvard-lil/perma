@@ -161,7 +161,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                          reverse_kwargs={'args':[self.unrelated_registrar.pk]},
                          data={
                               'a-name': 'new_name',
-                              'a-email': 'test@test.com2',
+                              'a-email': 'test2@test.com',
                               'a-website': 'http://test.com'},
                          success_url=reverse('user_management_manage_registrar'),
                          success_query=Registrar.objects.filter(name='new_name'))
@@ -172,7 +172,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                          reverse_kwargs={'args': [self.registrar.pk]},
                          data={
                              'a-name': 'new_name',
-                             'a-email': 'test@test.com2',
+                             'a-email': 'test2@test.com',
                              'a-website': 'http://test.com'},
                          success_url=reverse('settings_affiliations'),
                          success_query=Registrar.objects.filter(name='new_name'))
@@ -641,18 +641,17 @@ class UserManagementViewsTestCase(PermaTestCase):
             'a-first_name':'First',
             'a-last_name':'Last',
         }
-        email = self.randomize_capitalization('test_views_test@test.com')
-        normalized_email = email.lower()
+        email_local, email_domain = self.randomize_capitalization('test_views_test@test.com').split('@')
 
-        for view_name, form_extras in [
+        for index, (view_name, form_extras) in enumerate([
             ['registrar_user', {'a-registrar': 1}],
             ['user', {}],
             ['organization_user', {'a-organizations': 1}],
             ['sponsored_user', {'a-sponsoring_registrars': 1}],
-        ]:
+        ], start=1):
             # create user
-            email += '1'
-            normalized_email += '1'
+            email = f'{email_local}{index}@{email_domain}'
+            normalized_email = email.lower()
             self.submit_form('user_management_' + view_name + '_add_user',
                            data=dict(list(base_user.items()) + list(form_extras.items()) + [['a-address', email]]),
                            success_url=reverse('user_management_manage_' + view_name),

@@ -94,7 +94,7 @@ def test_get_subscription_raises_if_unexpected_registrar_type(post, process, cus
 def test_get_subscription_no_subscription(post, process, customers, spoof_pp_response_no_subscription):
     post.return_value.status_code = 200
     for customer in customers:
-        with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
+        with patch.object(customer, 'credit_for_purchased_links', autospec=True) as credited:
             # artificially set this for the purpose of this test
             customer.cached_subscription_started = timezone.now()
             customer.save()
@@ -114,7 +114,7 @@ def test_get_subscription_no_subscription(post, process, customers, spoof_pp_res
 def test_get_subscription_no_subscription_purchased_bonus(post, process, customers, spoof_pp_response_no_subscription_two_purchases):
     post.return_value.status_code = 200
     for customer in customers:
-        with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
+        with patch.object(customer, 'credit_for_purchased_links', autospec=True) as credited:
             from_pp = spoof_pp_response_no_subscription_two_purchases(customer)
             process.return_value = from_pp
             assert customer.get_subscription() is None
@@ -151,7 +151,7 @@ def test_get_subscription_happy_path_sets_customer_trial_period_to_false(post, p
 def test_get_subscription_happy_path_no_change_pending(post, process, paying_registrar, paying_user, spoof_pp_response_subscription):
     post.return_value.status_code = 200
     for customer in [paying_registrar, paying_user]:
-        with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
+        with patch.object(customer, 'credit_for_purchased_links', autospec=True) as credited:
             response = spoof_pp_response_subscription(customer)
             process.return_value = response
             subscription = customer.get_subscription()
@@ -176,7 +176,7 @@ def test_get_subscription_happy_path_no_change_pending(post, process, paying_reg
 def test_get_subscription_happy_path_with_pending_change(post, process, paying_user, spoof_pp_response_subscription_with_pending_change):
     post.return_value.status_code = 200
     customer = paying_user
-    with patch.object(customer, 'credit_for_purchased_links', autospec=True, wraps=True) as credited:
+    with patch.object(customer, 'credit_for_purchased_links', autospec=True) as credited:
         response = spoof_pp_response_subscription_with_pending_change(customer)
         process.return_value = response
         subscription = customer.get_subscription()

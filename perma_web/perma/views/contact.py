@@ -1,4 +1,4 @@
-from ratelimit.decorators import ratelimit
+from django_ratelimit.decorators import ratelimit
 import uuid
 from urllib.parse import urlencode
 
