@@ -1,4 +1,4 @@
-var Helpers = require('./general.helpers.js');
+import * as Helpers from './general.helpers.js';
 
 // Duplicate from global.js: I can't work out how to avoid duplicating jquery between modules..
 // set up jquery to properly set CSRF header on AJAX post

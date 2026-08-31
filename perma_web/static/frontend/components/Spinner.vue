@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import * as Spinner from 'spin.js'
+import Spinner from 'spin.js'
 import { prefersReducedMotion } from "../lib/helpers";
 
 const { size, config } = defineProps({

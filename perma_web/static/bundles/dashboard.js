@@ -13282,10 +13282,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_object_keys__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(262);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_object_keys__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_object_keys__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _general_helpers_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(261);
 
 
 
-var Helpers = __webpack_require__(261);
+
 
 // Duplicate from global.js: I can't work out how to avoid duplicating jquery between modules..
 // set up jquery to properly set CSRF header on AJAX post
@@ -13294,8 +13295,8 @@ $.ajaxSetup({
   crossdomain: false,
   // obviates need for sameOrigin test
   beforeSend: function beforeSend(xhr, settings) {
-    if (!Helpers.csrfSafeMethod(settings.type)) {
-      xhr.setRequestHeader('X-CSRFToken', Helpers.getCookie('csrftoken'));
+    if (!_general_helpers_js__WEBPACK_IMPORTED_MODULE_3__["csrfSafeMethod"](settings.type)) {
+      xhr.setRequestHeader('X-CSRFToken', _general_helpers_js__WEBPACK_IMPORTED_MODULE_3__["getCookie"]('csrftoken'));
     }
   }
 });
@@ -13358,7 +13359,7 @@ function stringFromNestedObject(object) {
 // display error results from API
 function showError(jqXHR) {
   var message = getErrorMessage(jqXHR);
-  Helpers.informUser(message, 'danger');
+  _general_helpers_js__WEBPACK_IMPORTED_MODULE_3__["informUser"](message, 'danger');
 }
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(64)))
 
@@ -42891,7 +42892,7 @@ function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t =
     var size = __props.size,
       config = __props.config;
     var spinnerRef = Object(vue__WEBPACK_IMPORTED_MODULE_6__["ref"])(null);
-    var spinner = new spin_js__WEBPACK_IMPORTED_MODULE_7__(_objectSpread({
+    var spinner = new spin_js__WEBPACK_IMPORTED_MODULE_7___default.a(_objectSpread({
       speed: Object(_lib_helpers__WEBPACK_IMPORTED_MODULE_8__["prefersReducedMotion"])() ? 0 : 0.5,
       lines: 15,
       width: 2,
@@ -42909,7 +42910,7 @@ function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t =
       ref: vue__WEBPACK_IMPORTED_MODULE_6__["ref"],
       onMounted: vue__WEBPACK_IMPORTED_MODULE_6__["onMounted"],
       get Spinner() {
-        return spin_js__WEBPACK_IMPORTED_MODULE_7__;
+        return spin_js__WEBPACK_IMPORTED_MODULE_7___default.a;
       },
       get prefersReducedMotion() {
         return _lib_helpers__WEBPACK_IMPORTED_MODULE_8__["prefersReducedMotion"];

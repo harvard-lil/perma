@@ -13374,13 +13374,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_find__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_instance_find__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _single_link_module__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
+/* harmony import */ var _helpers_dom_helpers_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(290);
+/* harmony import */ var _helpers_api_module_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(291);
+/* harmony import */ var _helpers_general_helpers_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(261);
+/* harmony import */ var _helpers_link_helpers_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(379);
 
 
-var SingleLinkModule = __webpack_require__(1);
-var DOMHelpers = __webpack_require__(290);
-var APIModule = __webpack_require__(291);
-var Helpers = __webpack_require__(261);
-var LinkHelpers = __webpack_require__(379);
+
+
+
+
+
 var updateBtnID = '#updatePermalink',
   cancelBtnID = '#cancelUpdatePermalink';
 function init() {
@@ -13388,14 +13393,14 @@ function init() {
   if (window.location.href.indexOf('safari=1') > -1) {
     history.replaceState({}, "", window.location.href.replace(/\??safari=1/, ''));
   }
-  DOMHelpers.toggleBtnDisable(updateBtnID, true);
-  DOMHelpers.toggleBtnDisable(cancelBtnID, true);
+  _helpers_dom_helpers_js__WEBPACK_IMPORTED_MODULE_3__["toggleBtnDisable"](updateBtnID, true);
+  _helpers_dom_helpers_js__WEBPACK_IMPORTED_MODULE_3__["toggleBtnDisable"](cancelBtnID, true);
   setupEventHandlers();
 }
 function setupEventHandlers() {
   var _context;
   $(".edit-link").click(function () {
-    $(SingleLinkModule.detailsButton).click();
+    $(_single_link_module__WEBPACK_IMPORTED_MODULE_2__["detailsButton"]).click();
     return false;
   });
   $("button.darchive").click(function () {
@@ -13405,12 +13410,12 @@ function setupEventHandlers() {
   $("input:file").change(function () {
     var fileName = $(this).val();
     var disableStatus = fileName ? false : true;
-    DOMHelpers.toggleBtnDisable(cancelBtnID, disableStatus);
-    DOMHelpers.toggleBtnDisable(updateBtnID, disableStatus);
+    _helpers_dom_helpers_js__WEBPACK_IMPORTED_MODULE_3__["toggleBtnDisable"](cancelBtnID, disableStatus);
+    _helpers_dom_helpers_js__WEBPACK_IMPORTED_MODULE_3__["toggleBtnDisable"](updateBtnID, disableStatus);
   });
   $("button:reset").click(function () {
-    DOMHelpers.toggleBtnDisable(cancelBtnID, true);
-    DOMHelpers.toggleBtnDisable(updateBtnID, true);
+    _helpers_dom_helpers_js__WEBPACK_IMPORTED_MODULE_3__["toggleBtnDisable"](cancelBtnID, true);
+    _helpers_dom_helpers_js__WEBPACK_IMPORTED_MODULE_3__["toggleBtnDisable"](updateBtnID, true);
   });
   $('#archive_upload_form').submit(function (e) {
     e.preventDefault();
@@ -13425,7 +13430,7 @@ function setupEventHandlers() {
     if (inputarea.val() == inputValues[name]) return;
     inputValues[name] = inputarea.val();
     var statusElement = _babel_runtime_corejs3_core_js_stable_instance_find__WEBPACK_IMPORTED_MODULE_0___default()(_context2 = inputarea.parents()).call(_context2, ".".concat(name, "-save-status"));
-    LinkHelpers.saveInput(archive.guid, inputarea, statusElement, name, function () {
+    _helpers_link_helpers_js__WEBPACK_IMPORTED_MODULE_6__["saveInput"](archive.guid, inputarea, statusElement, name, function () {
       _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1___default()(function () {
         $(statusElement).html('');
       }, 1000);
@@ -13434,8 +13439,8 @@ function setupEventHandlers() {
 }
 function submitFile() {
   var _context3;
-  DOMHelpers.toggleBtnDisable(updateBtnID, true);
-  DOMHelpers.toggleBtnDisable(cancelBtnID, true);
+  _helpers_dom_helpers_js__WEBPACK_IMPORTED_MODULE_3__["toggleBtnDisable"](updateBtnID, true);
+  _helpers_dom_helpers_js__WEBPACK_IMPORTED_MODULE_3__["toggleBtnDisable"](cancelBtnID, true);
   var url = "/archives/" + archive.guid + "/";
   var data = {};
   data['file'] = _babel_runtime_corejs3_core_js_stable_instance_find__WEBPACK_IMPORTED_MODULE_0___default()(_context3 = $('#archive_upload_form')).call(_context3, '.file')[0].files[0];
@@ -13444,7 +13449,7 @@ function submitFile() {
     processData: false
   };
   if (window.FormData) {
-    Helpers.sendFormData("PATCH", url, data, requestArgs).done(function (data) {
+    _helpers_general_helpers_js__WEBPACK_IMPORTED_MODULE_5__["sendFormData"]("PATCH", url, data, requestArgs).done(function (data) {
       location = location;
     });
   } else {
@@ -13459,7 +13464,7 @@ function handleDarchiving(context) {
       private_reason = currently_private ? null : $('select[name="private_reason"]').val() || 'user';
     $this.addClass('disabled');
     $this.text('Updating ...');
-    APIModule.request('PATCH', '/archives/' + archive.guid + '/', {
+    _helpers_api_module_js__WEBPACK_IMPORTED_MODULE_4__["request"]('PATCH', '/archives/' + archive.guid + '/', {
       is_private: !currently_private,
       private_reason: private_reason
     }, {
@@ -13576,10 +13581,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_json_stringify__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_object_keys__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(262);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_object_keys__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_object_keys__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _general_helpers_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(261);
 
 
 
-var Helpers = __webpack_require__(261);
+
 
 // Duplicate from global.js: I can't work out how to avoid duplicating jquery between modules..
 // set up jquery to properly set CSRF header on AJAX post
@@ -13588,8 +13594,8 @@ $.ajaxSetup({
   crossdomain: false,
   // obviates need for sameOrigin test
   beforeSend: function beforeSend(xhr, settings) {
-    if (!Helpers.csrfSafeMethod(settings.type)) {
-      xhr.setRequestHeader('X-CSRFToken', Helpers.getCookie('csrftoken'));
+    if (!_general_helpers_js__WEBPACK_IMPORTED_MODULE_3__["csrfSafeMethod"](settings.type)) {
+      xhr.setRequestHeader('X-CSRFToken', _general_helpers_js__WEBPACK_IMPORTED_MODULE_3__["getCookie"]('csrftoken'));
     }
   }
 });
@@ -13652,7 +13658,7 @@ function stringFromNestedObject(object) {
 // display error results from API
 function showError(jqXHR) {
   var message = getErrorMessage(jqXHR);
-  Helpers.informUser(message, 'danger');
+  _general_helpers_js__WEBPACK_IMPORTED_MODULE_3__["informUser"](message, 'danger');
 }
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(64)))
 
@@ -15816,11 +15822,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_instance_filter__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_instance_filter__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
 /* harmony import */ var _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _dom_helpers_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(290);
+/* harmony import */ var _api_module_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(291);
+/* harmony import */ var _local_datetime_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(385);
+/* harmony import */ var _local_datetime_js__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_local_datetime_js__WEBPACK_IMPORTED_MODULE_4__);
 
 
-var DOMHelpers = __webpack_require__(290);
-var APIModule = __webpack_require__(291);
-__webpack_require__(385); // add .format() to Date object
+
+
 
 function findFaviconURL(linkObj) {
   var _context;
@@ -15879,16 +15888,16 @@ function generateLinkFields(link, query) {
 var timeouts = {};
 // save changes in a given text box to the server
 function saveInput(guid, inputElement, statusElement, name, callback) {
-  DOMHelpers.changeHTML(statusElement, 'Saving...');
+  _dom_helpers_js__WEBPACK_IMPORTED_MODULE_2__["changeHTML"](statusElement, 'Saving...');
   var timeoutKey = guid + name;
   if (timeouts[timeoutKey]) clearTimeout(timeouts[timeoutKey]);
 
   // use a setTimeout so notes are only saved once every half second
   timeouts[timeoutKey] = _babel_runtime_corejs3_core_js_stable_set_timeout__WEBPACK_IMPORTED_MODULE_1___default()(function () {
     var data = {};
-    data[name] = DOMHelpers.getValue(inputElement);
-    APIModule.request("PATCH", '/archives/' + guid + '/', data).done(function (data) {
-      DOMHelpers.changeHTML(statusElement, 'Saved!');
+    data[name] = _dom_helpers_js__WEBPACK_IMPORTED_MODULE_2__["getValue"](inputElement);
+    _api_module_js__WEBPACK_IMPORTED_MODULE_3__["request"]("PATCH", '/archives/' + guid + '/', data).done(function (data) {
+      _dom_helpers_js__WEBPACK_IMPORTED_MODULE_2__["changeHTML"](statusElement, 'Saved!');
       if (callback) callback(data);
     });
   }, 500);

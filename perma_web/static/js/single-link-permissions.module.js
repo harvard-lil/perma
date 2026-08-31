@@ -1,8 +1,8 @@
-var SingleLinkModule = require('./single-link.module');
-var DOMHelpers = require('./helpers/dom.helpers.js');
-var APIModule = require('./helpers/api.module.js');
-var Helpers = require('./helpers/general.helpers.js');
-var LinkHelpers = require('./helpers/link.helpers.js');
+import * as SingleLinkModule from './single-link.module';
+import * as DOMHelpers from './helpers/dom.helpers.js';
+import * as APIModule from './helpers/api.module.js';
+import * as Helpers from './helpers/general.helpers.js';
+import * as LinkHelpers from './helpers/link.helpers.js';
 
 
 var updateBtnID = '#updatePermalink',
