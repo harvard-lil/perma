@@ -47,7 +47,6 @@ from nacl import encoding
 from nacl.public import Box, PrivateKey, PublicKey
 import requests
 import surt
-import tempdir
 from ua_parser import user_agent_parser
 from warcio.indexer import Indexer
 from warcio.warcwriter import BufferWARCWriter
@@ -229,21 +228,33 @@ def show_debug_toolbar(request):
 ### image manipulation ###
 
 @contextmanager
+def temporary_working_directory():
+    """Run work in an isolated directory and restore the caller's directory."""
+    original_directory = os.getcwd()
+    with tempfile.TemporaryDirectory() as directory:
+        os.chdir(directory)
+        try:
+            yield directory
+        finally:
+            os.chdir(original_directory)
+
+@contextmanager
 def imagemagick_temp_dir():
     """
         Inside this context manager, the environment variable MAGICK_TEMPORARY_PATH will be set to a
         temp path that gets deleted when the context closes. This stops Wand's calls to ImageMagick
         leaving temp files around.
     """
-    temp_dir = tempdir.TempDir()
-    old_environ = dict(os.environ)
-    os.environ['MAGICK_TEMPORARY_PATH'] = temp_dir.name
-    try:
-        yield
-    finally:
-        os.environ.clear()
-        os.environ.update(old_environ)
-        temp_dir.dissolve()
+    original_path = os.environ.get('MAGICK_TEMPORARY_PATH')
+    with tempfile.TemporaryDirectory() as directory:
+        os.environ['MAGICK_TEMPORARY_PATH'] = directory
+        try:
+            yield
+        finally:
+            if original_path is None:
+                os.environ.pop('MAGICK_TEMPORARY_PATH', None)
+            else:
+                os.environ['MAGICK_TEMPORARY_PATH'] = original_path
 
 ### caching ###
 

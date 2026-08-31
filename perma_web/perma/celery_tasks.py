@@ -10,7 +10,6 @@ import tempfile
 import time
 from datetime import datetime, timedelta
 import redis
-import tempdir
 import socket
 from celery import shared_task
 from celery.exceptions import SoftTimeLimitExceeded
@@ -37,7 +36,8 @@ from perma.utils import (
     remove_whitespace,
     get_ia_session, ia_global_task_limit_approaching,
     ia_perma_task_limit_approaching, ia_bucket_task_limit_approaching,
-    copy_file_data, date_range, send_to_scoop, calculate_s3_etag)
+    copy_file_data, date_range, send_to_scoop, calculate_s3_etag,
+    temporary_working_directory)
 from perma.email import send_staff_invited_new_user_email, send_user_email
 from perma.wsgi_utils import retry_on_exception
 
@@ -250,7 +250,7 @@ def clean_up_failed_captures():
 ### TASKS ###
 
 @shared_task
-@tempdir.run_in_tempdir()
+@temporary_working_directory()
 def run_next_capture():
     """
         Grab and run the next CaptureJob. This will keep calling itself until there are no jobs left.
@@ -1326,7 +1326,7 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
 # WACZ CONVERSION
 
 @shared_task
-@tempdir.run_in_tempdir()
+@temporary_working_directory()
 def convert_warc_to_wacz(input_guid, save_wacz_on_error=False, warn_on_error=False):
     """
     Downloads WARC file to temp dir
@@ -1637,4 +1637,3 @@ def send_user_email_from_bulk_addition(
         )
     else:
         send_user_email(user_email, template, context)
-

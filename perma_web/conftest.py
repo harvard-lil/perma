@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 from dataclasses import dataclass
 from random import choice
@@ -263,7 +264,6 @@ from datetime import timezone as tz
 from decimal import Decimal
 
 import factory
-import humps
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from factory.django import DjangoModelFactory, Password
@@ -296,7 +296,11 @@ def register_factory(cls):
     This is basically the same as the @register decorator provided by the pytest_factoryboy package,
     but because it's simpler it seems to work better with RelatedFactory and SubFactory.
     """
-    snake_case_name = humps.decamelize(cls.__name__)
+    snake_case_name = re.sub(
+        r"([a-z0-9])([A-Z])",
+        r"\1_\2",
+        re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", cls.__name__),
+    ).lower()
 
     @pytest.fixture
     def factory_fixture(db):
@@ -319,6 +323,7 @@ def register_factory(cls):
 class RegistrarFactory(DjangoModelFactory):
     class Meta:
         model = Registrar
+        skip_postgeneration_save = True
 
     name = factory.Faker('company')
     email = factory.Faker('company_email')
@@ -428,6 +433,9 @@ class SponsorshipFactory(DjangoModelFactory):
 
 @register_factory
 class SponsoredUserFactory(LinkUserFactory):
+
+    class Meta:
+        skip_postgeneration_save = True
 
     sponsorships = factory.RelatedFactoryList(
         SponsorshipFactory,

@@ -125,7 +125,7 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
-                'settings_context_processor.context_processors.settings',  # to easily use settings in templates
+                'perma.context_processors.template_visible_settings',
             ],
         },
     },
@@ -182,7 +182,6 @@ INSTALLED_APPS = (
 
     # third party apps
     'django_ratelimit',
-    'settings_context_processor',
     'simple_history',  # record model changes
     'taggit',  # model tagging
     'webpack_loader',  # track frontend assets
