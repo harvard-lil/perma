@@ -11,7 +11,7 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
-    include: ['spec/vitest/**/*.spec.js', 'spec/frontend/**/*.spec.js'],
+    include: ['spec/vitest/**/*.spec.js', 'spec/frontend/**/*.spec.js', 'spec/build/**/*.spec.js'],
     setupFiles: ['./spec/vitest.setup.js'],
   },
 })

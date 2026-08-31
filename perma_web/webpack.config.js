@@ -9,6 +9,14 @@ module.exports = {
   context: __dirname,
   mode: 'none',
 
+  optimization: {
+    // Vue's esm-bundler build reads process.env.NODE_ENV at runtime. Webpack 4 shimmed
+    // Node globals automatically; Webpack 5 does not, so an undefined `process` throws
+    // in the browser. 'development' keeps the dev-warning behaviour the Webpack 4
+    // bundles already shipped -- switching to 'production' is a product change.
+    nodeEnv: 'development',
+  },
+
   entry: {
     'single-link': [
       './static/js/single-link.module.js',
@@ -34,12 +42,17 @@ module.exports = {
   output: {
     path: path.resolve('./static/bundles/'),
     filename: "[name].js",  // "[name]-[hash].js",  // let hashes be handled by django
+    assetModuleFilename: "[contenthash][ext]",
   },
 
   plugins: [
-    // write out a list of generated files, so Django can find them
-    // Allow overriding via env var for tests.
-    new BundleTracker({filename: process.env.BUNDLE_TRACKER_PATH || './webpack-stats.json'}),
+    // write out a list of generated files, so Django can find them.
+    // v3 takes the directory and the basename separately; a path passed as
+    // `filename` is ignored. Allow overriding the directory via env var for tests.
+    new BundleTracker({
+      path: process.env.BUNDLE_TRACKER_DIR || __dirname,
+      filename: 'webpack-stats.json',
+    }),
 
     new webpack.ProvidePlugin({
       // Automatically detect jQuery and $ as free var in modules and inject the jquery library
@@ -72,15 +85,14 @@ module.exports = {
         exclude: /node_modules/,
         loader: 'babel-loader',
         options: {
+          // Babel 8 removed transform-runtime's `corejs` option and preset-env's
+          // `useBuiltIns`. `usage-pure` is their replacement and keeps the previous
+          // behaviour: polyfills resolve from core-js-pure instead of patching globals.
           plugins: [
-            [
-              "@babel/plugin-transform-runtime",
-              {
-                "corejs": 3,
-              }
-            ]
-          ],  // add polyfills for <es6 browsers
-          presets: ['@babel/preset-env']
+            '@babel/plugin-transform-runtime',
+            ['babel-plugin-polyfill-corejs3', {method: 'usage-pure', version: '3.50'}]
+          ],
+          presets: ['@babel/preset-env']  // browser targets come from ./browserslist
         }
       },
 
@@ -105,7 +117,8 @@ module.exports = {
       // image files (likely included by css)
       {
         test: /\.(jpg|jpeg|png|gif)$/,
-        loader: 'url-loader?limit=10000'
+        type: 'asset',
+        parser: { dataUrlCondition: { maxSize: 10000 } }
       },
 
       // scss
@@ -130,7 +143,13 @@ module.exports = {
             options: {
               sourceMap: true,
               sassOptions: {
-                precision: 8
+                precision: 8,
+                // Suppressed, not fixed. Every Sass deprecation here (@import,
+                // color-functions, if-function) originates in bootstrap-sass or
+                // compass-mixins, which Phase 4 removes; quietDeps silences only
+                // dependency SCSS, so our own deprecations still surface.
+                // Phase 4 must delete this line.
+                quietDeps: true
               }
               // include precision=8 for bootstrap -- see https://github.com/twbs/bootstrap-sass/issues/409
             },
@@ -141,20 +160,14 @@ module.exports = {
       // bootstrap fonts
       {
         test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        loader: 'url-loader',
-        options: {
-          limit: 10000,
-          mimetype: 'application/font-woff',
-          esModule: false,
-        }
+        type: 'asset',
+        parser: { dataUrlCondition: { maxSize: 10000 } },
+        generator: { dataUrl: { mimetype: 'application/font-woff' } }
       },
       {
         test: /\.(ttf|otf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        loader: 'url-loader',
-        options: {
-          limit: 10000,
-          esModule: false,
-        }
+        type: 'asset',
+        parser: { dataUrlCondition: { maxSize: 10000 } }
       }
     ],
   },

@@ -1,4 +1,5 @@
 import { flushPromises, mount } from '@vue/test-utils'
+import { useInfiniteScroll } from '@vueuse/core'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import CreateLinkBatch from '../../static/frontend/components/CreateLinkBatch.vue'
@@ -7,11 +8,20 @@ import LinkList from '../../static/frontend/components/LinkList.vue'
 import UploadForm from '../../static/frontend/components/UploadForm.vue'
 import { useGlobalStore } from '../../static/frontend/stores/globalStore'
 
+// JSDOM reports zero scroll geometry, so the real composable treats the list as
+// already scrolled to the bottom and fires from mount. Record the registration
+// instead and drive the callback explicitly.
 vi.mock('@vueuse/core', async (importOriginal) => {
   const original = await importOriginal()
 
   return {...original, useInfiniteScroll: vi.fn()}
 })
+
+const infiniteScrollRegistration = () => {
+  const [target, onLoadMore, options] = vi.mocked(useInfiniteScroll).mock.calls.at(-1)
+
+  return {target, onLoadMore, options}
+}
 
 const personalFolder = {
   id: 1,
@@ -102,6 +112,61 @@ describe('dashboard interactions', () => {
     expect(wrapper.findAll('.item-container._isExpandable')).toHaveLength(40)
     expect(wrapper.text()).toContain('Link first-0')
     expect(wrapper.text()).toContain('Link second-19')
+  })
+
+  it('appends the next page from the infinite-scroll callback and stops on the last page', async () => {
+    const {pinia} = configureStore()
+    const fullPage = Array.from({length: 20}, (_, index) => link(`first-${index}`))
+    const lastPage = Array.from({length: 5}, (_, index) => link(`second-${index}`))
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(response({objects: fullPage}))
+      .mockResolvedValueOnce(response({objects: lastPage}))
+    const wrapper = mount(LinkList, {global: {plugins: [pinia]}})
+
+    const {target, onLoadMore, options} = infiniteScrollRegistration()
+    expect(target.value).toBe(wrapper.get('.container.item-rows').element)
+    expect(options).toEqual({distance: 10})
+
+    await wrapper.vm.fetchLinks()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+
+    await onLoadMore()
+    await flushPromises()
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      '/api/v1/folders/1/archives/?q=&limit=20&offset=20',
+      {headers: {'X-CSRFToken': undefined}},
+    )
+    expect(wrapper.findAll('.item-container._isExpandable')).toHaveLength(25)
+
+    // a short page clears hasMore, so further scrolling must not request again
+    await onLoadMore()
+    await flushPromises()
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('ignores the infinite-scroll callback while a page request is in flight', async () => {
+    const {pinia} = configureStore()
+    const fullPage = Array.from({length: 20}, (_, index) => link(`first-${index}`))
+    let releaseFirstPage
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+      .mockReturnValueOnce(new Promise((resolve) => { releaseFirstPage = resolve }))
+    const wrapper = mount(LinkList, {global: {plugins: [pinia]}})
+
+    const {onLoadMore} = infiniteScrollRegistration()
+    const firstPage = wrapper.vm.fetchLinks()
+
+    await onLoadMore()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+
+    releaseFirstPage(response({objects: fullPage}))
+    await firstPage
+    await flushPromises()
+
+    await onLoadMore()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 
   it('keeps the folder selector keyboard and click path routed through jsTree', async () => {

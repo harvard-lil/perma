@@ -232,9 +232,9 @@ django-waffle==5.0.0 \
     --hash=sha256:3312851d9d926b76b9e90712355781700a383b82b5bf2b61e1f1be97532c0f3d \
     --hash=sha256:62f9d00eedf68dafb82657beab56e601bddedc1ea1ccfef91d83df8658708509
     # via perma
-django-webpack-loader==1.8.1 \
-    --hash=sha256:073beda18e2929fa5cd83bafbcaaf975e5945e84a17bfa81927cb6c9f5a17b94 \
-    --hash=sha256:2d50a902256cf94bdd87eac3e7687989c9aa757a63af21db68773115216cedee
+django-webpack-loader==3.2.4 \
+    --hash=sha256:0a253113ea6b150403cd2de802e732872c1d5e3185f0ad4a7fac673c00ae5af2 \
+    --hash=sha256:a9d345746ae4d0700b9a86a7f0683ab8282c56a3a32736070f27ad658a9bfcb2
     # via perma
 djangorestframework==3.18.0 \
     --hash=sha256:2323a5111837e0b784dcb8323abc78ecc54fa2a5af7aff2677cf50cdd849477f \

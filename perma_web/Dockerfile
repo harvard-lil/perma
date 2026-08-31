@@ -1,3 +1,8 @@
+# Node is copied from the official image rather than bootstrapped through the
+# mutable NodeSource setup script. Keep the Debian suite matched to the Python
+# base below so the glibc the binary was linked against is the one it runs on.
+FROM node:24.20.0-trixie-slim@sha256:50c3b2f6988dfc307b86e5301d69611af31f4789bdf232863b07d3b02fe55ae0 AS node
+
 # Extract Playwright version from uv.lock prior to building main image
 FROM python:3.14-slim-trixie@sha256:cae66f2ef0ec51a9891263eeee7f987dacf0a9879e8aa9353d5606e0530619a5 AS extract-playwright-version
 COPY perma_web/uv.lock /tmp/uv.lock
@@ -45,7 +50,12 @@ RUN apt-get update \
         libxslt-dev
 
 # node.js
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs=20.13.0-1nodesource1
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+COPY --from=node /usr/local/include/node /usr/local/include/node
+COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx \
+    && ln -s ../lib/node_modules/corepack/dist/corepack.js /usr/local/bin/corepack
 
 # uv package manager
 COPY --from=ghcr.io/astral-sh/uv:0.12.7@sha256:95f2aa1fe59274951cfe9b0cbc7972e879ff1004bc8945d130a32eb0dbd85945 /uv /uvx /bin/
@@ -87,14 +97,14 @@ RUN mkdir -p $HOME/.pki/nssdb \
 # Frontend requirements
 COPY perma_web/package.json /perma/perma_web
 COPY perma_web/npm-shrinkwrap.json /perma/perma_web
-RUN npm install \
+RUN npm ci \
     && rm package.json \
     && rm npm-shrinkwrap.json
 
 # Worker requirements
 COPY services/js-wacz/package.json /perma/services/js-wacz/package.json
 COPY services/js-wacz/package-lock.json /perma/services/js-wacz/package-lock.json
-RUN npm install --prefix /perma/services/js-wacz/ \
+RUN npm ci --prefix /perma/services/js-wacz/ \
     && rm /perma/services/js-wacz/package.json \
     && rm /perma/services/js-wacz/package-lock.json
 

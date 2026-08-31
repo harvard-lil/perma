@@ -467,11 +467,11 @@ wheels = [
 
 [[package]]
 name = "django-webpack-loader"
-version = "1.8.1"
+version = "3.2.4"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/aa/8d/3a7d689e56ad739a3234af47d2dd2bc22172d263233712e3b39c8246615d/django-webpack-loader-1.8.1.tar.gz", hash = "sha256:073beda18e2929fa5cd83bafbcaaf975e5945e84a17bfa81927cb6c9f5a17b94", size = 17352, upload-time = "2023-02-06T13:55:56.855Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f9/37/fca035c6366f57fb620e2c070943393850a4ab9500da9d3e05025ac78ec6/django_webpack_loader-3.2.4.tar.gz", hash = "sha256:0a253113ea6b150403cd2de802e732872c1d5e3185f0ad4a7fac673c00ae5af2", size = 18098, upload-time = "2026-05-13T13:19:47.777Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0e/8d/fd749aded7b724b1c200137fc07b046bac0927f87691e40a449add4803c6/django_webpack_loader-1.8.1-py2.py3-none-any.whl", hash = "sha256:2d50a902256cf94bdd87eac3e7687989c9aa757a63af21db68773115216cedee", size = 17866, upload-time = "2023-02-06T13:55:55.263Z" },
+    { url = "https://files.pythonhosted.org/packages/35/88/0614ce4bdfce18697ef438acf2e1c68bcc37b4a5011f5c18b5670bf66c2c/django_webpack_loader-3.2.4-py2.py3-none-any.whl", hash = "sha256:a9d345746ae4d0700b9a86a7f0683ab8282c56a3a32736070f27ad658a9bfcb2", size = 20997, upload-time = "2026-05-13T13:19:46.177Z" },
 ]
 
 [[package]]
@@ -952,7 +952,7 @@ requires-dist = [
     { name = "django-taggit", specifier = "~=6.1.0" },
     { name = "django-tree-queries", specifier = "~=0.24.0" },
     { name = "django-waffle", specifier = "~=5.0.0" },
-    { name = "django-webpack-loader", specifier = "~=1.0" },
+    { name = "django-webpack-loader", specifier = "~=3.0" },
     { name = "djangorestframework", specifier = "~=3.18.0" },
     { name = "internetarchive", specifier = "~=5.11.1" },
     { name = "invoke", specifier = "~=3.0.3" },
