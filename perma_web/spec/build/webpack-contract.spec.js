@@ -199,12 +199,16 @@ describe('image/font inline-vs-resource threshold (url-loader limit: 10000)', ()
 
 describe('browser runtime globals', () => {
   // Webpack 5 stopped shimming Node globals. Any surviving bare `process.env` read throws
-  // "process is not defined" in the browser, which silently breaks the whole entry.
+  // "process is not defined" in the browser, which silently breaks the whole entry. Strip
+  // block comments first: unminified dependency JSDoc can mention "process.env" as prose
+  // (e.g. Pinia 4's `nostics` dependency documents a companion strip-plugin that way) without
+  // ever being evaluated as code, and DefinePlugin correctly leaves such comment text alone.
   it.each(ENTRY_NAMES)('entry "%s" ships no unreplaced process.env reads', (name) => {
     const entry = build1.statsJson.entrypoints[name]
     for (const asset of entryAssetNames(entry).filter((file) => file.endsWith('.js'))) {
       const content = fs.readFileSync(path.join(build1.outDir, asset), 'utf8')
-      expect(content.includes('process.env'), `${asset} reads process.env at runtime`).toBe(false)
+      const code = content.replace(/\/\*[\s\S]*?\*\//g, '')
+      expect(code.includes('process.env'), `${asset} reads process.env at runtime`).toBe(false)
     }
   })
 })

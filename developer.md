@@ -22,6 +22,7 @@ This document contains tips and tricks for working with Perma.
 - [Code style and techniques](#code-style-and-techniques)
   - [User roles and permissions tests](#user-roles-and-permissions-tests)
   - [Sending email](#sending-email)
+  - [Error reporting and personal data](#error-reporting-and-personal-data)
   - [Asset pipeline](#asset-pipeline)
   - [Managing static files and user-generated files](#managing-static-files-and-user-generated-files)
   - [Hosting fonts locally](#hosting-fonts-locally)
@@ -278,6 +279,41 @@ Users that belong to organizations can belong to many, including organizations b
 We recommend addressing the email to user.raw_email rather than user.email (which is downcased), just in case.
 
 On the development server, emails are dumped to the standard out courtesy of EMAIL_BACKEND in settings_dev.py.
+
+### Error reporting and personal data
+
+Perma runs two Sentry SDKs — the Python SDK for Django and Celery, initialized
+in `perma/settings/utils/post_processing.py`, and `@sentry/browser` for the
+front end, initialized at the top of `static/js/global.js`. **Neither is
+configured to send personally identifying data, and that is deliberate. Prefer
+privacy over diagnostic richness when the two conflict.**
+
+On the Python side this is explicit: `sentry_sdk.init()` is passed
+`send_default_pii=settings['SENTRY_SEND_DEFAULT_PII']`, and
+`SENTRY_SEND_DEFAULT_PII` defaults to `False` in `settings_common.py`. With it
+off, Sentry does not attach the authenticated user or the request's client IP
+to an event.
+
+On the browser side the equivalent option, `sendDefaultPii`, is **deliberately
+not set at all**. Two consequences are worth knowing before you change that
+`Sentry.init` call:
+
+- From `@sentry/browser` v9 onward, leaving `sendDefaultPii` unset also stops
+  Sentry's *backend* from inferring the reporter's IP address from the incoming
+  request. Earlier majors inferred it by default. We are on v10, so this is in
+  effect: front-end error reports no longer carry IP addresses, where under the
+  v7 SDK they did. That is a change we want, not a regression to work around —
+  setting `sendDefaultPii: true` to restore the old inference would be a privacy
+  decision, and the project's answer to it is no.
+- `SENTRY_SEND_DEFAULT_PII` is **not** in `TEMPLATE_VISIBLE_SETTINGS`, so it
+  never reaches the browser through `js_config.html`. Wiring the front end to a
+  PII flag would mean widening that allow-list on purpose — a deliberate act,
+  not something that can happen by accident while editing front-end code.
+
+If you have a diagnostic problem that seems to need PII, raise it rather than
+flipping the flag: the usual answer is more context on the event (a release
+tag, a route name, an anonymous identifier) rather than the user's identity or
+address.
 
 ### Asset pipeline
 
