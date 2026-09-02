@@ -50,13 +50,13 @@
 
         {% if users.paginator.count %}
           <div class="row row-no-bleed">
-            <div class="col admin-found col-no-gutter">
-              <h5 class="sr-only">User List</h3>
+            <div class="col-12 admin-found col-no-gutter">
+              <h5 class="visually-hidden">User List</h3>
               <div id="results" class="sort-filter-count"><strong>Found:</strong> {{ users.paginator.count }} user{{ users.paginator.count|pluralize }}</div>
               <div class="sort-filter-bar">
                 <strong>Filter &amp; Sort:</strong>
                 <div class="dropdown">
-                  <button class="btn-transparent" aria-haspopup="true" aria-expanded="false" data-toggle="dropdown">Sort <span class="caret"></span></button>
+                  <button class="btn-transparent" aria-haspopup="true" aria-expanded="false" data-bs-toggle="dropdown">Sort <span class="caret"></span></button>
                   <ul class="dropdown-menu">
                     <li>
                       <a {% if sort == 'last_name' %}class="selected" aria-current="true" {% endif %}href="?{% current_query_string page='' sort="last_name" %}"><i aria-hidden="true" class="icon-ok"></i> Last name A - Z</a>
@@ -92,7 +92,7 @@
           <ol class="result-list">
             {% for listed_user in users %}
               <li class="item-container {% if not listed_user.is_active %}muted{% endif %}">
-                <div class="col col-sm-8 col-no-gutter">
+                <div class="col-12 col-sm-8 col-no-gutter">
                   <h6 class="item-title" id="user-{{ listed_user.id }}">
                     {% if not listed_user.first_name and not listed_user.last_name %}
                       {{ listed_user.raw_email }}
@@ -107,7 +107,7 @@
                   {% endif %}
                 </div>
 
-                <div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
+                <div class="col-12 col-sm-4 col-no-gutter sm-align-right admin-actions">
                   <div>
                     <div class="item-activity">
                       created {{ listed_user.date_joined|date:'F j, Y' }}
@@ -119,7 +119,7 @@
                   </div>
                   {% if user_management_perms.can_select_pending_registrar %}
                     <div>
-                      <button type="submit" name="registrar_user" value="{{ listed_user.email }}" class="btn btn-small pull-right" form="form">Select<span class="sr-only"> {{ listed_user.get_full_name }}</button>
+                      <button type="submit" name="registrar_user" value="{{ listed_user.email }}" class="btn btn-small float-end" form="form">Select<span class="visually-hidden"> {{ listed_user.get_full_name }}</button>
                     </div>
                   {% endif %}
                 </div>

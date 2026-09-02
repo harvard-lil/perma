@@ -5,6 +5,70 @@
   TODO: Consider merging this with general styles.
 */
 
+//
+// Classes Bootstrap 5 dropped that this site still depends on. Each is
+// reproduced from Bootstrap 3's compiled output so rendering is unchanged;
+// keeping the original names means the definitions live here rather than
+// rippling a rename through dozens of templates.
+//
+
+// Toggled by inline JS in archive/includes/wacz_exhibitor_iframe.html, which
+// does classList.remove('hidden') to reveal the download interstitial. Without
+// this rule that interstitial is permanently visible.
+.hidden {
+  display: none !important;
+}
+
+// Used by the .btn-transparent filter buttons in user management. They carry
+// data-bs-toggle but not .dropdown-toggle, so Bootstrap 5's ::after arrow never
+// applies to them and this <span> is the only arrow they have.
+.caret {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  vertical-align: middle;
+  border-top: 4px dashed;
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent;
+}
+
+.dl-horizontal dd {
+  margin-left: 180px;
+  &:before,
+  &:after {
+    display: table;
+    content: " ";
+  }
+  &:after {
+    clear: both;
+  }
+}
+
+// Bootstrap 5's .btn-link declares only --bs-btn-* custom properties, and
+// nothing consumes them unless .btn is present too; Bootstrap 3's .btn-link
+// styled the element on its own. Perma uses it without .btn, so without this
+// the button falls through to the generic `button` rule above and grows a
+// visible 1px #ccc border. The values are Bootstrap 5's own, read out of the
+// custom properties it sets.
+.btn-link:not(.btn) {
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+// Bootstrap 5's nearest name, .btn-secondary, is a much darker grey.
+.btn-default {
+  color: #333;
+  background-color: #fff;
+  border-color: #ccc;
+  &:hover {
+    color: #333;
+    background-color: #e6e6e6;
+    border-color: #adadad;
+  }
+}
+
 // added:
 html {
   margin:0;
@@ -110,7 +174,7 @@ fieldset[disabled] .btn {
   color: white;
 }
 
-.navbar-toggle {
+.navbar-toggler {
   background-color: #09f; //transparent;
   :hover, :focus {
     background-color: #06a;

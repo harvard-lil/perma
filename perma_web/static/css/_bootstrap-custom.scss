@@ -1,62 +1,91 @@
 /*!
-  This is our custom build of Bootstrap 3, based on node_modules/bootstrap-sass/assets/stylesheets/_bootstrap.scss.
+  Perma's custom build of Bootstrap 5, based on node_modules/bootstrap/scss/bootstrap.scss.
 
-  - Paths starting with "bootstrap" are replaced with "~bootstrap" to invoke webpack sass-loader's path resolution.
-  - Our variable overrides are set at the top.
-  - Any bootstrap elements we don't use are commented out.
+  - Paths are prefixed with "~" to invoke webpack sass-loader's path resolution.
+  - Our variable overrides are set at the top, before Bootstrap's defaults.
+  - Any bootstrap elements we don't use are omitted.
  */
 
-//$icon-font-path: "~bootstrap-sass/assets/fonts/bootstrap/";
+//
+// Variable overrides. These MUST precede @import "variables", which declares
+// Bootstrap's own values with !default.
+//
 
-$navbar-default-link-color: #222;
+// Bootstrap 3 shipped 14px/1.428571429 and Perma's `body` rule overrides only
+// family, colour and background -- never size or line-height. Both were
+// therefore inherited site-wide from Bootstrap, so Bootstrap 5's 16px/1.5
+// defaults would restyle every page. Pinned to the Bootstrap 3 values.
+$font-size-base: 0.875rem;
+$line-height-base: 1.428571429;
 
-// Core variables and mixins
-@import "~bootstrap/variables";
-@import "~bootstrap/mixins";
+// Perma sets `.row { margin: 0 -16px }` in style-responsive.scss, which assumes
+// a 32px gutter. Bootstrap 5's 1.5rem (24px) default would leave column padding
+// and row margin disagreeing by 4px on every row.
+$grid-gutter-width: 32px;
 
-// Reset and dependencies
-@import "~bootstrap/normalize";
-@import "~bootstrap/print";
-//@import "~bootstrap/glyphicons";
+// Bootstrap 3 had no scroll-behavior rule. Bootstrap 5 enables smooth scrolling
+// by default, which is a behaviour change, not a style one.
+$enable-smooth-scroll: false;
 
-// Core CSS
-@import "~bootstrap/scaffolding";
-@import "~bootstrap/type";
-@import "~bootstrap/code";
-@import "~bootstrap/grid";
-@import "~bootstrap/tables";
-@import "~bootstrap/forms";
-@import "~bootstrap/buttons";
+// Bootstrap 5 shifted every grid tier down: its sm/md/lg are 576/768/992 where
+// Bootstrap 3's were 768/992/1200. Taking the new map would silently re-tier all
+// ~230 grid classes in the templates -- a `col-lg-6` written for "half width at
+// 1200px and up" would start halving at 992px. Restoring Bootstrap 3's tiers
+// keeps every existing class meaning exactly what it means today, and lines up
+// with Perma's own $width-tablet/$width-wide in _vars-global.scss.
+$grid-breakpoints: (
+  xs: 0,
+  sm: 768px,
+  md: 992px,
+  lg: 1200px
+);
 
-// Components
-@import "~bootstrap/component-animations";
-@import "~bootstrap/dropdowns";
-@import "~bootstrap/button-groups";
-@import "~bootstrap/input-groups";
-@import "~bootstrap/navs";
-@import "~bootstrap/navbar";
-@import "~bootstrap/breadcrumbs";
-@import "~bootstrap/pagination";
-@import "~bootstrap/pager";
-@import "~bootstrap/labels";
-@import "~bootstrap/badges";
-@import "~bootstrap/jumbotron";
-@import "~bootstrap/thumbnails";
-@import "~bootstrap/alerts";
-@import "~bootstrap/progress-bars";
-@import "~bootstrap/media";
-@import "~bootstrap/list-group";
-@import "~bootstrap/panels";
-@import "~bootstrap/responsive-embed";
-@import "~bootstrap/wells";
-@import "~bootstrap/close";
+// Keys must match $grid-breakpoints. The values are inert -- Perma's own
+// `.container { width: 100%; max-width: none }` overrides all of them -- but
+// Bootstrap errors on a mismatched map.
+$container-max-widths: (
+  sm: 750px,
+  md: 970px,
+  lg: 1170px
+);
 
-// Components w/ JavaScript
-@import "~bootstrap/modals";
-@import "~bootstrap/tooltip";
-@import "~bootstrap/popovers";
-@import "~bootstrap/carousel";
+//
+// Required configuration, in Bootstrap's mandated order.
+//
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
+@import "~bootstrap/scss/variables-dark";
+@import "~bootstrap/scss/maps";
+@import "~bootstrap/scss/mixins";
+@import "~bootstrap/scss/utilities";
 
-// Utility classes
-@import "~bootstrap/utilities";
-@import "~bootstrap/responsive-utilities";
+// Layout & components. Each is here because the template inventory found real
+// usage; see the Phase 4 plan for the count behind every one.
+@import "~bootstrap/scss/root";
+@import "~bootstrap/scss/reboot";
+@import "~bootstrap/scss/type";
+@import "~bootstrap/scss/images";
+@import "~bootstrap/scss/containers";
+@import "~bootstrap/scss/grid";
+@import "~bootstrap/scss/tables";
+@import "~bootstrap/scss/forms";
+@import "~bootstrap/scss/buttons";
+@import "~bootstrap/scss/transitions";
+@import "~bootstrap/scss/dropdown";
+@import "~bootstrap/scss/nav";
+@import "~bootstrap/scss/navbar";
+@import "~bootstrap/scss/pagination";
+@import "~bootstrap/scss/alert";
+@import "~bootstrap/scss/progress";
+@import "~bootstrap/scss/close";
+@import "~bootstrap/scss/modal";
+
+// Omitted, each because the inventory found no usage: accordion, badge,
+// breadcrumb, button-group, card, carousel, list-group, offcanvas,
+// placeholders, popover, spinners, toasts, tooltip.
+
+// Helpers supply .visually-hidden and .ratio; utilities/api generates
+// .float-end, .d-none and the display/flex utilities that replace Bootstrap 3's
+// responsive-utilities.
+@import "~bootstrap/scss/helpers";
+@import "~bootstrap/scss/utilities/api";

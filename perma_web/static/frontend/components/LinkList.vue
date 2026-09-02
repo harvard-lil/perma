@@ -370,7 +370,7 @@ defineExpose({
 <template>
   <div class="container link-headers">
     <div class="row">
-      <div class="col-xs-12">
+      <div class="col-12">
         <h3 id="link-list-header" class="body-ah">
           <template v-if="organization">
             <span class="organization">{{ path }} Links</span>
@@ -378,7 +378,7 @@ defineExpose({
           <template v-else>
             Your Perma Links
           </template>
-          <a :href="`/api/v1/folders/${folder}/archives/export`" id="export-links-csv" class="pull-right icon-download-alt" aria-label="Export Links" title="Export Links"></a>
+          <a :href="`/api/v1/folders/${folder}/archives/export`" id="export-links-csv" class="float-end icon-download-alt" aria-label="Export Links" title="Export Links"></a>
         </h3>
       </div>
     </div>
@@ -419,7 +419,7 @@ defineExpose({
           @mouseup.stop="(e) => handleMouseUp(e, link)"
         >
           <div class="row">
-            <div class="col col-sm-6 col-md-60 item-title-col">
+            <div class="col-12 col-sm-6 col-md-60 item-title-col">
               <button
                 :aria-label="`${link.showDetails ? 'Hide' : 'Show'} Details for Link ${link.guid}`"
                 class="toggle-details"
@@ -448,7 +448,7 @@ defineExpose({
                 </a>
               </div>
             </div>
-            <div class="col col-sm-6 col-md-40 align-right item-permalink">
+            <div class="col-12 col-sm-6 col-md-40 align-right item-permalink">
               <a v-if="link.delete_available" class="delete no-drag" :href="`/manage/delete-link/${link.guid}`">Delete</a>
               <a class="perma no-drag" :href="`//${link.local_url}`" target="_blank">{{ link.local_url }}</a>
               <button 
@@ -464,12 +464,12 @@ defineExpose({
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                 </svg>
-                <span class="sr-only">Copy link</span>
+                <span class="visually-hidden">Copy link</span>
               </button>
             </div>
           </div>
           <div class="row item-secondary">
-            <div class="col col-sm-5 pull-right sm-align-right">
+            <div class="col-12 col-sm-5 float-end sm-align-right">
               <span class="item-date"><span class="label">Created </span>{{ link.creation_timestamp_formatted }}</span>
             </div>
           </div>
@@ -542,7 +542,7 @@ defineExpose({
                 <legend class="default-to-screenshot-view">Default view
                   <span class="default_to_screenshot_view-save-status">{{ saveStatuses[`${link.guid}-default_to_screenshot_view`] }}</span>
                 </legend>
-                <label class="radio-inline">
+                <label class="form-check-inline">
                   <input 
                     type="radio" 
                     class="link-default-to-screenshot-view" 
@@ -553,7 +553,7 @@ defineExpose({
                   >
                   Standard
                 </label>
-                <label class="radio-inline">
+                <label class="form-check-inline">
                   <input 
                     type="radio" 
                     class="link-default-to-screenshot-view" 

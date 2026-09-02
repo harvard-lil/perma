@@ -25,7 +25,7 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
   <div class="row">
     <div class="col-sm-4 reading-toc">
       <nav aria-label="Getting Started Page Table of Contents">
-        <h2 class="sr-only">Table of Contents</h2>
+        <h2 class="visually-hidden">Table of Contents</h2>
         <ul>
           <li>
             <h3 class="reading-toc-chapter"><a href="#overview">Overview</a></h3>
@@ -49,7 +49,7 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
       </nav>
     </div>
 
-    <p id="skip-navigation-target" tabindex="-1" class="sr-only">End of user guide navigation and table of contents</p>
+    <p id="skip-navigation-target" tabindex="-1" class="visually-hidden">End of user guide navigation and table of contents</p>
 
     <div class="col-sm-8 docs reading-body">
       <h2 class="body-ah" id="overview">Overview</h2>
@@ -92,15 +92,15 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
       <h3 id="creating-links" class="body-bh">Preserving records</h3>
       <p class="body-text">To preserve a web page, log in to your account, enter the URL of the page you want to preserve and click the "Create Perma Link" button, or try one of our <a href="{% url 'settings_tools' %}">Browser Tools</a>. Perma will visit the web page at your direction and create a record of the contents of that page.</p>
 
-      <img src="{{ STATIC_URL }}img/docs/create_link.png" class="img-responsive screen-shot" alt="A screenshot of the Create a Perma Link page. A large input field for the target URL and a 'Create Perma Link' button appear prominently at the top of the page." />
+      <img src="{{ STATIC_URL }}img/docs/create_link.png" class="img-fluid screen-shot" alt="A screenshot of the Create a Perma Link page. A large input field for the target URL and a 'Create Perma Link' button appear prominently at the top of the page." />
 
       <p class="body-text">When Perma finishes processing your request, it'll direct you to the Perma Record, where you can see the preserved page and the associated Perma Link. You should review the Perma Record to confirm that it displays correctly.</p>
 
-      <img src="{{ STATIC_URL }}img/docs/record_page.png" class="img-responsive screen-shot" alt="A screenshot of a Perma Link's Record page. A header with tools and URL of the Perma Link tops the page. Underneath, the complete contents of the archived website appears, an exact copy of the original." />
+      <img src="{{ STATIC_URL }}img/docs/record_page.png" class="img-fluid screen-shot" alt="A screenshot of a Perma Link's Record page. A header with tools and URL of the Perma Link tops the page. Underneath, the complete contents of the archived website appears, an exact copy of the original." />
 
       <p class="body-text">If preservation fails for some reason, Perma.cc will display a "Failure" message and give you the option to upload your own image (.png, .jpg) or PDF file.</p>
 
-      <img src="{{ STATIC_URL }}img/docs/capture_fail.png" class="img-responsive screen-shot" alt="A screenshot of an error message on the Create a Perma Link page. The error message is beneath the Create a Perma Link form and includes details, a link for uploading your own image and a link for getting help." />
+      <img src="{{ STATIC_URL }}img/docs/capture_fail.png" class="img-fluid screen-shot" alt="A screenshot of an error message on the Create a Perma Link page. The error message is beneath the Create a Perma Link form and includes details, a link for uploading your own image and a link for getting help." />
 
       <p>Learn more about Perma links and records <a href="{% url 'docs_perma_link_creation' %}">here</a>.</p>
 
@@ -109,14 +109,14 @@ Welcome to the Perma.cc user guide. The best place to learn about how Perma.cc w
 
       <figure>
         <figcaption>An example from the <a href="https://harvardlawreview.org/wp-content/uploads/2014/06/vol127_west.pdf">Harvard Law Review</a></figcaption>
-        <img src="{{ STATIC_URL }}img/docs/citation_example.png" class="img-responsive screen-shot" alt="Footnote 4. See, e.g., Charles P. Pierce, This Cannot Be the Way Occupy Ends, ESQUIRE: POL. BLOG (Nov 17, 2011) http://www.esquire.com/blogs/politics/occupy-wall-street-violence-6575448, archived at https://perma.cc/48VC-ZS62 (bemoaning protestors' 'reciprocal violence' and arguing that the protest 'can't end in images of bleeding cops and tossed barricades'" />
+        <img src="{{ STATIC_URL }}img/docs/citation_example.png" class="img-fluid screen-shot" alt="Footnote 4. See, e.g., Charles P. Pierce, This Cannot Be the Way Occupy Ends, ESQUIRE: POL. BLOG (Nov 17, 2011) http://www.esquire.com/blogs/politics/occupy-wall-street-violence-6575448, archived at https://perma.cc/48VC-ZS62 (bemoaning protestors' 'reciprocal violence' and arguing that the protest 'can't end in images of bleeding cops and tossed barricades'" />
       </figure>
 
       <h3 id="viewing-records" class="body-bh">Viewing records</h3>
 
       <p class="body-text">When someone visits a Perma Link on the web, they'll see an interactive, web archive version of the record. They'll also have access to a screenshot version and a link to the live version of the original URL.</p>
 
-      <img src="{{ STATIC_URL }}img/docs/perma_record_external.png" class="img-responsive screen-shot" alt="A screenshot of a Perma Link's Record page. A header with links to all the versions of the record tops the page. Underneath, the complete contents of the archived website appears, an exact copy of the original." />
+      <img src="{{ STATIC_URL }}img/docs/perma_record_external.png" class="img-fluid screen-shot" alt="A screenshot of a Perma Link's Record page. A header with links to all the versions of the record tops the page. Underneath, the complete contents of the archived website appears, an exact copy of the original." />
 
     </div>
   </div>

@@ -144,11 +144,16 @@ module.exports = {
               sourceMap: true,
               sassOptions: {
                 precision: 8,
-                // Suppressed, not fixed. Every Sass deprecation here (@import,
-                // color-functions, if-function) originates in bootstrap-sass or
-                // compass-mixins, which Phase 4 removes; quietDeps silences only
-                // dependency SCSS, so our own deprecations still surface.
-                // Phase 4 must delete this line.
+                // Still needed, though Phase 4 removed bootstrap-sass and
+                // compass-mixins. Bootstrap 5.3's own SCSS is written with
+                // @import throughout, so dropping this surfaces 60 deprecations
+                // from inside node_modules against 20 of ours -- measured, not
+                // assumed. Perma's own colour-function deprecations are fixed,
+                // and its own partials now use the module system; the remaining
+                // @imports are the Bootstrap partials, which cannot move to
+                // @use until Bootstrap does. quietDeps silences only dependency
+                // SCSS, so our own deprecations still surface. Revisit when
+                // Bootstrap moves to @use, not before.
                 quietDeps: true
               }
               // include precision=8 for bootstrap -- see https://github.com/twbs/bootstrap-sass/issues/409
@@ -184,8 +189,11 @@ module.exports = {
 
       'handlebars': 'handlebars/dist/handlebars.min.js',
 
-      'bootstrap': 'bootstrap-sass/assets/stylesheets/bootstrap',
-      'bootstrap-js': 'bootstrap-sass/assets/javascripts/bootstrap',
+      // No 'bootstrap' alias: Bootstrap 3's Sass sat at a deep path inside
+      // bootstrap-sass and needed one, but Bootstrap 5's is plain
+      // `bootstrap/scss`, so the SCSS imports name it directly. Keeping the
+      // alias would prefix-match `bootstrap/js/dist/*` too and rewrite the
+      // JS requires into `bootstrap/scss/js/dist/*`.
 
       'papaparse': 'papaparse/papaparse.min.js',
 

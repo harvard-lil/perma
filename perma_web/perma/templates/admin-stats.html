@@ -6,14 +6,20 @@
 
 {% block mainContent %}
   <div class="container cont-fixed stats-container">
+    {% comment %}
+      Bootstrap 5 moves the selected state from the <li> onto the link itself,
+      and styles the link through .nav-link. No role="tab"/"tablist" is added:
+      these are plain links today, and giving them tab semantics would change
+      the accessibility tree, which is an improvement rather than a migration.
+    {% endcomment %}
     <ul class="nav nav-tabs">
-      <li class="active"><a href="#celery_data" data-toggle="tab">Celery Queues</a></li>
-      <li><a href="#rate-limits-pane" data-toggle="tab">Internet Archive</a></li>
-      <li><a href="#capture-job-pane" data-toggle="tab">Capture Jobs</a></li>
-      <li><a href="#capture-error-pane" data-toggle="tab">Capture Errors</a></li>
-      <li><a href="#days-pane" data-toggle="tab">This Month's Links</a></li>
-      <li><a href="#random-pane" data-toggle="tab">Random</a></li>
-      <li><a href="#emails-pane" data-toggle="tab">Users by Domain</a></li>
+      <li class="nav-item"><a class="nav-link active" href="#celery_data" data-bs-toggle="tab">Celery Queues</a></li>
+      <li class="nav-item"><a class="nav-link" href="#rate-limits-pane" data-bs-toggle="tab">Internet Archive</a></li>
+      <li class="nav-item"><a class="nav-link" href="#capture-job-pane" data-bs-toggle="tab">Capture Jobs</a></li>
+      <li class="nav-item"><a class="nav-link" href="#capture-error-pane" data-bs-toggle="tab">Capture Errors</a></li>
+      <li class="nav-item"><a class="nav-link" href="#days-pane" data-bs-toggle="tab">This Month's Links</a></li>
+      <li class="nav-item"><a class="nav-link" href="#random-pane" data-bs-toggle="tab">Random</a></li>
+      <li class="nav-item"><a class="nav-link" href="#emails-pane" data-bs-toggle="tab">Users by Domain</a></li>
     </ul>
     <div class="tab-content">
 

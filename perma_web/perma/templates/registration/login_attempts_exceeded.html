@@ -6,7 +6,7 @@
 
 <div class="container cont-fixed">
   <div class="row">
-    <div class="col-xs-12">
+    <div class="col-12">
       <h1 class="page-title">Too Many Attempts</h1>
       <p class="page-dek">Your account {% if username %}({{ username }}){%endif %} has been temporarily locked due to too many unsuccessful login attempts.</p>
       <p class="page-dek">You can try again in about {{ cooloff_timedelta|timedelta_from_now|timeuntil }}.</p>

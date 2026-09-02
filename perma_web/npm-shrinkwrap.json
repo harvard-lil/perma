@@ -21,16 +21,15 @@
         "@babel/core": "^8.0.1",
         "@babel/plugin-transform-runtime": "^8.0.0",
         "@babel/preset-env": "^8.0.2",
+        "@popperjs/core": "^2.11.8",
         "@vitejs/plugin-vue": "^6.0.8",
         "@vue/compiler-sfc": "^3.5.42",
         "@vue/test-utils": "^2.5.0",
         "autoprefixer": "^10.5.4",
         "babel-loader": "^10.1.1",
         "babel-plugin-polyfill-corejs3": "^1.0.0",
-        "bootstrap-sass": "^3.4.1",
-        "compass-mixins": "^0.12.10",
+        "bootstrap": "^5.3.8",
         "css-loader": "^7.1.5",
-        "fastclick": "^1.0.6",
         "handlebars": "^4.7.6",
         "jquery": "^3.5.1",
         "jquery-form": "^3.50.0",
@@ -2739,6 +2738,17 @@
         "url": "https://opencollective.com/parcel"
       }
     },
+    "node_modules/@popperjs/core": {
+      "version": "2.11.8",
+      "resolved": "https://registry.npmjs.org/@popperjs/core/-/core-2.11.8.tgz",
+      "integrity": "sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==",
+      "dev": true,
+      "license": "MIT",
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/popperjs"
+      }
+    },
     "node_modules/@rolldown/binding-android-arm-eabi": {
       "version": "1.2.6",
       "resolved": "https://registry.npmjs.org/@rolldown/binding-android-arm-eabi/-/binding-android-arm-eabi-1.2.6.tgz",
@@ -3982,11 +3992,25 @@
         "url": "https://github.com/sponsors/antfu"
       }
     },
-    "node_modules/bootstrap-sass": {
-      "version": "3.4.3",
-      "resolved": "https://registry.npmjs.org/bootstrap-sass/-/bootstrap-sass-3.4.3.tgz",
-      "integrity": "sha512-vPgFnGMp1jWZZupOND65WS6mkR8rxhJxndT/AcMbqcq1hHMdkcH4sMPhznLzzoHOHkSCrd6J9F8pWBriPCKP2Q==",
-      "dev": true
+    "node_modules/bootstrap": {
+      "version": "5.3.8",
+      "resolved": "https://registry.npmjs.org/bootstrap/-/bootstrap-5.3.8.tgz",
+      "integrity": "sha512-HP1SZDqaLDPwsNiqRqi5NcP0SSXciX2s9E+RyqJIIqGo+vJeN5AJVM98CXmW/Wux0nQ5L7jeWUdplCEf0Ee+tg==",
+      "dev": true,
+      "funding": [
+        {
+          "type": "github",
+          "url": "https://github.com/sponsors/twbs"
+        },
+        {
+          "type": "opencollective",
+          "url": "https://opencollective.com/bootstrap"
+        }
+      ],
+      "license": "MIT",
+      "peerDependencies": {
+        "@popperjs/core": "^2.11.8"
+      }
     },
     "node_modules/brace-expansion": {
       "version": "5.0.9",
@@ -4162,12 +4186,6 @@
       "resolved": "https://registry.npmjs.org/commander/-/commander-2.20.3.tgz",
       "integrity": "sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==",
       "license": "MIT"
-    },
-    "node_modules/compass-mixins": {
-      "version": "0.12.12",
-      "resolved": "https://registry.npmjs.org/compass-mixins/-/compass-mixins-0.12.12.tgz",
-      "integrity": "sha512-wlTxz4lsIv/3o+rdyBOTZpQFFJeWPCRlYClaEXcaFe6QrAJ5qibTAgH53LyjfGQL6mmebTfjVHM0hLsxjGj+fw==",
-      "dev": true
     },
     "node_modules/config-chain": {
       "version": "1.1.13",
@@ -4589,12 +4607,6 @@
         }
       ],
       "license": "BSD-3-Clause"
-    },
-    "node_modules/fastclick": {
-      "version": "1.0.6",
-      "resolved": "https://registry.npmjs.org/fastclick/-/fastclick-1.0.6.tgz",
-      "integrity": "sha512-cXyDBT4g0uWl/Xe75QspBDAgAWQ0lkPi/zgp6YFEUHj6WV6VIZl7R6TiDZhdOVU3W4ehp/8tG61Jev1jit+ztQ==",
-      "dev": true
     },
     "node_modules/file": {
       "version": "0.2.2",

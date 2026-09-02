@@ -252,6 +252,51 @@ def log_in_user(urls):
     return f
 
 
+@pytest.fixture
+def staff_user() -> User:
+    return User("test_admin_user@example.com", "pass")
+
+
+@pytest.fixture
+def ui_urls(transactional_db, live_server_ssl):
+    """
+    Reverse any view name against the live SSL server: ui_urls('admin_stats').
+
+    Deliberately lighter than `urls`, which builds a WARC-backed link to expose
+    `perma_link_with_warc`. UI-contract tests need pages, not archive payloads,
+    and paying for a stored WARC on every one of them is minutes of wall clock.
+    """
+    base_url = f"https://perma.test:{live_server_ssl.port}"
+
+    def reverse_ui_url(view_name, *args, **kwargs):
+        return base_url + reverse(view_name, args=args, kwargs=kwargs)
+
+    reverse_ui_url.base_url = base_url
+    return reverse_ui_url
+
+
+@pytest.fixture
+def log_in(ui_urls):
+    """Log a user in without pulling in the WARC-backed `urls` fixture."""
+    def f(page, user):
+        page.goto(ui_urls('user_management_limited_login'))
+        username = page.locator('#id_username')
+        username.focus()
+        username.type(user.username)
+        password = page.locator('#id_password')
+        password.focus()
+        password.type(user.password)
+        page.locator("button.btn.login").click()
+        # The logout form renders only on the authenticated branch of
+        # upper_right_menu.html, so its presence proves the login took. Matched
+        # by DOM attachment rather than by role or visibility: below the tablet
+        # breakpoint the whole menu collapses out of the accessibility tree, and
+        # a role- or visibility-based wait would fail purely because the caller
+        # is testing a narrow viewport.
+        expect(page.locator("#upper_right_menu form")).to_be_attached()
+    return f
+
+
 ###              ###
 ### New Fixtures ###
 ###              ###

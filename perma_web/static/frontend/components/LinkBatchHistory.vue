@@ -54,7 +54,7 @@ const toggleExpanded = () => {
     <ul v-if="!isLoading && !hasError" class="item-container">
       <li v-for="batch in linkRecords" :key="batch.id" class="item-subtitle">
         <a href="#" @click.prevent="handleBatchClick(batch)">
-          <span class="sr-only">Batch created </span>{{ human_timestamp(batch.started_on) }}
+          <span class="visually-hidden">Batch created </span>{{ human_timestamp(batch.started_on) }}
         </a>
       </li>
     </ul>

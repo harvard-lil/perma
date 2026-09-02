@@ -61,7 +61,7 @@
         <form method="post" action="{{ change_url }}">
           <input type="hidden" name="account_type" value={{ customer_type }}>
           <fieldset>
-            <legend class="sr-only">Select a new plan</legend>
+            <legend class="visually-hidden">Select a new plan</legend>
             {% for tier in account.tiers %}
               {% if tier.type == 'upgrade' or tier.type == 'downgrade' %}
                 <div class="form-group fg-100">

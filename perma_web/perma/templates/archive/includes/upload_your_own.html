@@ -3,7 +3,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
         <h3 class="modal-title">Upload a file to Perma.cc</h3>
@@ -22,32 +22,32 @@
           {% if link.guid %}
             <div class="modal-actions">
               <div class="form-group">
-                <label class="control-label" for="file">Choose a file <span class="label-instruction">.gif, .jpg, .pdf, and .png allowed, up to {{max_size}} MB</span></label>
+                <label class="form-label" for="file">Choose a file <span class="label-instruction">.gif, .jpg, .pdf, and .png allowed, up to {{max_size}} MB</span></label>
                 <input  id="file" class="file" name="file" type="file" accept=".png,.jpg,.jpeg,.gif,.pdf">
               </div>
               <button type="submit" id="updatePermalink" class="btn btn-primary btn-large">Upload</button>
-              <button type="button" class="btn cancel" data-dismiss="modal" aria-hidden="false">Cancel</button>
+              <button type="button" class="btn cancel" data-bs-dismiss="modal" aria-hidden="false">Cancel</button>
             </div>
           {% else %}
             <div class="form-group">
-              <label class="control-label" for="title">New Perma Link title <span class="label-instruction">The page title associated with this upload</span></label>
+              <label class="form-label" for="title">New Perma Link title <span class="label-instruction">The page title associated with this upload</span></label>
               <input id="title" class="title" name="title" type="text" placeholder="Example Page Title">
             </div>
             <div class="form-group">
-              <label class="control-label" for="description">New Perma Link description <span class="label-instruction">The page description associated with this upload</span></label>
+              <label class="form-label" for="description">New Perma Link description <span class="label-instruction">The page description associated with this upload</span></label>
               <input id="description" class="description" name="description" type="text" placeholder="Example Page Description">
             </div>
             <div class="form-group">
-                <label class="control-label" for="url">New Perma Link URL <span class="label-instruction">The URL associated with this upload</span></label>
+                <label class="form-label" for="url">New Perma Link URL <span class="label-instruction">The URL associated with this upload</span></label>
                 <input id="url" name="url" class="" type="text" placeholder="www.example.com">
             </div>
             <div class="form-group">
-              <label class="control-label" for="file">Choose a file <span class="label-instruction">.gif, .jpg, .pdf, and .png allowed, up to {{max_size}} MB</span></label>
+              <label class="form-label" for="file">Choose a file <span class="label-instruction">.gif, .jpg, .pdf, and .png allowed, up to {{max_size}} MB</span></label>
               <input id="file" class="file" name="file" type="file"  accept=".png,.jpg,.jpeg,.gif,.pdf">
             </div>
             <div class="form-buttons">
               <button type="submit" id="uploadPermalink" class="btn btn-primary btn-large">Create a Perma Link</button>
-              <button type="button" class="btn cancel" data-dismiss="modal" aria-hidden="false">Cancel</button>
+              <button type="button" class="btn cancel" data-bs-dismiss="modal" aria-hidden="false">Cancel</button>
             </div>
           {% endif %}
           {% csrf_token %}
@@ -62,7 +62,7 @@
 <!-- Upload complete modal -->
 <div id="archive-upload-confirm" class="modal _hide fade center">
   <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
       <span aria-hidden="true">&times;</span>
     </button>
     <h3 class="modal-title">Upload a file to Perma.cc</h3>
@@ -75,6 +75,6 @@
     </div>
   </div>
   <div class="modal-footer upload-footer">
-    <a href="#" class="btn" data-dismiss="modal" aria-hidden="true">Close</a>
+    <a href="#" class="btn" data-bs-dismiss="modal" aria-hidden="true">Close</a>
   </div>
 </div>

@@ -21,7 +21,7 @@
 
           <!-- Dashboard tabs -->
           <nav aria-labelledby="page-title">
-            <ul class="nav nav-pills nav-stacked">
+            <ul class="nav nav-pills flex-column">
 
               <!-- Manage users -->
               {% if user_management_perms.show_admin_registrar_nav %}
@@ -54,7 +54,7 @@
       <!-- Dashboard tab content -->
       <div class="tab-content col-sm-9">
         <div class="tab-pane active">
-          <p id="main-skip-target" tabindex="-1" class="sr-only">Main Content</p>
+          <p id="main-skip-target" tabindex="-1" class="visually-hidden">Main Content</p>
           {% block dashboardContent %}{% endblock dashboardContent %}
         </div><!--/.tab-pane-->
       </div><!--/.tab-content-->

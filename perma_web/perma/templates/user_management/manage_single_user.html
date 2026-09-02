@@ -45,7 +45,7 @@
           </p>
           <form action="{% url 'user_management_manage_single_organization_user_remove' user_id=target_user.id %}" method="POST">
             {% csrf_token %}
-            <button name="affiliation" value="{{ aff.id }}" class="btn btn-default btn-xs leave-org-btn" data-toggle="tooltip">Remove</button>
+            <button name="affiliation" value="{{ aff.id }}" class="btn btn-default btn-xs leave-org-btn" data-bs-toggle="tooltip">Remove</button>
           </form>
           <a href="{% url 'user_management_manage_single_organization_user_expiration_date' user_id=target_user.id organization_id=aff.organization_id %}" class="btn btn-xs modify-org-exp-btn">Update</a>
         </div>

@@ -62,7 +62,7 @@
 
   <header{% if link.is_private %} class="_isPrivate"{% endif %}>
     {% if request.user.is_authenticated %}
-    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+    <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
       <span class="icon-bar"></span>
       <span class="icon-bar"></span>
       <span class="icon-bar"></span>
@@ -70,14 +70,14 @@
   {% endif %}
 
     <div class="primary-segment row">
-      <div class="col col-sm-2 _details">
+      <div class="record-col col-sm-2 _details">
         <div class="content">
           <button id="details-button" class="btn btn-ui-small details" type="button">
             <span>Show record details</span>
           </button>
         </div>
       </div>
-      <div class="col col-sm-4 _main {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
+      <div class="record-col col-sm-4 _main {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
         <div class="content">
           <p class="title"><span class="_verbose">This is a </span>{% if link.is_private %}Private {% endif %}<span class="logo">Perma.cc</span> record</p>
           <p class="creation"><span class="cat">{% if capture.user_upload %}Uploaded{% else %}Captured{% endif %}</span> {{ link.creation_timestamp|local_datetime }}</p>
@@ -94,13 +94,13 @@
           </div>
         </div>
       </div>
-      <div class="col col-sm-2 _livepage">
+      <div class="record-col col-sm-2 _livepage">
         <div class="content">
           <a class="btn btn-outside" href="{{link.submitted_url}}" target="_blank">
           <span>View the live page</span></a>
         </div>
       </div>
-      <div class="col col-sm-2 _user {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
+      <div class="record-col col-sm-2 _user {% if request.user.is_authenticated %}_authenticated{% else %}_unauthenticated{% endif %}">
         <div class="content">
           {% if request.user.is_authenticated %}
             {% include 'includes/upper_right_menu.html' %}
@@ -134,11 +134,11 @@
         <div class="tray-detail-group">
           <fieldset>
             <legend class="tray-detail-title">Default view <span class="label-instruction _verbose"> (only visible to you{% if link.organization %} and your organization{% endif %})</span><span class="default_to_screenshot_view-save-status"></span></legend>
-            <label class="radio-inline" for="default_standard">
+            <label class="form-check-inline" for="default_standard">
               <input type="radio" id="default_standard" name="default_to_screenshot_view" value="false" {% if not link.default_to_screenshot_view %} checked {% endif %}>
               Standard
             </label>
-            <label class="radio-inline" for="default_screenshot">
+            <label class="form-check-inline" for="default_screenshot">
               <input type="radio" id="default_screenshot" name="default_to_screenshot_view" value="true" {% if link.default_to_screenshot_view %} checked {% endif %}>
               Screenshot
             </label>
@@ -190,7 +190,7 @@
                 </a>
                 <span class="label-asterisk">*</span>
               </div>
-                <div class="label-instruction pull-right temporary-instructions">
+                <div class="label-instruction float-end temporary-instructions">
                   <span class="label-asterisk">*</span> These options are only available for the first twenty-four hours.
                 </div>
             </div>
@@ -220,7 +220,7 @@
           {% endif %}
         {% endcomment %}
       </div>
-      <div class="tray-actions col-xs-12">
+      <div class="tray-actions col-12">
         {% if request.user.is_staff %}
           <a href="?embed=False" class="btn btn-ui-small btn-dashboard">Show playback controls</a>
         {% endif %}
@@ -276,7 +276,7 @@
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
-            <span class="sr-only">Copy link</span>
+            <span class="visually-hidden">Copy link</span>
           </button>
         </span>
         <span class="link-options verbose">

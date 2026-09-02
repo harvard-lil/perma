@@ -11,7 +11,7 @@
 {% endif %}
 
 <div class="row subscription-buttons">
-  <div class="col-xs-12 col-md-6">
+  <div class="col-12 col-md-6">
     <form method="post" action="{{ update_url }}">
       {% csrf_token %}
       <input type="hidden" name="account_type" value={{ customer_type }}>

@@ -1,58 +1,62 @@
 /*!
-  This is our custom build of Bootstrap 3, based on node_modules/bootstrap-sass/assets/stylesheets/_bootstrap.scss.
+  Perma's custom build of Bootstrap 5 for the archive playback page, based on
+  node_modules/bootstrap/scss/bootstrap.scss.
 
-  - Paths starting with "bootstrap" are replaced with "~bootstrap" to invoke webpack sass-loader's path resolution.
-  - Our variable overrides are set at the top.
-  - Any bootstrap elements we don't use are commented out.
+  Deliberately smaller than _bootstrap-custom.scss: the archive page is served
+  its own stylesheet entry point and needs far less. Keep the two in step where
+  they overlap -- the variable overrides below must match, or the two entry
+  points will disagree on base typography.
  */
 
-// Core variables and mixins
-@import "~bootstrap/variables";
-@import "~bootstrap/mixins";
+//
+// Variable overrides. These MUST precede @import "variables".
+// Kept identical to _bootstrap-custom.scss; see the rationale there.
+//
+$font-size-base: 0.875rem;
+$line-height-base: 1.428571429;
+$grid-gutter-width: 32px;
+$enable-smooth-scroll: false;
+$grid-breakpoints: (
+  xs: 0,
+  sm: 768px,
+  md: 992px,
+  lg: 1200px
+);
+$container-max-widths: (
+  sm: 750px,
+  md: 970px,
+  lg: 1170px
+);
 
-// Reset and dependencies
-@import "~bootstrap/normalize";
-@import "~bootstrap/print";
-//@import "~bootstrap/glyphicons";
+//
+// Required configuration, in Bootstrap's mandated order.
+//
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
+@import "~bootstrap/scss/variables-dark";
+@import "~bootstrap/scss/maps";
+@import "~bootstrap/scss/mixins";
+@import "~bootstrap/scss/utilities";
 
-// Core CSS
-@import "~bootstrap/scaffolding";
-@import "~bootstrap/type";
-//@import "~bootstrap/code";
-@import "~bootstrap/grid";
-//@import "~bootstrap/tables";
-@import "~bootstrap/forms";
-@import "~bootstrap/buttons";
+@import "~bootstrap/scss/root";
+@import "~bootstrap/scss/reboot";
+@import "~bootstrap/scss/type";
+@import "~bootstrap/scss/containers";
+@import "~bootstrap/scss/grid";
+@import "~bootstrap/scss/forms";
+@import "~bootstrap/scss/buttons";
+@import "~bootstrap/scss/dropdown";
+@import "~bootstrap/scss/nav";
+@import "~bootstrap/scss/navbar";
 
-// Components
-//@import "~bootstrap/component-animations";
-@import "~bootstrap/dropdowns";
-//@import "~bootstrap/button-groups";
-//@import "~bootstrap/input-groups";
-@import "~bootstrap/navs";
-@import "~bootstrap/navbar";
-//@import "~bootstrap/breadcrumbs";
-//@import "~bootstrap/pagination";
-//@import "~bootstrap/pager";
-//@import "~bootstrap/labels";
-//@import "~bootstrap/badges";
-//@import "~bootstrap/jumbotron";
-//@import "~bootstrap/thumbnails";
-//@import "~bootstrap/alerts";
-//@import "~bootstrap/progress-bars";
-//@import "~bootstrap/media";
-//@import "~bootstrap/list-group";
-//@import "~bootstrap/panels";
-//@import "~bootstrap/responsive-embed";
-//@import "~bootstrap/wells";
-//@import "~bootstrap/close";
+// `transitions` is deliberately NOT imported, mirroring the Bootstrap 3 build,
+// which commented out `component-animations`. That means this stylesheet has no
+// bare `.collapse` rule -- and it must stay that way. The details tray
+// (#collapse-details) carries the `collapse` class but is hidden by Perma's own
+// `.ui-tray { display: none }` and opened by single-link.module.js setting
+// style.display directly. Importing transitions here would add
+// `.collapse:not(.show) { display: none }` beneath that inline style, which is
+// a rule this page has never had. Pinned by test_ui_archive.py.
 
-// Components w/ JavaScript
-//@import "~bootstrap/modals";
-//@import "~bootstrap/tooltip";
-//@import "~bootstrap/popovers";
-//@import "~bootstrap/carousel";
-
-// Utility classes
-@import "~bootstrap/utilities";
-@import "~bootstrap/responsive-utilities";
+@import "~bootstrap/scss/helpers";
+@import "~bootstrap/scss/utilities/api";

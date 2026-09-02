@@ -14,24 +14,21 @@ if (settings.USE_SENTRY) {
   });
 }
 
-var FastClick = require('fastclick');
-
 var Helpers = require('./helpers/general.helpers.js');
 require('./helpers/fix-links.js');  // https://github.com/harvard-lil/accessibility-tools/tree/master/code/fix-links
 
 
-require('bootstrap-js/dropdown');  // make menus work
-require('bootstrap-js/collapse');  // make menu toggle for small screen work
-require('bootstrap-js/carousel');  // make carousels work
-require('bootstrap-js/tab');       // make tabs work (used on /manage/stats)
+// Bootstrap 5's dist modules are UMD and register their own data-api, so these
+// bare requires wire up the data-bs-* attributes exactly as the v3 plugins did.
+// No carousel: the last carousel markup is long gone, so v3's require was dead.
+require('bootstrap/js/dist/dropdown');  // make menus work
+require('bootstrap/js/dist/collapse');  // make menu toggle for small screen work
+require('bootstrap/js/dist/tab');       // make tabs work (used on /manage/stats)
 
 // We used to use modernizr but have currently dropped it.
 // If we want to include it again this is where to put it --
 //    see https://github.com/Modernizr/Modernizr/issues/878#issuecomment-41448059
 // https://www.npmjs.com/package/modernizr-webpack-plugin
-
-// initialize fastclick
-FastClick.attach(document.body);
 
 // set up jquery to properly set CSRF header on AJAX post
 // via https://docs.djangoproject.com/en/dev/ref/contrib/csrf/#ajax
@@ -59,9 +56,13 @@ $(document).on('click', '.popup-alert', function() {
   $(this).remove();
 });
 
-// put focus on first form input element when a form is revealed by bootstrap UI
-$('.collapse').on('shown.bs.collapse', function () {
-  $(this).find('input[type="text"]').focus();
+// Put focus on first form input element when a form is revealed by bootstrap UI.
+// Deliberately not jQuery: jQuery would read 'shown.bs.collapse' as the event
+// 'shown' in the namespaces 'bs' and 'collapse', which matched Bootstrap 3
+// because it triggered through jQuery. Bootstrap 5 dispatches a native event
+// whose name really is 'shown.bs.collapse', so a jQuery handler never fires.
+document.addEventListener('shown.bs.collapse', function (event) {
+  event.target.querySelector('input[type="text"]')?.focus();
 });
 
 // add trap to contact and report forms
