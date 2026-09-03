@@ -218,6 +218,23 @@ After changing dependencies, rebuild the image (`docker compose build web`) so
 its baked `node_modules` matches, and recreate the `node_modules` volume if the
 container needs to pick the change up.
 
+#### The js-wacz worker has its own manifest
+
+`services/js-wacz/` is a second, independent npm project holding only
+`@harvard-lil/js-wacz`, which `perma/celery_tasks.py` shells out to for WARC
+to WACZ conversion. It is **not** part of `perma_web`'s dependency tree and is
+not covered by `npm-shrinkwrap.json`.
+
+Upgrading it always requires an image rebuild. `services/` is not bind-mounted
+into the `web` container, and `perma_web/Dockerfile` deletes both manifests
+right after running `npm ci --prefix /perma/services/js-wacz/`, so the container
+holds only the installed `node_modules` and editing the manifest alone changes
+nothing you can run. Bump the version, then `docker compose build web`.
+
+Note also that `docker-compose.override.yml`'s `x-hash-paths` — the file list
+whose hashes drive the web image tag — does not include these manifests, so a
+worker-only dependency change does not by itself cause CI to rebuild the image.
+
 ### Migrate the database
 
 ```
@@ -439,6 +456,53 @@ before refactoring:
 Use `color.adjust($c, $lightness: $n)` to replace a deprecated `lighten()`.
 Sass's own deprecation message suggests `color.scale()`, which computes a
 different colour.
+
+#### jQuery and the remaining legacy libraries
+
+Perma is on **jQuery 4**. Nothing imports it by name: `webpack.ProvidePlugin`
+injects `$`, `jQuery`, and `window.jQuery` into every module that references
+them.
+
+**That injection must name the default export** — `jQuery: ["jquery", "default"]`,
+not `jQuery: "jquery"`. jQuery 4 added an `exports` map to its package, so
+webpack now resolves the injection to the ESM build, and a bare module name
+provides the *module namespace object* rather than jQuery itself. The symptom is
+`$.ajaxSetup is not a function` thrown from `global.js` on every page, with a
+green build and no warning. jsTree's own CommonJS `require("jquery")` resolves
+through jQuery's `bundler-require-wrapper` to the same single instance, so both
+entry points share one jQuery.
+
+**jQuery 4 also throws when imported without a DOM.** jQuery 3 exported a
+factory in that case; jQuery 4 does not, so `import "jquery"` in a Node-environment
+test fails at module load with `jQuery requires a window with a document`. That
+is why `spec/vitest.setup.js` imports it only when `document` exists — the
+Webpack build contract runs under `@vitest-environment node`.
+
+**`package.json` carries an `overrides` entry** forcing `jstree`'s `jquery`
+peer to the top-level version. jsTree 3.3.x declares `jquery: ^3.5.0`, which
+excludes jQuery 4. Without the override npm does not fail — it silently nests a
+second jQuery 3 under `node_modules/jstree`, and jsTree then registers
+`$.fn.jstree` on a different instance from the one the application holds. The
+override is safe because jsTree's source uses none of the APIs jQuery 4 removed;
+recheck that if jsTree is upgraded. After any jQuery-adjacent change, confirm
+`npm ls jquery` reports a single deduped instance.
+
+**spin.js 4 needs its stylesheet imported.** `Spinner.vue` imports
+`spin.js/spin.css` alongside the named `{ Spinner }` export, because v4 animates
+via CSS `@keyframes` shipped in that file rather than from JavaScript. Drop the
+import and the spinner still mounts and raises nothing — it just stops moving.
+`spec/build/webpack-contract.spec.js` asserts the built `dashboard.css` contains
+`@keyframes spinner-line-fade-default` for exactly this reason. For the same
+reason `Spinner.vue` expresses reduced motion as `animation: 'none'` rather than
+`speed: 0`, which merely emitted an invalid duration the browser discarded.
+
+**Removed, with no replacement needed.** `jquery-form`, `waypoints`, and
+`modernizr` were declared but imported by nothing; `resolve-url-loader` was
+removed after building with and without it produced byte-identical CSS, source
+maps, and emitted assets. It rewrites relative `url()`s to resolve against the
+partial that wrote them rather than the entry, and every Perma `.scss` lives in
+one directory, so the two resolutions agree. Restore it if SCSS ever moves into
+subdirectories.
 
 #### Accessibility and UI behavior are covered by tests
 

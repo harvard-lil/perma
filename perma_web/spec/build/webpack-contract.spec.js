@@ -169,6 +169,16 @@ describe('CSS extraction and order', () => {
     expect(faIndex).toBeGreaterThan(-1)
     expect(scssIndex).toBeLessThan(faIndex)
   })
+
+  it('bundles spin.js\'s keyframes into dashboard.css, which its inline animation depends on', () => {
+    // spin.js 4 animates by naming a keyframe defined in spin.js/spin.css, imported by
+    // Spinner.vue. Drop that import and the spinner mounts, renders, raises nothing, and simply
+    // stops moving -- a failure no jsdom test can see, since Vitest does not process CSS imports.
+    // This is the assertion that catches it.
+    const css = fs.readFileSync(path.join(build1.outDir, 'dashboard.css'), 'utf8')
+
+    expect(css).toContain('@keyframes spinner-line-fade-default')
+  })
 })
 
 describe('image/font inline-vs-resource threshold (url-loader limit: 10000)', () => {

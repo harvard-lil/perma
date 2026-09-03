@@ -1,8 +1,19 @@
 import { afterEach, vi } from 'vitest'
-import jQuery from 'jquery'
 
-globalThis.$ = jQuery
-globalThis.jQuery = jQuery
+// The Webpack build contract runs in the node environment but still loads this
+// shared setup file, so every DOM touch below has to be guarded.
+const hasDom = typeof document !== 'undefined'
+
+// jQuery 4 removed the DOM-less factory export jQuery 3 shipped, so a bare
+// import now throws "jQuery requires a window with a document" at module load
+// instead of yielding a factory. The build contract only reads build output and
+// never executes jQuery, so skip the import when there is no DOM.
+if (hasDom) {
+  const { default: jQuery } = await import('jquery')
+  globalThis.$ = jQuery
+  globalThis.jQuery = jQuery
+}
+
 globalThis.waffle = {FLAGS: {}}
 globalThis.links_remaining = Infinity
 globalThis.is_nonpaying = false
@@ -16,10 +27,6 @@ globalThis.subscription_status = ''
 globalThis.max_size = 0
 globalThis.urls = {}
 globalThis.current_user = {top_level_folders: []}
-
-// The Webpack build contract runs in the node environment but still loads this
-// shared setup file, so every DOM touch below has to be guarded.
-const hasDom = typeof document !== 'undefined'
 
 if (hasDom) {
   if (!HTMLDialogElement.prototype.showModal) {

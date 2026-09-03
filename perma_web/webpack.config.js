@@ -55,8 +55,15 @@ module.exports = {
     }),
 
     new webpack.ProvidePlugin({
-      // Automatically detect jQuery and $ as free var in modules and inject the jquery library
-      jQuery: "jquery", $: "jquery", "window.jQuery": "jquery"
+      // Automatically detect jQuery and $ as free var in modules and inject the jquery library.
+      // The ['jquery', 'default'] form is required from jQuery 4 on: jQuery 4 added an `exports`
+      // map, so webpack now resolves this injection to the ESM build and a bare "jquery" would
+      // provide the module namespace object instead of jQuery itself -- $.ajaxSetup would be
+      // undefined and global.js would throw on load. jsTree's own CommonJS require still resolves
+      // through jQuery's bundler-require-wrapper to the same single instance.
+      jQuery: ["jquery", "default"],
+      $: ["jquery", "default"],
+      "window.jQuery": ["jquery", "default"]
     }),
 
 
@@ -127,7 +134,11 @@ module.exports = {
         use: [
           MiniCssExtractPlugin.loader,
           "css-loader",
-          "resolve-url-loader",
+          // No resolve-url-loader: it rewrites relative url()s to resolve against the partial that
+          // wrote them rather than the entry, and Perma has no such case -- every .scss lives in
+          // this one directory, so both resolutions agree, and Bootstrap's only url()s are inline
+          // data: URIs. Removing it left all CSS, all CSS source maps, and all 25 emitted asset
+          // files byte-identical. Restore it if SCSS ever moves into subdirectories.
           {
             loader: 'postcss-loader',
             options: {
@@ -182,9 +193,6 @@ module.exports = {
     extensions: ['.js', '.jsx'],
 
     alias: {
-      'airbrake-js$': 'airbrake-js/lib/client.js', // Exact match
-      'airbrake-js': 'airbrake-js/lib', // and again with a fuzzy match,
-
       'jstree-css': 'jstree/dist/themes',
 
       'handlebars': 'handlebars/dist/handlebars.min.js',
@@ -195,9 +203,9 @@ module.exports = {
       // alias would prefix-match `bootstrap/js/dist/*` too and rewrite the
       // JS requires into `bootstrap/scss/js/dist/*`.
 
-      'papaparse': 'papaparse/papaparse.min.js',
-
-      'jquery-form': 'jquery-form/jquery.form.js',
+      // Removed with their packages in Phase 5: 'jquery-form' (declared but
+      // never imported), plus 'airbrake-js' and 'papaparse', which aliased
+      // packages that were not even declared and so resolved to nothing.
 
       'vue': 'vue/dist/vue.esm-bundler.js'
     }

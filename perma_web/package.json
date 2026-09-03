@@ -17,7 +17,7 @@
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^8.0.1",
-    "@babel/plugin-transform-runtime": "^8.0.0",
+    "@babel/plugin-transform-runtime": "^8.0.1",
     "@babel/preset-env": "^8.0.2",
     "@popperjs/core": "^2.11.8",
     "@vitejs/plugin-vue": "^6.0.8",
@@ -28,25 +28,27 @@
     "babel-plugin-polyfill-corejs3": "^1.0.0",
     "bootstrap": "^5.3.8",
     "css-loader": "^7.1.5",
-    "handlebars": "^4.7.6",
-    "jquery": "^3.5.1",
-    "jquery-form": "^3.50.0",
+    "handlebars": "^4.7.9",
+    "jquery": "^4.0.0",
     "jsdom": "^30.0.1",
-    "jstree": "^3.3.10",
+    "jstree": "^3.3.17",
     "mini-css-extract-plugin": "^2.10.2",
-    "modernizr": "^3.11.3",
     "postcss": "^8.5.26",
     "postcss-loader": "^8.2.1",
-    "resolve-url-loader": "^5.0.0",
     "sass": "^1.103.1",
     "sass-loader": "^17.0.1",
-    "spin.js": "^2.3.2",
+    "spin.js": "^4.1.2",
     "vite": "^8.2.2",
     "vitest": "^4.1.11",
-    "waypoints": "^4.0.1",
-    "webpack": "^5.110.2",
+    "webpack": "^5.110.3",
     "webpack-bundle-tracker": "^3.2.4",
     "webpack-cli": "^7.2.3"
+  },
+  "//overrides": "jstree 3.3.x declares peerDependencies jquery ^3.5.0, which excludes jQuery 4. Without this override npm does not fail -- it silently nests a second jQuery 3.7.1 under node_modules/jstree, so jsTree would register $.fn.jstree on a different jQuery instance than ProvidePlugin injects into application code, breaking the folder tree at runtime with a green build. jsTree's source was scanned and uses none of the APIs jQuery 4 removed. Revisit if jsTree ships a release declaring jQuery 4 support, or if its source starts using a removed API.",
+  "overrides": {
+    "jstree": {
+      "jquery": "$jquery"
+    }
   },
   "dependencies": {
     "@babel/runtime-corejs3": "^8.0.0",
