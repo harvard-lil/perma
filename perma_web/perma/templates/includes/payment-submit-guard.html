@@ -1,0 +1,32 @@
+{% comment %}
+  Ignore repeat submits of payment forms, so a double-click can't POST the
+  same encrypted payload twice. The pageshow handler re-arms the forms when
+  the browser restores this page from the back-forward cache (e.g. the back
+  button from Stripe Checkout), where the frozen DOM would otherwise leave
+  the buttons dead.
+{% endcomment %}
+<script>
+  document.addEventListener('submit', function (e) {
+    var form = e.target.closest('form.payments-form');
+    if (!form) return;
+    if (form.dataset.submitted) {
+      e.preventDefault();
+      return;
+    }
+    form.dataset.submitted = 'true';
+    form.querySelectorAll('button, input[type="submit"]').forEach(function (el) {
+      el.classList.add('disabled');
+      el.setAttribute('aria-disabled', 'true');
+    });
+  });
+  window.addEventListener('pageshow', function (e) {
+    if (!e.persisted) return;
+    document.querySelectorAll('form.payments-form[data-submitted]').forEach(function (form) {
+      delete form.dataset.submitted;
+      form.querySelectorAll('button, input[type="submit"]').forEach(function (el) {
+        el.classList.remove('disabled');
+        el.removeAttribute('aria-disabled');
+      });
+    });
+  });
+</script>

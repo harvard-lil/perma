@@ -6,7 +6,7 @@
 
 <div class="row">
   {% for package in bonus_packages %}
-    <form class="purchase-form col-xs-12 col-md-3"
+    <form class="purchase-form payments-form col-xs-12 col-md-3"
           method="post"
           action="{{ purchase_url }}">
       <button>
@@ -29,7 +29,7 @@
 
 <div class="row subscription-buttons">
   <div class="col-xs-12 col-md-6">
-    <form method="post" action="{{ billing_portal_url }}">
+    <form class="payments-form" method="post" action="{{ billing_portal_url }}">
       <input type="hidden" name="encrypted_data" value="{{ billing_encrypted_data }}">
       <button class="btn btn-primary" type="submit">Billing and Purchase History</button>
     </form>

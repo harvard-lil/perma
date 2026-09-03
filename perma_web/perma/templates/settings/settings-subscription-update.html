@@ -44,7 +44,7 @@
           </dd>
         </dl>
 
-        <form method="post" action="{{ change_url }}">
+        <form class="payments-form" method="post" action="{{ change_url }}">
           <input type="hidden" name="account_type" value={{ customer_type }}>
           {% for tier in account.tiers %}
             {% if tier.type == 'cancel_downgrade' %}
@@ -58,7 +58,7 @@
 
       {% else %}
 
-        <form method="post" action="{{ change_url }}">
+        <form class="payments-form" method="post" action="{{ change_url }}">
           <input type="hidden" name="account_type" value={{ customer_type }}>
           <fieldset>
             <legend class="sr-only">Select a new plan</legend>
@@ -94,11 +94,15 @@
 
     <h3 class="body-bh">Manage Payment and Billing</h3>
     <p class="page-dek">Update payment information, view invoices and receipts, or cancel your subscription via Stripe's secure customer portal.</p>
-    <form method="post" action="{{ update_url }}">
+    <form class="payments-form" method="post" action="{{ update_url }}">
       <input type="hidden" name="encrypted_data" value={{ update_encrypted_data }}>
       <button class="btn btn-primary" type="submit">
         Manage Payment and Billing
       </button>
     </form>
 
+{% endblock %}
+
+{% block scripts %}
+  {% include 'includes/payment-submit-guard.html' %}
 {% endblock %}

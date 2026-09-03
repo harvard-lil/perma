@@ -13,7 +13,7 @@
   {% for tier in account.tiers %}
     {% if tier.type == 'upgrade' or tier.type == 'downgrade' %}
       {% if tier.period == 'monthly' and customer.offer_monthly or tier.period == 'annually' and customer.offer_annual %}
-        <form class="upgrade-form col-xs-12 col-md-3" method="post" action="{{ subscribe_url }}">
+        <form class="upgrade-form payments-form col-xs-12 col-md-3" method="post" action="{{ subscribe_url }}">
           {% if tier.period == 'monthly' %}
             {% if customer_type == 'Registrar' %}
               <button>
