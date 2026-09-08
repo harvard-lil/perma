@@ -262,7 +262,7 @@ def reconcile_user_link_counts(ctx, dry_run=False):
     )
 
     mismatches = []
-    for user in LinkUser.objects.only("pk", "link_count").iterator():
+    for user in tqdm(LinkUser.objects.only("pk", "link_count").iterator()):
         actual_count = link_counts.get(user.pk, 0)
         if user.link_count != actual_count:
             user.link_count = actual_count
