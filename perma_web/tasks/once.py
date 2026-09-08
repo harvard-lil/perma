@@ -254,12 +254,14 @@ def reconcile_user_link_counts(ctx, dry_run=False):
     Set LinkUser.link_count to the count of non-deleted links created by each user.
     Pass dry_run=True to get the count of mismatches without updating.
     """
+    logger.info("reconcile_user_link_counts: Preparing to count links created by each user.")
     link_counts = dict(
         Link.objects
         .values("created_by_id")
         .annotate(actual_count=Count("pk"))
         .values_list("created_by_id", "actual_count")
     )
+    logger.info("reconcile_user_link_counts: link_counts dict was successfully created.") 
 
     mismatches = []
     for user in tqdm(LinkUser.objects.only("pk", "link_count").iterator()):
