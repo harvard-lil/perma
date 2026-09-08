@@ -1,4 +1,5 @@
-from perma.celery_tasks import reconcile_user_link_counts
+from tasks.once import reconcile_user_link_counts
+from invoke import Context
 
 
 def test_reconcile_user_link_counts_sets_cache_from_non_deleted_links(link_user, link_factory):
@@ -11,7 +12,8 @@ def test_reconcile_user_link_counts_sets_cache_from_non_deleted_links(link_user,
     link_user.link_count = 99
     link_user.save(update_fields=['link_count'])
 
-    updated = reconcile_user_link_counts()
+    ctx = Context()
+    updated = reconcile_user_link_counts(ctx)
 
     link_user.refresh_from_db()
     assert updated >= 1
@@ -24,7 +26,8 @@ def test_reconcile_user_link_counts_dry_run_does_not_write(link_user, link_facto
     link_user.link_count = 99
     link_user.save(update_fields=['link_count'])
 
-    count = reconcile_user_link_counts(dry_run=True)
+    ctx = Context()
+    count = reconcile_user_link_counts(ctx, dry_run=True)
 
     link_user.refresh_from_db()
     assert count >= 1

@@ -246,3 +246,37 @@ def clear_successful_scoop_logs(ctx, batch_size=500):
         CaptureJob.objects.filter(id__in=batch).update(scoop_logs=None)
 
     logger.info("END: clear_successful_scoop_logs")
+
+
+@task
+def reconcile_user_link_counts(ctx, dry_run=False):
+    """
+    Set LinkUser.link_count to the count of non-deleted links created by each user.
+    Pass dry_run=True to get the count of mismatches without updating.
+    """
+    link_counts = dict(
+        Link.objects
+        .values("created_by_id")
+        .annotate(actual_count=Count("pk"))
+        .values_list("created_by_id", "actual_count")
+    )
+
+    mismatches = []
+    for user in LinkUser.objects.only("pk", "link_count").iterator():
+        actual_count = link_counts.get(user.pk, 0)
+        if user.link_count != actual_count:
+            user.link_count = actual_count
+            mismatches.append(user)
+
+    mismatch_count = len(mismatches)
+
+    if dry_run:
+        logger.info(f"Would update {mismatch_count} LinkUser records.")
+        return mismatch_count
+
+    if mismatches:
+        LinkUser.objects.bulk_update(mismatches, ["link_count"])
+
+    logger.info(f"Updated {mismatch_count} LinkUser records.")
+    return mismatch_count
+
