@@ -242,13 +242,20 @@ class CustomerModel(models.Model):
         self.cached_subscription_status = post_data['subscription']['status']
         self.cached_paid_through = pp_date_from_post(post_data['subscription']['paid_through'])
 
-        pending_change = None
-        # Perma Payments should always supply an effective timestamp, but the
-        # field is nullable there, so a missing value would raise on the
-        # comparison below (None <= datetime). Treat a missing timestamp as
-        # already applied: show the returned tier as current with no pending
-        # change, rather than 500 the usage-plan page.
-        if subscription_change_effective is None or subscription_change_effective <= timezone.now():
+        # Perma Payments reports any scheduled downgrade in pending_change.
+        # While one is pending, leave the local tier fields alone: they
+        # already hold the current tier.
+        pending_change = post_data['subscription']['pending_change']
+        if pending_change:
+            pending_change = {
+                'rate': pending_change['rate'],
+                'link_limit': pending_change['link_limit'],
+                # downgrades can't switch between monthly and annual billing,
+                # so the pending change keeps the subscription's frequency
+                'frequency': post_data['subscription']['frequency'],
+                'effective': pp_date_from_post(pending_change['effective']),
+            }
+        else:
             self.link_limit_period = post_data['subscription']['frequency']
             self.cached_subscription_rate = Decimal(post_data['subscription']['rate'])
             if post_data['subscription']['link_limit'] == 'unlimited':
@@ -256,13 +263,6 @@ class CustomerModel(models.Model):
             else:
                 self.unlimited = False
                 self.link_limit = int(post_data['subscription']['link_limit'])
-        else:
-            pending_change = {
-                'rate': post_data['subscription']['rate'],
-                'link_limit': post_data['subscription']['link_limit'],
-                'frequency': post_data['subscription']['frequency'],
-                'effective': subscription_change_effective
-            }
         self.save(update_fields=['in_trial', 'cached_subscription_started', 'cached_subscription_status', 'cached_paid_through', 'cached_subscription_rate', 'unlimited', 'link_limit', 'link_limit_period'])
         self.refresh_from_db()
 
