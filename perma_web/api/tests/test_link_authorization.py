@@ -65,6 +65,17 @@ class LinkAuthorizationMixin():
                            'title': 'This is a new title',
                            'default_to_screenshot_view': True}
 
+        # mock the IA tasks that are called when the privacy toggle is used
+        self.ia_upload_from_privacy_toggle_patcher = patch('api.views.links.upload_link_to_internet_archive.delay')
+        self.ia_deletion_from_privacy_toggle_patcher = patch('api.views.links.delete_link_from_daily_item.delay')
+        self.mock_upload_link_to_internet_archive_delay = self.ia_upload_from_privacy_toggle_patcher.start()
+        self.mock_delete_link_from_daily_item_delay = self.ia_deletion_from_privacy_toggle_patcher.start()
+
+    def tearDown(self):
+        self.ia_upload_from_privacy_toggle_patcher.stop()
+        self.ia_deletion_from_privacy_toggle_patcher.stop()
+        super().tearDown()
+
     def get_public_link_url(self, link):
         return "{0}/{1}".format(self.public_list_url, link.pk)
 

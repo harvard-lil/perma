@@ -13,7 +13,11 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework import status
 
-from perma.celery_tasks import run_next_capture
+from perma.celery_tasks import (
+    delete_link_from_daily_item,
+    run_next_capture,
+    upload_link_to_internet_archive
+)
 from perma.models import Capture, CaptureJob, Folder, Link, LinkBatch
 from perma.utils import stream_archive_if_permissible
 
@@ -353,10 +357,15 @@ class AuthenticatedLinkDetailView(BaseView):
                 if was_private:
                     # if link was private but has been marked public, mark it for upload.
                     link.internet_archive_upload_status = 'upload_or_reupload_required'
+                    link.save(update_fields=["internet_archive_upload_status"])
+                    logger.info(f"Link {link.guid} was toggled to public. Requesting the IA upload.")
+                    upload_link_to_internet_archive.delay(link.guid)
                 else:
                     # if link was public but has been marked private, mark it for deletion.
                     link.internet_archive_upload_status = 'deletion_required'
-                link.save(update_fields=["internet_archive_upload_status"])
+                    link.save(update_fields=["internet_archive_upload_status"])
+                    logger.info(f"Link {link.guid} was toggled to private. Requesting the IA deletion.")
+                    delete_link_from_daily_item.delay(link.guid)
 
             # include remaining links in response
             links_remaining = request.user.get_links_remaining()

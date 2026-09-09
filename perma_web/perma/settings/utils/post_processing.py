@@ -62,13 +62,17 @@ def post_process_settings(settings):
             'task': 'perma.celery_tasks.sync_subscriptions_from_perma_payments',
             'schedule': crontab(hour='23', minute='0')
         },
-        'conditionally_queue_internet_archive_uploads_for_date_range': {
-            'task': 'perma.celery_tasks.conditionally_queue_internet_archive_uploads_for_date_range',
+        'queue_internet_archive_pending_work': {
+            'task': 'perma.celery_tasks.queue_internet_archive_pending_work',
             'schedule': crontab(minute="*/5"),
             'args': (
                 os.environ.get('IA_UPLOAD_START_DATESTRING') or None,
                 os.environ.get('IA_UPLOAD_END_DATESTRING') or None
             )
+        },
+        'queue_internet_archive_privacy_toggled_still_pending': {
+            'task': 'perma.celery_tasks.queue_internet_archive_privacy_toggled_still_pending',
+            'schedule': crontab(hour='3', minute='0'),
         },
         'confirm_files_uploaded_to_internet_archive': {
             'task': 'perma.celery_tasks.queue_file_uploaded_confirmation_tasks',

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from datetime import timezone as tz
 
 from django.conf import settings
@@ -12,6 +12,26 @@ from model_utils import FieldTracker
 from psycopg2.extras import DateTimeTZRange
 
 from perma.utils import protocol, remove_control_characters
+
+
+# Daily items with span at or before this range are excluded from backlog scheduling
+# and monitoring (early daily-item era, before the current pipeline).
+# When the new pipeline is complete, we should be able to remove all
+# references to this value. We keep it for now, to be cautious.
+DAILY_ITEM_BACKLOG_SPAN_FLOOR = ('2021-11-10', '2021-11-11')
+
+# Links created after this date were only uploaded to daily IA items, not legacy per-link items.
+LAST_INDIVIDUAL_LINK_IA_UPLOAD_DATE = '2022-10-03'
+
+# Daily IA items Perma cannot edit on Internet Archive; skip uploads and confirmation tasks.
+# We need IA's help to resolve the situation; once they transfer ownership of these items,
+# we should be able to remove all references to this value.
+UNEDITABLE_DAILY_ITEM_DATE_STRINGS = frozenset({
+    '2022-07-19',
+    '2022-07-20',
+    '2022-07-21',
+    '2022-07-25',
+})
 
 
 def get_empty_datetime_range():
@@ -72,7 +92,17 @@ class InternetArchiveItem(models.Model):
     cached_description = models.TextField(null=True, blank=True, default=None)
 
     tasks_in_progress = models.IntegerField(default=0, db_index=True, help_text="We have asked Internet Archive to run appx this many tasks for this item and have not yet confirmed that those tasks are complete; derivative tasks not counted.")
-    complete = models.BooleanField(default=False, help_text="Has all the files it ought to have; has no files it ought not have.")
+    initial_uploads_complete = models.BooleanField(
+        default=False,
+        verbose_name='Initial uploads complete',
+        help_text=(
+            "True when a daily upload task has found zero eligible links for this calendar day "
+            "that lack an InternetArchiveFile. Only set after the IA Item is older than yesterday, "
+            "to avoid missing any links. The daily upload scheduler skips days marked True. "
+            "This field does not consider whether the day's IA Item lacks links due to later "
+            "eligibility changes, such as changes in links' privacy."
+        ),
+    )
     last_derived = models.DateTimeField(null=True, blank=True)
     derive_required = models.BooleanField(default=False)
 
@@ -111,6 +141,91 @@ class InternetArchiveItem(models.Model):
     @classmethod
     def inflight_task_count(cls):
         return cls.objects.aggregate(Sum('tasks_in_progress'))['tasks_in_progress__sum']
+
+
+    """Filter kwargs for daily InternetArchiveItem backlog queries."""
+def daily_item_backlog_queryset_filter(*, initial_uploads_complete=None):
+    filters = {
+        'span__isempty': False,
+        'span__gt': DAILY_ITEM_BACKLOG_SPAN_FLOOR,
+    }
+    if initial_uploads_complete is not None:
+        filters['initial_uploads_complete'] = initial_uploads_complete
+    return filters
+
+
+def _daily_item_span_overlap_range(window_start, window_end):
+    return DateTimeTZRange(
+        InternetArchiveItem.datetime(f'{window_start.isoformat()} 00:00:00'),
+        InternetArchiveItem.datetime(f'{(window_end + timedelta(days=1)).isoformat()} 00:00:00'),
+    )
+
+
+def daily_item_dates_in_window(window_start, window_end):
+    """
+    Return dates that have a daily InternetArchiveItem whose span overlaps
+    [window_start, window_end] (inclusive calendar days).
+    """
+    if window_start > window_end:
+        return frozenset()
+
+    return frozenset(
+        item.span.lower.date()
+        for item in InternetArchiveItem.objects.filter(
+            **daily_item_backlog_queryset_filter(),
+            span__overlap=_daily_item_span_overlap_range(window_start, window_end),
+        ).only('span')
+    )
+
+
+def initial_uploads_incomplete_dates_in_window(window_start, window_end):
+    """Days in [window_start, window_end] where initial_uploads_complete is False, oldest first."""
+    if window_start > window_end:
+        return []
+
+    return [
+        span.lower.date()
+        for span in initial_uploads_incomplete_queryset().filter(
+            span__overlap=_daily_item_span_overlap_range(window_start, window_end),
+        ).order_by('span').values_list('span', flat=True)
+    ]
+
+
+def initial_uploads_incomplete_queryset():
+    return InternetArchiveItem.objects.filter(
+        **daily_item_backlog_queryset_filter(initial_uploads_complete=False),
+    )
+
+
+def initial_uploads_incomplete_stats():
+    """
+    Count and span bounds for days where the initial upload pass is not complete.
+    """
+    qs = initial_uploads_incomplete_queryset()
+    count = qs.count()
+    if not count:
+        return {'count': 0, 'oldest': None, 'newest': None}
+    oldest_span = qs.order_by('span').values_list('span', flat=True).first()
+    newest_span = qs.order_by('-span').values_list('span', flat=True).first()
+    return {
+        'count': count,
+        'oldest': oldest_span.lower.date(),
+        'newest': newest_span.lower.date(),
+    }
+
+
+def uneditable_daily_item_identifiers():
+    return [
+        InternetArchiveItem.DAILY_IDENTIFIER.format(
+            prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX,
+            date_string=date_string,
+        )
+        for date_string in sorted(UNEDITABLE_DAILY_ITEM_DATE_STRINGS)
+    ]
+
+
+def uneditable_daily_item_dates():
+    return frozenset(date.fromisoformat(d) for d in UNEDITABLE_DAILY_ITEM_DATE_STRINGS)
 
 
 class InternetArchiveFile(models.Model):
