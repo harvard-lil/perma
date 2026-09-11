@@ -32,11 +32,6 @@ FIELDS_REQUIRED_FROM_PERMA_PAYMENTS = {
         'customer_type',
         'subscription',
         'purchases'
-    ],
-    'get_purchase_history': [
-        'customer_pk',
-        'customer_type',
-        'purchase_history'
     ]
 }
 
@@ -136,51 +131,6 @@ class CustomerModel(models.Model):
         return (getattr(self, 'name', '') or '').strip() or None
 
     @sensitive_variables()
-    def get_purchase_history(self):
-        if self.nonpaying:
-            return None
-
-        try:
-            r = requests.post(
-                settings.PAYMENTS_APP_URLS['purchase_history'],
-                timeout=settings.PERMA_PAYMENTS_TIMEOUT,
-                data={
-                    'encrypted_data': prep_for_perma_payments({
-                        'timestamp': datetime.utcnow().timestamp(),
-                        'customer_pk':  self.pk,
-                        'customer_type': self.customer_type
-                    })
-                }
-            )
-            assert r.ok, r.status_code
-        except (requests.RequestException, AssertionError, ImproperlyConfigured) as e:
-            msg = f"Communication with Perma-Payments failed: {e}"
-            if settings.PERMA_PAYMENTS_IN_MAINTENANCE:
-                logger.info(msg)
-            else:
-                logger.error(msg)
-            raise PermaPaymentsCommunicationException(msg)
-
-        post_data = process_perma_payments_transmission(r.json(), FIELDS_REQUIRED_FROM_PERMA_PAYMENTS['get_purchase_history'])
-
-        if post_data['customer_pk'] != self.pk or post_data['customer_type'] != self.customer_type:
-            msg = "Unexpected response from Perma-Payments."
-            logger.error(msg)
-            raise InvalidTransmissionException(msg)
-
-        return {
-            'purchases': [
-                {
-                    'link_quantity': item['link_quantity'],
-                    'date': pp_date_from_post(item['date']),
-                    'reference_number': item['reference_number']
-                } for item in post_data['purchase_history']
-            ],
-            'total_links': sum(int(purchase['link_quantity']) for purchase in post_data['purchase_history'])
-        }
-
-
-    @sensitive_variables()
     def get_subscription(self):
         if self.nonpaying:
             return None
@@ -242,13 +192,20 @@ class CustomerModel(models.Model):
         self.cached_subscription_status = post_data['subscription']['status']
         self.cached_paid_through = pp_date_from_post(post_data['subscription']['paid_through'])
 
-        pending_change = None
-        # Perma Payments should always supply an effective timestamp, but the
-        # field is nullable there, so a missing value would raise on the
-        # comparison below (None <= datetime). Treat a missing timestamp as
-        # already applied: show the returned tier as current with no pending
-        # change, rather than 500 the usage-plan page.
-        if subscription_change_effective is None or subscription_change_effective <= timezone.now():
+        # Perma Payments reports any scheduled downgrade in pending_change.
+        # While one is pending, leave the local tier fields alone: they
+        # already hold the current tier.
+        pending_change = post_data['subscription']['pending_change']
+        if pending_change:
+            pending_change = {
+                'rate': pending_change['rate'],
+                'link_limit': pending_change['link_limit'],
+                # downgrades can't switch between monthly and annual billing,
+                # so the pending change keeps the subscription's frequency
+                'frequency': post_data['subscription']['frequency'],
+                'effective': pp_date_from_post(pending_change['effective']),
+            }
+        else:
             self.link_limit_period = post_data['subscription']['frequency']
             self.cached_subscription_rate = Decimal(post_data['subscription']['rate'])
             if post_data['subscription']['link_limit'] == 'unlimited':
@@ -256,13 +213,6 @@ class CustomerModel(models.Model):
             else:
                 self.unlimited = False
                 self.link_limit = int(post_data['subscription']['link_limit'])
-        else:
-            pending_change = {
-                'rate': post_data['subscription']['rate'],
-                'link_limit': post_data['subscription']['link_limit'],
-                'frequency': post_data['subscription']['frequency'],
-                'effective': subscription_change_effective
-            }
         self.save(update_fields=['in_trial', 'cached_subscription_started', 'cached_subscription_status', 'cached_paid_through', 'cached_subscription_rate', 'unlimited', 'link_limit', 'link_limit_period'])
         self.refresh_from_db()
 
