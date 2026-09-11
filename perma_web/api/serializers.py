@@ -15,6 +15,21 @@ from .utils import get_mime_type, mime_type_lookup, get_download_url
 import logging
 logger = logging.getLogger(__name__)
 
+
+def scope_folder_relationship(serializer, field_name):
+    """Limit a writable folder relationship to folders visible to the requester."""
+    field = serializer.fields[field_name]
+    if field.read_only or field_name not in getattr(serializer, 'initial_data', {}):
+        return
+
+    request = serializer.context.get('request')
+    field.queryset = (
+        Folder.objects.accessible_to(request.user)
+        if request and request.user.is_authenticated
+        else Folder.objects.none()
+    )
+
+
 class BaseSerializer(serializers.ModelSerializer):
     """ Base serializer from which all of our serializers inherit. """
 
@@ -80,13 +95,17 @@ class LinkUserSerializer(BaseSerializer):
 ### FOLDER ###
 
 class FolderSerializer(BaseSerializer):
+    parent = serializers.PrimaryKeyRelatedField(queryset=Folder.objects.none())
     has_children = serializers.SerializerMethodField()
     path = serializers.CharField(source='cached_path', read_only=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        scope_folder_relationship(self, 'parent')
 
     class Meta:
         model = Folder
         fields = ('id', 'name', 'parent', 'has_children', 'path', 'organization', 'sponsored_by', 'is_sponsored_root_folder', 'read_only')
-        extra_kwargs = {'parent': {'required': True, 'allow_null': False}}
         allowed_update_fields = ['name', 'parent']
 
     def get_has_children(self, folder):
@@ -352,7 +371,12 @@ class AuthenticatedLinkSerializer(LinkSerializer):
 ### LINKBATCH ###
 
 class LinkBatchSerializer(BaseSerializer):
+    target_folder = serializers.PrimaryKeyRelatedField(queryset=Folder.objects.none())
     capture_jobs = CaptureJobSerializer(many=True, read_only=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        scope_folder_relationship(self, 'target_folder')
 
     class Meta:
         model = LinkBatch
@@ -367,4 +391,3 @@ class DetailedLinkBatchSerializer(LinkBatchSerializer):
 
 class InternalDailyLinkCountsQuerySerializer(serializers.Serializer):
     lookback_period = serializers.IntegerField(default=30, min_value=1, max_value=365, required=False)
-

@@ -7,6 +7,7 @@ from django.db import transaction
 from django.http import HttpRequest, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.utils.html import format_html
 from ratelimit.decorators import ratelimit
 
 from perma.email import (
@@ -309,13 +310,23 @@ def approve_pending_registrar(request: HttpRequest, registrar_id: int):
                     messages.add_message(
                         request,
                         messages.SUCCESS,
-                        f'<h4>Registrar approved!</h4> <strong>{target_registrar_user.email}</strong> will receive a notification email with further instructions.',
+                        format_html(
+                            '<h4>Registrar approved!</h4> <strong>{}</strong> will receive a notification email with further instructions.',
+                            target_registrar_user.email,
+                        ),
                         extra_tags='safe',
                     )
                 else:
-                    message = f'Registrar request for <strong>{target_registrar}</strong> denied.'
+                    message = format_html(
+                        'Registrar request for <strong>{}</strong> denied.',
+                        target_registrar,
+                    )
                     if target_registrar_user:
-                        message += f' Please inform {target_registrar_user.email} if appropriate.'
+                        message = format_html(
+                            '{} Please inform {} if appropriate.',
+                            message,
+                            target_registrar_user.email,
+                        )
                     messages.add_message(
                         request,
                         messages.SUCCESS,

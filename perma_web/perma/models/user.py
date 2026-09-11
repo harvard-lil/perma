@@ -256,15 +256,17 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
             Admins share scope with all users.
         """
         if self.is_organization_user:
-            orgs = other_user.organizations.all() & self.organizations.all()
-            return len(orgs) > 0
+            return other_user.organizations.filter(
+                pk__in=self.organizations.values('pk')
+            ).exists()
         elif self.is_registrar_user():
-            if self.registrar == other_user.registrar:
+            if self.registrar_id == other_user.registrar_id:
                 return True
-            if self.registrar in other_user.sponsoring_registrars.all():
+            if other_user.sponsoring_registrars.filter(pk=self.registrar_id).exists():
                 return True
-            orgs = other_user.organizations.all() & Organization.objects.filter(registrar=self.registrar)
-            return len(orgs) > 0
+            return other_user.organizations.filter(
+                registrar_id=self.registrar_id
+            ).exists()
         elif self.is_staff:
             return True
         return False
@@ -339,8 +341,8 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
     def can_edit_organization(self, organization):
         if self.is_staff:
             return True
-        elif self.registrar:
-            return self.registrar == organization.registrar
+        elif self.registrar_id:
+            return self.registrar_id == organization.registrar_id
         else:
             return self.organizations.filter(pk=organization.pk).exists()
 

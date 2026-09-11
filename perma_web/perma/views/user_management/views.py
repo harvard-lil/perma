@@ -24,6 +24,7 @@ from django.shortcuts import get_object_or_404, render
 from django.template.context_processors import csrf
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
+from django.utils.html import format_html
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic import UpdateView
@@ -846,14 +847,22 @@ class BaseAddUserToGroup(UpdateView):
         response = super(BaseAddUserToGroup, self).form_valid(form)
 
         def add_message(level, title, body):
-            messages.add_message(self.request, level, f'<h4>{title}</h4>{body}', extra_tags='safe')
+            messages.add_message(
+                self.request,
+                level,
+                format_html('<h4>{}</h4>{}', title, body),
+                extra_tags='safe',
+            )
 
         if self.is_new:
             self.send_new_user_activation_email(form)
             add_message(
                 messages.SUCCESS,
                 "Account created!",
-                f"<strong>{self.object.email}</strong> will receive an email with instructions on how to activate the account and create a password."
+                format_html(
+                    "<strong>{}</strong> will receive an email with instructions on how to activate the account and create a password.",
+                    self.object.email,
+                ),
             )
         else:
             send_user_email(
@@ -861,7 +870,11 @@ class BaseAddUserToGroup(UpdateView):
                 self.confirmation_email_template,
                 self.get_user_confirmation_email_context(form),
             )
-            add_message(messages.SUCCESS, "Success!", f"<strong>{self.object.email}</strong> added.")
+            add_message(
+                messages.SUCCESS,
+                "Success!",
+                format_html("<strong>{}</strong> added.", self.object.email),
+            )
 
         return response
 
@@ -973,29 +986,37 @@ class AddMultipleUsersToOrganization(RequireOrgOrRegOrAdminUser, RegistrarAffili
         response = super(BaseAddUserToGroup, self).form_valid(form)
 
         def add_message(level, title, body):
-            messages.add_message(self.request, level, f'<h4>{title}</h4>{body}', extra_tags='safe')
+            messages.add_message(
+                self.request,
+                level,
+                format_html('<h4>{}</h4>{}', title, body),
+                extra_tags='safe',
+            )
 
         if form.created_users:
             self._send_bulk_new_user_emails(form, form.created_users)
         if form.updated_users:
             self._send_bulk_confirmation_emails(form, form.updated_users)
 
-        success_message = (
-            "New users will receive an email with instructions on how to activate their accounts and create a password.<br>"
-            "Existing users will receive an email notifying them about their updated organization affiliation."
+        success_message = format_html(
+            '{}<br>{}',
+            "New users will receive an email with instructions on how to activate their accounts and create a password.",
+            "Existing users will receive an email notifying them about their updated organization affiliation.",
         )
 
         if form.ineligible_users:
             ineligible_user_emails = ", ".join(form.ineligible_users)
-            error_message = (
-                f"The following users were not added to {form.cleaned_data['organizations']} because they are "
-                f"already a registrar user or admin user and cannot be added to an individual organization: {ineligible_user_emails}"
+            error_message = format_html(
+                "The following users were not added to {} because they are "
+                "already a registrar user or admin user and cannot be added to an individual organization: {}",
+                form.cleaned_data['organizations'],
+                ineligible_user_emails,
             )
             if form.created_users or form.updated_users:
                 add_message(
                     messages.SUCCESS,
                     "Success!",
-                    f"{success_message}<br><br>Note: {error_message}"
+                    format_html('{}<br><br>Note: {}', success_message, error_message),
                 )
             else:
                 add_message(messages.ERROR, "Error!", error_message)
@@ -1134,7 +1155,15 @@ def organization_user_leave_organization(request, org_id):
         request.user.organizations.remove(org)
         request.user.save()
 
-        messages.add_message(request, messages.SUCCESS, f'<h4>Success.</h4> You are no longer a member of <strong>{org.name}</strong>.', extra_tags='safe')
+        messages.add_message(
+            request,
+            messages.SUCCESS,
+            format_html(
+                '<h4>Success.</h4> You are no longer a member of <strong>{}</strong>.',
+                org.name,
+            ),
+            extra_tags='safe',
+        )
 
         if request.user.organizations.exists():
             return HttpResponseRedirect(reverse('settings_affiliations'))
@@ -1200,10 +1229,11 @@ def manage_single_organization_user_expiration_date(request, user_id, organizati
     """
     target_user = get_object_or_404(LinkUser, id=user_id)
     organization = get_object_or_404(Organization, id=organization_id)
-    affiliation = get_object_or_404(UserOrganizationAffiliation, organization=organization, user=target_user)
 
-    if not request.user.shares_scope_with_user(target_user):
+    if not request.user.can_edit_organization(organization) or not request.user.shares_scope_with_user(target_user):
         return HttpResponseForbidden()
+
+    affiliation = get_object_or_404(UserOrganizationAffiliation, organization=organization, user=target_user)
     
     if request.method == 'POST':
         expires_at = request.POST.get("expires_at") or None

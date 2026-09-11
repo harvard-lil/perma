@@ -16,6 +16,7 @@ from django.conf import settings
 from django.db import IntegrityError
 from django.test import override_settings
 from django.test.client import RequestFactory
+from django.utils.html import escape
 
 from perma.models import LinkUser, Organization, Registrar, Sponsorship, UserOrganizationAffiliation
 from perma.tests.utils import PermaTestCase
@@ -204,6 +205,26 @@ class UserManagementViewsTestCase(PermaTestCase):
                 pk=self.pending_registrar.pk, status='denied'
             ).exists(),
         )
+
+    def test_pending_registrar_name_is_escaped_in_denial_message(self):
+        payload = '<img src=x onerror=alert(1)>'
+        self.pending_registrar.name = payload
+        self.pending_registrar.save(update_fields=['name'])
+        self.log_in_user(self.admin_user)
+
+        response = self.client.post(
+            reverse(
+                'user_sign_up_approve_pending_registrar',
+                args=[self.pending_registrar.pk],
+            ),
+            {'status': 'denied', 'base_rate': '100.00'},
+            follow=True,
+            secure=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, escape(payload))
+        self.assertNotContains(response, payload)
 
     ### ORGANIZATION A/E/D VIEWS ###
 
@@ -925,6 +946,27 @@ class UserManagementViewsTestCase(PermaTestCase):
                           reverse_kwargs={'args': [orgs[1].pk]},
                           require_status_code=404)
 
+    def test_organization_name_is_escaped_in_leave_message(self):
+        user = LinkUser.objects.get(email='test_another_library_org_user@example.com')
+        organization = user.organizations.first()
+        payload = '<img src=x onerror=alert(1)>'
+        organization.name = payload
+        organization.save(update_fields=['name'])
+        self.log_in_user(user)
+
+        response = self.client.post(
+            reverse(
+                'user_management_organization_user_leave_organization',
+                args=[organization.pk],
+            ),
+            follow=True,
+            secure=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, escape(payload))
+        self.assertNotContains(response, payload)
+
 
     ### REMOVING USERS FROM ORGANIZATIONS ###
 
@@ -1033,6 +1075,35 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.submit_form('user_management_manage_single_organization_user_expiration_date',
                          reverse_kwargs={'args': [self.organization_user.id, self.unrelated_organization.id]},
                          require_status_code=403)
+
+    def test_org_user_cannot_modify_unrelated_affiliation_of_shared_user(self):
+        target_user = self.regular_user
+        UserOrganizationAffiliation.objects.create(
+            user=target_user,
+            organization=self.organization,
+        )
+        unrelated_affiliation = UserOrganizationAffiliation.objects.create(
+            user=target_user,
+            organization=self.unrelated_organization,
+        )
+
+        self.assertTrue(self.organization_user.shares_scope_with_user(target_user))
+        self.assertFalse(
+            self.organization_user.can_edit_organization(self.unrelated_organization)
+        )
+        self.log_in_user(self.organization_user)
+
+        self.submit_form(
+            'user_management_manage_single_organization_user_expiration_date',
+            reverse_kwargs={
+                'args': [target_user.id, self.unrelated_organization.id]
+            },
+            data={'expires_at': '2027-04-30T00:00:00+00:00'},
+            require_status_code=403,
+        )
+
+        unrelated_affiliation.refresh_from_db()
+        self.assertIsNone(unrelated_affiliation.expires_at)
 
     ### ADDING NEW USERS TO REGISTRARS AS SPONSORED USERS ###
 
