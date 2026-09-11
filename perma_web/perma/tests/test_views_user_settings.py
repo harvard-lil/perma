@@ -186,8 +186,8 @@ def test_regular_user_can_see_usage_plan_page(client, link_user):
     assert response.status_code == 200
 
 
-def test_payment_success_message_shown_after_redirect(client, user_without_subscription_or_purchase_history):
-    client.force_login(user_without_subscription_or_purchase_history)
+def test_payment_success_message_shown_after_redirect(client, user_without_subscription):
+    client.force_login(user_without_subscription)
     response = client.get(reverse('settings_usage_plan') + '?subscription=success', secure=True)
 
     assert response.status_code == 200
@@ -195,8 +195,8 @@ def test_payment_success_message_shown_after_redirect(client, user_without_subsc
     assert b'Your subscription has been created.' in response.content
 
 
-def test_downgrade_canceled_message_shown_after_redirect(client, user_without_subscription_or_purchase_history):
-    client.force_login(user_without_subscription_or_purchase_history)
+def test_downgrade_canceled_message_shown_after_redirect(client, user_without_subscription):
+    client.force_login(user_without_subscription)
     response = client.get(reverse('settings_usage_plan') + '?change=canceled', secure=True)
 
     assert response.status_code == 200
@@ -204,8 +204,8 @@ def test_downgrade_canceled_message_shown_after_redirect(client, user_without_su
     assert b'Your scheduled downgrade has been canceled.' in response.content
 
 
-def test_payment_canceled_message_shown_as_info_after_redirect(client, user_without_subscription_or_purchase_history):
-    client.force_login(user_without_subscription_or_purchase_history)
+def test_payment_canceled_message_shown_as_info_after_redirect(client, user_without_subscription):
+    client.force_login(user_without_subscription)
     response = client.get(reverse('settings_usage_plan') + '?purchase=canceled', secure=True)
 
     assert response.status_code == 200
@@ -213,8 +213,8 @@ def test_payment_canceled_message_shown_as_info_after_redirect(client, user_with
     assert b'Link purchase checkout was canceled. You were not charged.' in response.content
 
 
-def test_no_payment_message_for_unrecognized_params(client, user_without_subscription_or_purchase_history):
-    client.force_login(user_without_subscription_or_purchase_history)
+def test_no_payment_message_for_unrecognized_params(client, user_without_subscription):
+    client.force_login(user_without_subscription)
     response = client.get(reverse('settings_usage_plan') + '?subscription=bogus&foo=success', secure=True)
 
     assert response.status_code == 200
@@ -222,8 +222,8 @@ def test_no_payment_message_for_unrecognized_params(client, user_without_subscri
 
 
 @patch('perma.models.customer.prep_for_perma_payments', autospec=True)
-def test_subscribe_form_if_no_standing_subscription(prepped, client, user_without_subscription_or_purchase_history):
-    user = user_without_subscription_or_purchase_history
+def test_subscribe_form_if_no_standing_subscription(prepped, client, user_without_subscription):
+    user = user_without_subscription
     prepped.return_value = bytes(str(sentinel.prepped), 'utf-8')
 
     client.force_login(user)
@@ -235,10 +235,10 @@ def test_subscribe_form_if_no_standing_subscription(prepped, client, user_withou
 
     individual_tier_count = len(settings.TIERS['Individual'])
     bonus_package_count = len(settings.BONUS_PACKAGES)
-    purchase_history_form = 1
+    billing_portal_form = 1
     assert response.content.count(b'<form class="purchase-form') == bonus_package_count
     assert response.content.count(b'<form class="upgrade-form') == individual_tier_count
-    assert response.content.count(b'<input type="hidden" name="encrypted_data"') == individual_tier_count + bonus_package_count + purchase_history_form
+    assert response.content.count(b'<input type="hidden" name="encrypted_data"') == individual_tier_count + bonus_package_count + billing_portal_form
 
 
 def test_manage_button_and_subscription_info_present_if_standing_subscription(client, user_with_monthly_subscription):
@@ -254,11 +254,8 @@ def test_manage_button_and_subscription_info_present_if_standing_subscription(cl
     assert response.content.count(b'<input type="hidden" name="account_type"') == 1
 
 
-def test_billing_portal_button_present(client, mocker, link_user, no_purchase_history):
+def test_billing_portal_button_present(client, mocker, link_user):
     mocker.patch('perma.models.LinkUser.get_subscription', autospec=True, return_value=None)
-    mocker.patch(
-        'perma.models.LinkUser.get_purchase_history', autospec=True, return_value=no_purchase_history
-    )
     link_user.bonus_links = 7
     link_user.save()
 
@@ -309,8 +306,8 @@ def test_apology_page_displayed_if_perma_payments_is_down(get_subscription, clie
     get_subscription.assert_called_once_with(link_user)
 
 
-def test_update_page_if_no_standing_subscription(client, user_without_subscription_or_purchase_history):
-    user = user_without_subscription_or_purchase_history
+def test_update_page_if_no_standing_subscription(client, user_without_subscription):
+    user = user_without_subscription
 
     client.force_login(user)
     response = client.post(
@@ -408,13 +405,13 @@ def test_registrar_user_nonpaying_registrar(prepped, client, registrar_user_from
 
     individual_tier_count = len(settings.TIERS['Individual'])
     bonus_package_count = len(settings.BONUS_PACKAGES)
-    purchase_history_form = 1
+    billing_portal_form = 1
     assert b'Get More Personal Links' in response.content
     assert b'Purchase a personal subscription' in response.content
     assert f'Purchase a subscription for {user.registrar.name}'.encode() not in response.content
     assert response.content.count(b'<form class="purchase-form') == bonus_package_count
     assert response.content.count(b'<form class="upgrade-form') == individual_tier_count
-    assert response.content.count(b'<input type="hidden" name="encrypted_data"') == individual_tier_count + bonus_package_count + purchase_history_form
+    assert response.content.count(b'<input type="hidden" name="encrypted_data"') == individual_tier_count + bonus_package_count + billing_portal_form
     assert response.content.count(prepped.return_value) == individual_tier_count + bonus_package_count
 
 
@@ -432,13 +429,13 @@ def test_paying_registrar_user_sees_both_subscribe_forms(prepped, client, regist
     # all tiers should be offered, both individual and registrar-level
     tier_count = len(settings.TIERS['Individual']) + len(settings.TIERS['Registrar'])
     bonus_package_count = len(settings.BONUS_PACKAGES)
-    purchase_history_form = 1
+    billing_portal_form = 1
     assert b'Get More Personal Links' in response.content
     assert b'Purchase a personal subscription' in response.content
     assert f'Purchase a subscription for {user.registrar.name}'.encode() in response.content
     assert response.content.count(b'<form class="purchase-form') == bonus_package_count
     assert response.content.count(b'<form class="upgrade-form') == tier_count
-    assert response.content.count(b'<input type="hidden" name="encrypted_data"') == tier_count + bonus_package_count + purchase_history_form
+    assert response.content.count(b'<input type="hidden" name="encrypted_data"') == tier_count + bonus_package_count + billing_portal_form
     assert response.content.count(prepped.return_value) == tier_count + bonus_package_count
 
 
@@ -457,13 +454,13 @@ def test_paying_registrar_user_sees_subscriptions_independently(prepped, client,
 
     individual_tier_count = len(settings.TIERS['Individual'])
     bonus_package_count = len(settings.BONUS_PACKAGES)
-    purchase_history_form = 1
+    billing_portal_form = 1
     assert b'Get More Personal Links' in response.content
     assert b'Purchase a personal subscription' in response.content
     assert b'Purchase a subscription for Test Firm' not in response.content
     assert response.content.count(b'<form class="purchase-form') == bonus_package_count
     assert response.content.count(b'<form class="upgrade-form') == individual_tier_count
-    assert response.content.count(b'<input type="hidden" name="encrypted_data"') == individual_tier_count + bonus_package_count + purchase_history_form
+    assert response.content.count(b'<input type="hidden" name="encrypted_data"') == individual_tier_count + bonus_package_count + billing_portal_form
     assert response.content.count(prepped.return_value) == individual_tier_count + bonus_package_count
 
     assert b'Rate' in response.content

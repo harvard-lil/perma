@@ -104,7 +104,6 @@ def post_process_settings(settings):
     assert 'STRIPE_PAYMENTS_APP_INTERNAL_URL' in settings and settings['STRIPE_PAYMENTS_APP_INTERNAL_URL'] is not None, "Set DJANGO__STRIPE_PAYMENTS_APP_INTERNAL_URL env var!"
     settings['PAYMENTS_APP_URLS'] = {
         'purchase': f"{settings['STRIPE_PAYMENTS_APP_EXTERNAL_URL']}/purchase/",
-        'purchase_history': f"{settings['STRIPE_PAYMENTS_APP_INTERNAL_URL']}/purchase-history/",
         'acknowledge_purchase': f"{settings['STRIPE_PAYMENTS_APP_INTERNAL_URL']}/acknowledge-purchase/",
         'subscribe': f"{settings['STRIPE_PAYMENTS_APP_EXTERNAL_URL']}/subscribe/",
         'subscription_status': f"{settings['STRIPE_PAYMENTS_APP_INTERNAL_URL']}/subscription/",

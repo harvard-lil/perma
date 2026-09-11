@@ -755,54 +755,20 @@ def expired_cancelled_subscription():
 
 
 @pytest.fixture
-def no_purchase_history():
-    return {'purchases': [], 'total_links': 0}
-
-
-@pytest.fixture
-def some_purchase_history():
-    return {
-        'purchases': [
-            {'link_quantity': 10, 'date': GENESIS},
-            {'link_quantity': 3, 'date': GENESIS}
-        ],
-        'total_links': 13
-    }
-
-
-@pytest.fixture
-def user_without_subscription_or_purchase_history(mocker, link_user, no_purchase_history):
+def user_without_subscription(mocker, link_user):
     get_subscription = mocker.patch('perma.models.LinkUser.get_subscription', autospec=True)
-    get_purchase_history = mocker.patch('perma.models.LinkUser.get_purchase_history', autospec=True)
 
     get_subscription.return_value = None
-    get_purchase_history.return_value = no_purchase_history
 
     yield link_user
 
     get_subscription.assert_called_once_with(link_user)
 
 @pytest.fixture
-def user_without_subscription_with_purchase_history(mocker, link_user, some_purchase_history):
+def user_with_monthly_subscription(mocker, link_user, current_monthly_subscription):
     get_subscription = mocker.patch('perma.models.LinkUser.get_subscription', autospec=True)
-    get_purchase_history = mocker.patch('perma.models.LinkUser.get_purchase_history', autospec=True)
-
-    get_subscription.return_value = None
-    get_purchase_history.return_value = some_purchase_history
-
-    yield link_user
-
-    get_subscription.assert_called_once_with(link_user)
-    get_purchase_history.assert_called_once_with(link_user)
-
-
-@pytest.fixture
-def user_with_monthly_subscription(mocker, link_user, current_monthly_subscription, no_purchase_history):
-    get_subscription = mocker.patch('perma.models.LinkUser.get_subscription', autospec=True)
-    get_purchase_history = mocker.patch('perma.models.LinkUser.get_purchase_history', autospec=True)
 
     get_subscription.return_value = current_monthly_subscription
-    get_purchase_history.return_value = no_purchase_history
 
     yield link_user
 
@@ -810,12 +776,10 @@ def user_with_monthly_subscription(mocker, link_user, current_monthly_subscripti
 
 
 @pytest.fixture
-def user_with_scheduled_downgrade(mocker, link_user, current_monthly_subscription_with_scheduled_downgrade, no_purchase_history):
+def user_with_scheduled_downgrade(mocker, link_user, current_monthly_subscription_with_scheduled_downgrade):
     get_subscription = mocker.patch('perma.models.LinkUser.get_subscription', autospec=True)
-    get_purchase_history = mocker.patch('perma.models.LinkUser.get_purchase_history', autospec=True)
 
     get_subscription.return_value = current_monthly_subscription_with_scheduled_downgrade
-    get_purchase_history.return_value = no_purchase_history
 
     yield link_user
 
@@ -823,12 +787,10 @@ def user_with_scheduled_downgrade(mocker, link_user, current_monthly_subscriptio
 
 
 @pytest.fixture
-def user_with_on_hold_subscription(mocker, link_user, on_hold_monthly_subscription, no_purchase_history):
+def user_with_on_hold_subscription(mocker, link_user, on_hold_monthly_subscription):
     get_subscription = mocker.patch('perma.models.LinkUser.get_subscription', autospec=True)
-    get_purchase_history = mocker.patch('perma.models.LinkUser.get_purchase_history', autospec=True)
 
     get_subscription.return_value = on_hold_monthly_subscription
-    get_purchase_history.return_value = no_purchase_history
 
     yield link_user
 
@@ -836,13 +798,11 @@ def user_with_on_hold_subscription(mocker, link_user, on_hold_monthly_subscripti
 
 
 @pytest.fixture
-def registrar_user_from_nonpaying_registrar(mocker, registrar_user, no_purchase_history):
+def registrar_user_from_nonpaying_registrar(mocker, registrar_user):
     get_subscription = mocker.patch('perma.models.LinkUser.get_subscription', autospec=True)
-    get_purchase_history = mocker.patch('perma.models.LinkUser.get_purchase_history', autospec=True)
     registrar_get_subscription = mocker.patch('perma.models.Registrar.get_subscription', autospec=True)
 
     get_subscription.return_value = None
-    get_purchase_history.return_value = no_purchase_history
 
     yield registrar_user
 
@@ -851,13 +811,11 @@ def registrar_user_from_nonpaying_registrar(mocker, registrar_user, no_purchase_
 
 
 @pytest.fixture
-def registrar_user_from_paying_registrar_without_subscription(mocker, paying_registrar_user, no_purchase_history):
+def registrar_user_from_paying_registrar_without_subscription(mocker, paying_registrar_user):
     get_subscription = mocker.patch('perma.models.LinkUser.get_subscription', autospec=True)
-    get_purchase_history = mocker.patch('perma.models.LinkUser.get_purchase_history', autospec=True)
     registrar_get_subscription = mocker.patch('perma.models.Registrar.get_subscription', autospec=True)
 
     get_subscription.return_value = None
-    get_purchase_history.return_value = no_purchase_history
     registrar_get_subscription.return_value = None
 
     yield paying_registrar_user
@@ -867,13 +825,11 @@ def registrar_user_from_paying_registrar_without_subscription(mocker, paying_reg
 
 
 @pytest.fixture
-def registrar_user_from_paying_registrar_with_personal_subscription(mocker, paying_registrar_user, current_monthly_subscription, no_purchase_history):
+def registrar_user_from_paying_registrar_with_personal_subscription(mocker, paying_registrar_user, current_monthly_subscription):
     get_subscription = mocker.patch('perma.models.LinkUser.get_subscription', autospec=True)
-    get_purchase_history = mocker.patch('perma.models.LinkUser.get_purchase_history', autospec=True)
     registrar_get_subscription = mocker.patch('perma.models.Registrar.get_subscription', autospec=True)
 
     get_subscription.return_value = current_monthly_subscription
-    get_purchase_history.return_value = no_purchase_history
     registrar_get_subscription.return_value = None
 
     yield paying_registrar_user
@@ -882,13 +838,11 @@ def registrar_user_from_paying_registrar_with_personal_subscription(mocker, payi
 
 
 @pytest.fixture
-def registrar_user_from_registrar_with_monthly_subscription(mocker, paying_registrar_user, current_monthly_unlimited_subscription, no_purchase_history):
+def registrar_user_from_registrar_with_monthly_subscription(mocker, paying_registrar_user, current_monthly_unlimited_subscription):
     get_subscription = mocker.patch('perma.models.LinkUser.get_subscription', autospec=True)
-    get_purchase_history = mocker.patch('perma.models.LinkUser.get_purchase_history', autospec=True)
     registrar_get_subscription = mocker.patch('perma.models.Registrar.get_subscription', autospec=True)
 
     get_subscription.return_value = None
-    get_purchase_history.return_value = no_purchase_history
     registrar_get_subscription.return_value = current_monthly_unlimited_subscription
 
     yield paying_registrar_user
