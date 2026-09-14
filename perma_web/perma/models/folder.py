@@ -3,10 +3,11 @@ import time
 
 from django.conf import settings
 from django.db import models, transaction
-from django.db.models import Exists, F, OuterRef, Q
+from django.db.models import Exists, F, OuterRef, Q, Count
 from model_utils import FieldTracker
 from tree_queries.models import TreeNode
 from tree_queries.query import TreeQuerySet
+from collections import defaultdict
 
 from .registrar import Sponsorship
 
@@ -147,6 +148,65 @@ class Folder(TreeNode):
                 )[:1]
             )
 
+        def update_org_and_registrar_link_counts(links, new_org_id):
+            """ update the link counts for organization and registrar after folder movements """
+            from .organization import Organization
+            from .registrar import Registrar
+
+            num_of_links_by_organization = list(
+                links
+                .values('organization_id')
+                .annotate(num_of_links=Count('pk'))
+                .order_by()
+            )
+            
+            if not num_of_links_by_organization:
+                return
+
+            org_ids = {row['organization_id'] for row in num_of_links_by_organization if row['organization_id']}
+
+            if new_org_id:
+                org_ids.add(new_org_id)
+
+            organization_registrars = dict(
+                Organization.objects
+                .filter(pk__in=org_ids)
+                .values_list('pk', 'registrar_id')
+            )
+
+            new_registrar_id = organization_registrars.get(new_org_id)
+
+            org_deltas = defaultdict(int)
+            registrar_deltas = defaultdict(int)
+
+            for row in num_of_links_by_organization:
+                num_of_links = row['num_of_links']
+                old_org_id = row['organization_id']
+
+                if old_org_id == new_org_id:
+                    continue
+
+                if old_org_id:
+                    org_deltas[old_org_id] -= num_of_links
+
+                if new_org_id:
+                    org_deltas[new_org_id] += num_of_links
+
+                old_registrar_id = organization_registrars.get(old_org_id)
+
+                if old_registrar_id != new_registrar_id:
+                    if old_registrar_id:
+                        registrar_deltas[old_registrar_id] -= num_of_links
+
+                    if new_registrar_id:
+                        registrar_deltas[new_registrar_id] += num_of_links
+
+            for org_id, delta in org_deltas.items():
+                Organization.objects.filter(pk=org_id).update(link_count=F('link_count') + delta)
+
+            for registrar_id, delta in registrar_deltas.items():
+                Registrar.objects.filter(pk=registrar_id).update(link_count=F('link_count') + delta)
+
         def update_parents_cached_has_children(parent_id=None, previous_parent_id=None):
             if parent_id:
                 Folder.objects.filter(
@@ -233,6 +293,7 @@ class Folder(TreeNode):
                 from .link import Link
                 # update the de-normalized reference to owning org on any links in this folder's subtree
                 links = Link.objects.filter(folders__in=subtree_ids)
+                update_org_and_registrar_link_counts(links, parent.organization_id)
                 links.update(organization_id=parent.organization_id)
 
                 # if any bonus links got transferred to an org or to a sponsored folder, give users their bonus credit back
