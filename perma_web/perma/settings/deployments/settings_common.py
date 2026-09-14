@@ -620,6 +620,8 @@ CONTACT_REGISTRARS = True
 # Virus Scanning
 SCAN_UPLOADS = False
 SCAN_URL = ''
+# Requests connect/read timeouts in seconds; scanner failures allow uploads.
+SCAN_TIMEOUT = (5, 60)
 
 # Analytics
 USE_ANALYTICS = False
