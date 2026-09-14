@@ -27,6 +27,7 @@ from taggit.managers import TaggableManager
 from perma.utils import preserve_perma_wacz
 
 from .folder import Folder
+from .internet_archive import LAST_INDIVIDUAL_LINK_IA_UPLOAD_DATE
 from .organization import Organization
 from .user import LinkUser
 from .utils import DeletableManager, DeletableModel, GenericStringTaggedItem
@@ -85,12 +86,30 @@ class LinkQuerySet(QuerySet):
     def ineligible_for_ia(self):
         return self.exclude(Link.DISCOVERABLE_FILTER, cached_can_play_back=True)
 
+    def ia_upload_required_from_privacy_toggle(self, limit=100):
+        """
+        Links marked upload_or_reupload_required after a privacy toggle.
+        """
+        query = self.filter(internet_archive_upload_status='upload_or_reupload_required')
+        if limit is not None:
+            query = query[:limit]
+        return query
+
+    def ia_deletion_required_from_privacy_toggle(self, limit=100):
+        """
+        Links marked deletion_required after a privacy toggle.
+        """
+        query = self.filter(internet_archive_upload_status='deletion_required')
+        if limit is not None:
+            query = query[:limit]
+        return query
+
     def ia_upload_pending(self, date_string, limit=100):
         # Get all Links we think should have been uploaded to IA,
         # and then filter out the ones that have already been uploaded
         # to a "daily" item.
-        if date_string > "2022-10-03":
-            # No links created after 2022-10-03 were uploaded to IA as individual Items:
+        if date_string > LAST_INDIVIDUAL_LINK_IA_UPLOAD_DATE:
+            # No links created after this date were uploaded to IA as individual Items:
             # use a simplified query
             logger.debug("Running simple IA eligibility query.")
             query = Link.objects.filter(
@@ -105,7 +124,7 @@ class LinkQuerySet(QuerySet):
             ).visible_to_ia().exclude(
                 internet_archive_items__span__isempty=False
             )
-        if limit:
+        if limit is not None:
             query = query[:limit]
         return query
 
@@ -157,9 +176,9 @@ class Link(DeletableModel):
 
     archive_timestamp = models.DateTimeField(blank=True, null=True, help_text="Date after which this link is eligible to be copied by the mirror network.")
     internet_archive_upload_status = models.CharField(max_length=28,
-                                                      default='not_started',
-                                                      choices=(('not_started','not_started'),('completed','completed'),('failed','failed'),('deleted','deleted'), ('deletion_incomplete', 'deletion_incomplete'), ('deletion_required', 'deletion_required'), ('upload_or_reupload_required', 'upload_or_reupload_required')),
-                                                      db_index=True)
+                                                      choices=(('deletion_required', 'deletion_required'), ('upload_or_reupload_required', 'upload_or_reupload_required')),
+                                                      db_index=True,
+                                                      null=True)
 
     internet_archive_items = models.ManyToManyField(
         "InternetArchiveItem", through="InternetArchiveFile", related_name="links"

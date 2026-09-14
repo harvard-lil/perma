@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from contextlib import contextmanager, redirect_stdout
 import csv
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from datetime import timezone as tz
 from functools import reduce, wraps
 import hashlib
@@ -1036,6 +1036,199 @@ def ia_bucket_task_limit_approaching(s3_details):
         # if the API is so hampered that it didn't return a response, assume it's too overloaded for us
         return True
     return s3_details['detail']['bucket_ration'] - s3_details['detail']['bucket_tasks_queued'] - settings.INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_RATE_LIMIT <= 0
+
+
+DEFAULT_IA_UPLOAD_HEALTH_SPAN_DAYS = 10
+
+
+def parse_ia_upload_health_date(value, param_name):
+    if value is None or value == '':
+        return None
+    try:
+        return date.fromisoformat(str(value))
+    except ValueError as e:
+        raise ValueError(f'{param_name} must be YYYY-MM-DD; got {value!r}') from e
+
+
+def resolve_ia_upload_health_span(span_days, span_start=None, span_end=None):
+    """
+    Resolve inclusive [start, end] and day count for an IA upload health report.
+
+    span_days: positive integer, or 'all' for the full daily-item dataset
+      (from backlog floor through span_end, defaulting to today).
+    """
+    from perma.models.internet_archive import DAILY_ITEM_BACKLOG_SPAN_FLOOR
+
+    today = timezone.now().date()
+    parsed_start = parse_ia_upload_health_date(span_start, 'span_start')
+    parsed_end = parse_ia_upload_health_date(span_end, 'span_end')
+    full = str(span_days).lower() == 'all'
+
+    if parsed_start and parsed_end:
+        if full:
+            raise ValueError('span_days=all cannot be combined with both span_start and span_end')
+        start, end = parsed_start, parsed_end
+    elif full:
+        start = parsed_start or date.fromisoformat(DAILY_ITEM_BACKLOG_SPAN_FLOOR[0])
+        end = parsed_end or today
+    elif parsed_start:
+        span_days_int = int(span_days)
+        if span_days_int < 1:
+            raise ValueError('span_days must be a positive integer or all')
+        start = parsed_start
+        end = parsed_start + timedelta(days=span_days_int - 1)
+    elif parsed_end:
+        span_days_int = int(span_days)
+        if span_days_int < 1:
+            raise ValueError('span_days must be a positive integer or all')
+        end = parsed_end
+        start = parsed_end - timedelta(days=span_days_int - 1)
+    else:
+        span_days_int = int(span_days)
+        if span_days_int < 1:
+            raise ValueError('span_days must be a positive integer or all')
+        end = today
+        start = end - timedelta(days=span_days_int - 1)
+
+    if start > end:
+        raise ValueError(f'span start {start} is after span end {end}')
+
+    days = (end - start).days + 1
+    return start, end, days, full
+
+
+def _ia_upload_health_pending_links_by_date(dates):
+    from django.db.models import Count
+
+    from perma.models import Link
+
+    if not dates:
+        return {}
+    return {
+        row['creation_timestamp__date']: row['count']
+        for row in Link.objects.visible_to_ia().filter(
+            internet_archive_files__isnull=True,
+            creation_timestamp__date__in=dates,
+        ).values('creation_timestamp__date').annotate(count=Count('guid'))
+    }
+
+
+def build_ia_upload_health_report(
+    mode='auto',
+    auto_detail_max_days=10,
+    span_days=DEFAULT_IA_UPLOAD_HEALTH_SPAN_DAYS,
+    span_start=None,
+    span_end=None,
+):
+    from perma.models import Link
+    from perma.models.internet_archive import (
+        daily_item_dates_in_window,
+        initial_uploads_incomplete_dates_in_window,
+        initial_uploads_incomplete_stats,
+        uneditable_daily_item_dates,
+    )
+
+    mode = mode.lower()
+    auto_detail_max_days = int(auto_detail_max_days)
+    if auto_detail_max_days < 1:
+        raise ValueError('auto_detail_max_days must be a positive integer')
+    if mode not in ('auto', 'detailed', 'summary'):
+        raise ValueError(f'mode must be auto, detailed, or summary; got {mode!r}')
+
+    span_start, span_end, span_day_count, span_full = resolve_ia_upload_health_span(
+        span_days, span_start=span_start, span_end=span_end,
+    )
+
+    initial_uploads_incomplete = initial_uploads_incomplete_stats()
+    initial_uploads_incomplete_dates = initial_uploads_incomplete_dates_in_window(span_start, span_end)
+
+    existing_dates = daily_item_dates_in_window(span_start, span_end)
+    expected_dates = {
+        span_start + timedelta(days=i)
+        for i in range(span_day_count)
+    }
+    missing_dates = sorted(
+        day for day in (expected_dates - existing_dates) if day not in uneditable_daily_item_dates()
+    )
+
+    if mode == 'auto':
+        effective_mode = 'detailed' if (
+            len(initial_uploads_incomplete_dates) <= auto_detail_max_days and len(missing_dates) <= auto_detail_max_days
+        ) else 'summary'
+    else:
+        effective_mode = mode
+
+    report = {
+        'mode_requested': mode,
+        'mode': effective_mode,
+        'span': {
+            'start': span_start.isoformat(),
+            'end': span_end.isoformat(),
+            'days': span_day_count,
+            **({'full': True} if span_full else {}),
+        },
+        'global': {
+            'initial_uploads_incomplete': {
+                'count': initial_uploads_incomplete['count'],
+                'oldest': initial_uploads_incomplete['oldest'].isoformat() if initial_uploads_incomplete['oldest'] else None,
+                'newest': initial_uploads_incomplete['newest'].isoformat() if initial_uploads_incomplete['newest'] else None,
+            },
+            'privacy_toggle': {
+                'uploads_pending': Link.objects.filter(
+                    internet_archive_upload_status='upload_or_reupload_required',
+                ).count(),
+                'deletions_pending': Link.objects.filter(
+                    internet_archive_upload_status='deletion_required',
+                ).count(),
+            },
+        },
+        'in_span': {},
+    }
+
+    if mode == 'auto':
+        report['auto_detail_max_days'] = auto_detail_max_days
+
+    pending_links_filter = dict(
+        internet_archive_files__isnull=True,
+        creation_timestamp__date__gte=span_start,
+        creation_timestamp__date__lte=span_end,
+    )
+
+    if effective_mode == 'detailed':
+        dates_of_interest = set(initial_uploads_incomplete_dates) | set(missing_dates)
+        pending_by_date = _ia_upload_health_pending_links_by_date(dates_of_interest)
+        report['in_span']['initial_uploads_incomplete'] = {
+            'count': len(initial_uploads_incomplete_dates),
+            'days': [
+                {
+                    'date': day.isoformat(),
+                    'links_pending': pending_by_date.get(day, 0),
+                }
+                for day in initial_uploads_incomplete_dates
+            ],
+        }
+        report['in_span']['missing_daily_items'] = {
+            'count': len(missing_dates),
+            'days': [
+                {
+                    'date': day.isoformat(),
+                    'links_pending': pending_by_date.get(day, 0),
+                }
+                for day in missing_dates
+            ],
+        }
+    else:
+        initial_uploads_incomplete_section = {'count': len(initial_uploads_incomplete_dates)}
+        if initial_uploads_incomplete_dates:
+            initial_uploads_incomplete_section['oldest'] = initial_uploads_incomplete_dates[0].isoformat()
+            initial_uploads_incomplete_section['newest'] = initial_uploads_incomplete_dates[-1].isoformat()
+        report['in_span']['initial_uploads_incomplete'] = initial_uploads_incomplete_section
+        report['in_span']['missing_daily_items'] = {'count': len(missing_dates)}
+        report['in_span']['links_pending_total'] = Link.objects.visible_to_ia().filter(
+            **pending_links_filter
+        ).count()
+
+    return report
 
 
 def date_range(start_date, end_date, delta):

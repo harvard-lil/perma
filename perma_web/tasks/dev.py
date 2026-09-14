@@ -14,6 +14,7 @@ from django.utils import timezone
 
 from perma.email import send_user_email, send_self_email, registrar_users, registrar_users_plus_stats
 from perma.models import Link, LinkUser, Registrar, CaptureJob
+from perma.utils import DEFAULT_IA_UPLOAD_HEALTH_SPAN_DAYS, build_ia_upload_health_report
 
 import logging
 logger = logging.getLogger(__name__)
@@ -75,14 +76,52 @@ def init_db(ctx):
 
 
 @task
-def count_pending_ia_links(ctx):
+def report_ia_upload_health(
+    ctx,
+    mode='auto',
+    auto_detail_max_days=10,
+    span_days=DEFAULT_IA_UPLOAD_HEALTH_SPAN_DAYS,
+    span_start='',
+    span_end='',
+):
     """
-    For use in monitoring the size of the queue.
+    Report Internet Archive daily upload backlog health as JSON.
+
+    Output is grouped by scope:
+      span — the analysis period (start, end, days)
+      global — metrics across all time (not limited to span)
+      in_span — metrics limited to span
+
+    Span (pick one style):
+      span_days=10 (default) — last 10 days ending today, with per-day detail
+      span_days=90 --span-start DATE — N days starting on that date
+      span_days=90 --span-end DATE — N days ending on that date
+      span_start + span_end — explicit range (span_days ignored)
+      span_days=all — full daily-item dataset (backlog floor through today by
+        default; combine with span_start and/or span_end to adjust). May be expensive.
+
+    mode:
+      auto (default) — per-day breakdown when the count of in-span days with initial_uploads_incomplete
+        and in-span missing days are both <= auto_detail_max_days; otherwise aggregate only
+      detailed — always per-day breakdown for the span
+      summary — always aggregate counts for the span
+
+    Examples:
+      invoke report-ia-upload-health
+      invoke report-ia-upload-health --span-days 90 --span-start 2010-01-01
+      invoke report-ia-upload-health --span-days 90 --span-end 2015-06-01
+      invoke report-ia-upload-health --span-start 2010-01-01 --span-end 2010-06-30
+      invoke report-ia-upload-health --span-days all --mode summary
+      invoke report-ia-upload-health --span-days all --span-start 2022-01-01
     """
-    count = Link.objects.visible_to_ia().filter(
-        internet_archive_upload_status__in=['not_started', 'failed', 'upload_or_reupload_required', 'deleted']
-    ).count()
-    print(count)
+    report = build_ia_upload_health_report(
+        mode=mode,
+        auto_detail_max_days=auto_detail_max_days,
+        span_days=span_days,
+        span_start=span_start or None,
+        span_end=span_end or None,
+    )
+    print(json.dumps(report, indent=2))
 
 
 @task
@@ -299,4 +338,3 @@ def update_cloudflare_cache(ctx):
     for ip_filename in ('ips-v4', 'ips-v6'):
         with open(os.path.join(settings.CLOUDFLARE_DIR, ip_filename), 'w') as ip_file:
             ip_file.write(requests.get(f'https://www.cloudflare.com/{ip_filename}').text)
-
