@@ -649,16 +649,16 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                                      user=self.org_user)
             self.assertIn(b'Invalid file', obj.content)
 
-    @patch('api.serializers.requests', autospec=True)
-    def test_should_reject_unsafe_file(self, requests):
-        requests.post.return_value = type('MockResponse', (), {'ok': True, 'json': lambda x: {"safe": False, "reason": "some reason"}})()
+    @patch('api.filecheck.requests.post', autospec=True)
+    def test_should_reject_unsafe_file(self, post):
+        post.return_value.json.return_value = {'verdict': 'unsafe', 'reason': 'virus detected'}
         with open(os.path.join(TEST_ASSETS_DIR, 'target_capture_files', 'test.jpg'), 'rb') as test_file:
             obj = self.rejected_post(self.list_url,
                                      format='multipart',
                                      data=dict(self.post_data.copy(), file=test_file),
                                      user=self.org_user)
             self.assertIn(b'Validation failed', obj.content)
-        self.assertEqual(requests.post.call_count, 1)
+        post.assert_called_once()
 
 
     ############
