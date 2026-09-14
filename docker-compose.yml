@@ -126,6 +126,8 @@ services:
     build:
       context: ${FILECHECK_BUILD_CONTEXT:-https://github.com/harvard-lil/perma-filecheck.git#a237396a8aa78e67c7640c857ebeef61dae75e83}
       target: dev
+    # Check build inputs on every up; unchanged layers use the build cache.
+    pull_policy: build
     volumes:
       - filecheck_clamav_data:/var/lib/clamav
     ports:

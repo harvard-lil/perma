@@ -509,6 +509,8 @@ Filecheck
 ---------
 
 Compose builds Filecheck's `dev` target locally from a pinned source commit.
+`pull_policy: build` checks build inputs on every `docker compose up`, reusing
+cached layers when unchanged; no `--build` flag is needed.
 It shares the Dockerfile runtime used by Filecheck's `main` build, with local
 reload support and test tools. No private registry login is needed for Filecheck.
 Perma calls `http://filecheck:8080/scan/` inside Compose; the host endpoint remains
@@ -518,10 +520,11 @@ are cached in the `filecheck_clamav_data` volume for later restarts and rebuilds
 To build changes from a sibling Filecheck checkout:
 
 ```sh
-FILECHECK_BUILD_CONTEXT=../perma-filecheck docker compose up -d --build filecheck
+FILECHECK_BUILD_CONTEXT=../perma-filecheck docker compose up -d filecheck
 ```
 
-Rebuild after editing that checkout. For automatic reload, add a Compose
+Run the same command after editing that checkout to rebuild. For automatic
+reload, add a Compose
 override mounting its `main.py` at `/app/main.py:ro`. Ordinary Perma work needs
 no separate checkout. Update the pinned commit when adopting a newer Filecheck
 version; local builds do not promote or deploy ECS images.
