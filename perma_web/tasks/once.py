@@ -10,7 +10,7 @@ from django.conf import settings
 from django.db import connections
 from django.db.models import Count
 
-from perma.models import Folder, Link, LinkUser, Organization, CaptureJob
+from perma.models import Folder, Link, LinkUser, Organization, Registrar, CaptureJob
 
 import logging
 logger = logging.getLogger(__name__)
@@ -280,5 +280,77 @@ def reconcile_user_link_counts(ctx, dry_run=False):
         LinkUser.objects.bulk_update(mismatches, ["link_count"])
 
     logger.info(f"Updated {mismatch_count} LinkUser records.")
+    return mismatch_count
+
+
+@task
+def reconcile_organization_link_counts(ctx, dry_run=False):
+    """
+    Set Organization.link_count to the count of non-deleted links under each organization.
+    Pass dry_run=True to get the count of mismatches without updating.
+    """
+    logger.info("reconcile_organization_link_counts: Preparing to count links per organization.")
+    link_counts = dict(
+        Link.objects
+        .filter(organization_id__isnull=False)
+        .values("organization_id")
+        .annotate(actual_count=Count("pk"))
+        .values_list("organization_id", "actual_count")
+    )
+    logger.info("reconcile_organization_link_counts: link_counts dict was successfully created.")
+
+    mismatches = []
+    for organization in tqdm(Organization.objects.only("pk", "link_count").iterator()):
+        actual_count = link_counts.get(organization.pk, 0)
+        if organization.link_count != actual_count:
+            organization.link_count = actual_count
+            mismatches.append(organization)
+
+    mismatch_count = len(mismatches)
+
+    if dry_run:
+        logger.info(f"Would update {mismatch_count} Organization records.")
+        return mismatch_count
+
+    if mismatches:
+        Organization.objects.bulk_update(mismatches, ["link_count"])
+
+    logger.info(f"Updated {mismatch_count} Organization records.")
+    return mismatch_count
+
+
+@task
+def reconcile_registrar_link_counts(ctx, dry_run=False):
+    """
+    Set Registrar.link_count to the count of non-deleted links under its organizations.
+    Sponsored and personal links are not included. Pass dry_run=True to count mismatches without updating.
+    """
+    logger.info("reconcile_registrar_link_counts: Preparing to count links per registrar.")
+    link_counts = dict(
+        Link.objects
+        .filter(organization_id__isnull=False)
+        .values("organization__registrar_id")
+        .annotate(actual_count=Count("pk"))
+        .values_list("organization__registrar_id", "actual_count")
+    )
+    logger.info("reconcile_registrar_link_counts: link_counts dict was successfully created.")
+
+    mismatches = []
+    for registrar in tqdm(Registrar.objects.only("pk", "link_count").iterator()):
+        actual_count = link_counts.get(registrar.pk, 0)
+        if registrar.link_count != actual_count:
+            registrar.link_count = actual_count
+            mismatches.append(registrar)
+
+    mismatch_count = len(mismatches)
+
+    if dry_run:
+        logger.info(f"Would update {mismatch_count} Registrar records.")
+        return mismatch_count
+
+    if mismatches:
+        Registrar.objects.bulk_update(mismatches, ["link_count"])
+
+    logger.info(f"Updated {mismatch_count} Registrar records.")
     return mismatch_count
 
