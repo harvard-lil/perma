@@ -123,16 +123,19 @@ services:
   # Upload scanning
   #
   filecheck:
-    image: registry.lil.tools/harvardlil/perma-filecheck:0.106
-    environment:
-      - UVICORN_PORT=8888
+    build:
+      context: ${FILECHECK_BUILD_CONTEXT:-https://github.com/harvard-lil/perma-filecheck.git#a237396a8aa78e67c7640c857ebeef61dae75e83}
+      target: dev
+    volumes:
+      - filecheck_clamav_data:/var/lib/clamav
     ports:
-      - "127.0.0.1:8888:8888"
+      - "127.0.0.1:8888:8080"
     networks:
       - default
 
 
 volumes:
+  filecheck_clamav_data:
   node_modules:
   postgres_data_16:
   redis_data:

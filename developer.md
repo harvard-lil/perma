@@ -35,6 +35,7 @@ This document contains tips and tricks for working with Perma.
 - [Working with Redis](#working-with-redis)
 - [Running with DEBUG=False locally](#running-with-debugfalse-locally)
 - [Perma Payments](#perma-payments)
+- [Filecheck](#filecheck)
 - [Scoop](#scoop)
 - [Working with Superset](#working-with-superset)
 
@@ -80,7 +81,7 @@ git clone https://github.com/harvard-lil/perma.git
 cd perma
 ```
 
-Using `pull` first after fetching new code will avoid rebuilding images locally:
+Pull the prebuilt services after fetching new code. Filecheck builds locally from its pinned source commit:
 
 ```
 docker compose pull
@@ -502,3 +503,25 @@ docker compose up -d --build
 Navigate to `http://localhost:8088/` and log in to the service using the credentials specified in `docker-compose.override.yml`. Once logged in, the existing objects should be imported into the local playground.
 
 When you are done with local development, export the dashboards using the Bulk Select Dashboards button, and place the downloaded zip file at `services/docker/superset/dashboard_export.zip`.
+
+
+Filecheck
+---------
+
+Compose builds Filecheck's `dev` target locally from a pinned source commit.
+It shares the Dockerfile runtime used by Filecheck's `main` build, with local
+reload support and test tools. No private registry login is needed for Filecheck.
+Perma calls `http://filecheck:8080/scan/` inside Compose; the host endpoint remains
+`http://127.0.0.1:8888/scan/`. Initial startup downloads ClamAV signatures, which
+are cached in the `filecheck_clamav_data` volume for later restarts and rebuilds.
+
+To build changes from a sibling Filecheck checkout:
+
+```sh
+FILECHECK_BUILD_CONTEXT=../perma-filecheck docker compose up -d --build filecheck
+```
+
+Rebuild after editing that checkout. For automatic reload, add a Compose
+override mounting its `main.py` at `/app/main.py:ro`. Ordinary Perma work needs
+no separate checkout. Update the pinned commit when adopting a newer Filecheck
+version; local builds do not promote or deploy ECS images.
