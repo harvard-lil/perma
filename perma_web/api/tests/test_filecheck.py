@@ -1,4 +1,4 @@
-"""Filecheck contracts for both ECS and the legacy development image."""
+"""Filecheck verdict and failure handling."""
 from io import BytesIO
 from types import SimpleNamespace
 from unittest import TestCase
@@ -19,29 +19,15 @@ class FilecheckTestCase(TestCase):
         self.assertEqual(post.call_args.kwargs['timeout'], (5, 60))
         return result
 
-    def test_new_verdicts_take_precedence(self):
+    def test_verdicts(self):
         for verdict in ('clean', 'unsafe', 'rejected', 'unavailable'):
             with self.subTest(verdict=verdict):
                 response = Mock()
                 response.json.return_value = {'verdict': verdict, 'safe': True, 'reason': 'detail'}
                 self.assertEqual(self.scan(response), (verdict, 'detail'))
 
-    def test_legacy_responses(self):
-        for payload, expected in (
-            ({'safe': True}, 'clean'),
-            ({'safe': False, 'reason': 'virus detected'}, 'unsafe'),
-            ({'safe': False, 'reason': 'invalid file type'}, 'unsafe'),
-            ({'safe': False, 'reason': 'clamav not running'}, 'unavailable'),
-            ({'safe': False, 'reason': 'clamav out of date'}, 'unavailable'),
-            ({'safe': False, 'reason': 'Communication with filecheck API failed: timeout'}, 'unavailable'),
-        ):
-            with self.subTest(payload=payload):
-                response = Mock()
-                response.json.return_value = payload
-                self.assertEqual(self.scan(response)[0], expected)
-
     def test_malformed_responses_fail_open(self):
-        for payload in (None, [], 'bad', {}, {'safe': 'false'}, {'safe': False},
+        for payload in (None, [], 'bad', {}, {'safe': True}, {'safe': False, 'reason': 'virus detected'},
                         {'safe': False, 'reason': None}, {'verdict': 'future', 'safe': False},
                         {'verdict': []}, {'verdict': None}):
             with self.subTest(payload=payload):

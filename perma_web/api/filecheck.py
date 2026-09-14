@@ -1,4 +1,4 @@
-"""Upload scanning with compatibility for legacy Filecheck responses."""
+"""Upload scanning using Filecheck verdicts."""
 import requests
 
 
@@ -23,17 +23,7 @@ def scan_upload(uploaded_file, url, timeout):
     reason = result.get('reason')
     if not isinstance(reason, str):
         reason = 'No reason provided'
-    if 'verdict' in result:
-        verdict = result['verdict']
-        if verdict in ('clean', 'unsafe', 'rejected', 'unavailable'):
-            return verdict, reason
-        return 'unavailable', 'Unknown Filecheck verdict'
-
-    # Older development images and service versions only return safe/reason.
-    if result.get('safe') is True:
-        return 'clean', reason
-    if result.get('safe') is False and isinstance(result.get('reason'), str):
-        if reason in ('clamav not running', 'clamav out of date') or reason.startswith('Communication with filecheck API failed'):
-            return 'unavailable', reason
-        return 'unsafe', reason
-    return 'unavailable', 'Invalid Filecheck response'
+    verdict = result.get('verdict')
+    if verdict in ('clean', 'unsafe', 'rejected', 'unavailable'):
+        return verdict, reason
+    return 'unavailable', 'Missing or unknown Filecheck verdict'

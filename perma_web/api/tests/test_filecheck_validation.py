@@ -15,16 +15,14 @@ class FilecheckValidationTestCase(SimpleTestCase):
         request = SimpleNamespace(user=SimpleNamespace(id=1), data={'file': upload})
         return AuthenticatedLinkSerializer(context={'request': request})
 
-    def test_upload_policy_for_new_and_legacy_responses(self):
+    def test_upload_policy_for_verdicts_and_invalid_responses(self):
         for payload, blocked in (
             ({'verdict': 'clean'}, False),
             ({'verdict': 'unsafe'}, True),
             ({'verdict': 'rejected'}, True),
             ({'verdict': 'unavailable'}, False),
             ({'safe': True}, False),
-            ({'safe': False, 'reason': 'virus detected'}, True),
-            ({'safe': False, 'reason': 'clamav not running'}, False),
-            ({'safe': False, 'reason': 'clamav out of date'}, False),
+            ({'safe': False, 'reason': 'virus detected'}, False),
             ({'safe': False}, False),
             ([], False),
         ):
@@ -42,7 +40,7 @@ class FilecheckValidationTestCase(SimpleTestCase):
                     else:
                         self.assertEqual(serializer.validate(data)['submitted_url'], data['submitted_url'])
                         logger.warning.assert_not_called()
-                        if payload != {'safe': True} and payload != {'verdict': 'clean'}:
+                        if payload != {'verdict': 'clean'}:
                             logger.error.assert_called_once()
 
     @override_settings(SCAN_UPLOADS=False)
