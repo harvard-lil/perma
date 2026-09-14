@@ -307,6 +307,15 @@ In code, use Django's `storage` to read and write user-generated files rather th
 
 Paths for default storage are relative to `MEDIA_ROOT`.
 
+In local development, the `s3` service keeps objects as plain files in the `s3_data` Docker volume: each bucket is a directory under `/data`, and each object is a file at its key's path. To look at them:
+
+```
+docker compose exec s3 ls -R /data/perma-storage
+docker compose cp s3:/data/perma-storage ./perma-storage-copy
+```
+
+Read files this way, but add or change them through `storages` or an S3 client. The gateway keeps each object's ETag and content type in extended file attributes, which files written directly into the volume lack.
+
 Further reading:
 
 * [Django docs for file storage](https://docs.djangoproject.com/en/stable/topics/files/)

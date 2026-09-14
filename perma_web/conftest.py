@@ -58,7 +58,7 @@ def set_up_certs(tmp_path_factory):
         certs = [
             ("mkcert ca root", f"{settings.PROJECT_ROOT}/rootCA.pem"),
             ("perma certs", f"{settings.PROJECT_ROOT}/perma-test.crt"),
-            ("minio cert", "/tmp/minio_ssl/public.crt"),
+            ("s3 cert", "/tmp/s3_ssl/public.crt"),
         ]
 
         for cert in certs:

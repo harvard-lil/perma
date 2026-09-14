@@ -76,7 +76,7 @@ python_files = ["tests.py", "test_*.py", "*_tests.py"]
 addopts = "-n auto --dist loadscope --browser chromium --screenshot only-on-failure --output failed_test_files"
 filterwarnings = ["ignore:Unverified HTTPS request"]
 markers = [
-    "uses_storage: marks tests that write to S3/MinIO storage (cleanup_storage teardown is skipped for unmarked tests)",
+    "uses_storage: marks tests that write to S3 storage (cleanup_storage teardown is skipped for unmarked tests)",
 ]
 
 [tool.coverage.run]
