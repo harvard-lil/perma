@@ -57,7 +57,8 @@ class Registrar(CustomerModel):
     notes = models.TextField(blank=True)
     manual_sort_order = models.IntegerField(default=0, db_index=True)
 
-    link_count = models.IntegerField(default=0) # A cache of the number of links under this registrars's purview (sum of all associated org links)
+    link_count = models.IntegerField(default=0) # number of non-deleted links in this registrar's orgs; not including sponsored links
+    sponsored_link_count = models.IntegerField(default=0) # number of non-deleted links in folders sponsored by this registrar; not including org links
 
     objects = RegistrarQuerySet.as_manager()
     tracker = FieldTracker()
@@ -69,6 +70,23 @@ class Registrar(CustomerModel):
 
     def __str__(self):
         return self.name
+
+    @staticmethod
+    def adjust_sponsored_link_count(old_sponsored_by_id, new_sponsored_by_id):
+        """ Update sponsored_link_count when a link leaves or enters a sponsored folder. """
+        if old_sponsored_by_id == new_sponsored_by_id:
+            return
+
+        if old_sponsored_by_id:
+            registrar = Registrar.objects.get(pk=old_sponsored_by_id)
+            if registrar.sponsored_link_count > 0:
+                registrar.sponsored_link_count -= 1
+                registrar.save(update_fields=['sponsored_link_count'])
+
+        if new_sponsored_by_id:
+            registrar = Registrar.objects.get(pk=new_sponsored_by_id)
+            registrar.sponsored_link_count += 1
+            registrar.save(update_fields=['sponsored_link_count'])
 
     def save(self, *args, **kwargs):
         from .folder import Folder
