@@ -3,58 +3,62 @@ from django.db.models import expressions
 from django.db.models.signals import pre_save
 from simple_history import signals
 
-from .models import Link
+from .models import Link, Registrar
 
 
 @receiver(pre_save, sender=Link)
 def update_link_count(sender, instance, **kwargs):
+    """ update link counts when a link is saved or deleted """
+
+    def decrement_organization_link_counts(link):
+        """ minus one from user's organization and associated registrar """
+        if link.organization:
+            organization = link.organization
+            registrar = organization.registrar
+
+            if organization.link_count > 0:
+                organization.link_count -= 1
+                organization.save(update_fields=["link_count"])
+            if registrar.link_count > 0:
+                registrar.link_count -= 1
+                registrar.save(update_fields=["link_count"])
+
+    def increment_organization_link_counts(link):
+        """ plus one to user's organization and associated registrar """
+        if link.organization:
+            organization = link.organization
+            registrar = organization.registrar
+            organization.link_count += 1
+            organization.save(update_fields=["link_count"])
+            registrar.link_count += 1
+            registrar.save(update_fields=["link_count"])
+
     try:
+        incoming_link = instance
         # include user deleted links, so we don't hit the new link signal when a link is deleted and later saved
-        loaded_link = sender.objects.all_with_deleted().get(pk=instance.pk)
-        if loaded_link.user_deleted and instance.user_deleted:
+        existing_link = sender.objects.all_with_deleted().get(pk=incoming_link.pk)
+        if existing_link.user_deleted and incoming_link.user_deleted:
             return
 
-        def decrement_link_count(loaded_link):
-            # minus one from user's organization and related registar
-            if loaded_link.organization:
-                if loaded_link.organization.link_count > 0:
-                    loaded_link.organization.link_count -= 1
-                    loaded_link.organization.save()
+        organization_changed = existing_link.organization != incoming_link.organization
+        if organization_changed:
+            decrement_organization_link_counts(existing_link)
 
-                if loaded_link.organization.registrar.link_count > 0:
-                    loaded_link.organization.registrar.link_count -= 1
-                    loaded_link.organization.registrar.save()
+        if incoming_link.user_deleted and not existing_link.user_deleted:
+            if existing_link.created_by.link_count > 0:
+                existing_link.created_by.link_count -= 1
+                existing_link.created_by.save(update_fields=["link_count"])
+            decrement_organization_link_counts(existing_link)
+            Registrar.adjust_sponsored_link_count(existing_link._sponsored_by_id(), None)
 
-        # subtract from org and registrar if org has changed
-        if loaded_link.organization != instance.organization:
-            decrement_link_count(loaded_link)
-
-        # if the link was deleted
-        if instance.user_deleted and loaded_link.user_deleted != instance.user_deleted:
-            # minus one from user's link count
-            if loaded_link.created_by.link_count > 0:
-                loaded_link.created_by.link_count -= 1
-                loaded_link.created_by.save()
-
-            decrement_link_count(loaded_link)
-
-        # if org changed or we have a new link with an associated org, increment
-        if instance.organization and loaded_link.organization != instance.organization:
-            instance.organization.link_count += 1
-            instance.organization.save()
-            instance.organization.registrar.link_count += 1
-            instance.organization.registrar.save()
+        if incoming_link.organization and organization_changed:
+            increment_organization_link_counts(incoming_link)
 
     except sender.DoesNotExist:
-        # new link. let's add it to the user's sum
-        instance.created_by.link_count += 1
-        instance.created_by.save()
-
-        if instance.organization:
-            instance.organization.link_count += 1
-            instance.organization.save()
-            instance.organization.registrar.link_count += 1
-            instance.organization.registrar.save()
+        # new link, let's add it to the user, org and registrar counts
+        incoming_link.created_by.link_count += 1
+        incoming_link.created_by.save(update_fields=["link_count"])
+        increment_organization_link_counts(incoming_link)
 
 
 @receiver(

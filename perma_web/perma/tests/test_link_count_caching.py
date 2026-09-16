@@ -116,3 +116,61 @@ def test_link_count_for_registrars(registrar_user, link_factory):
 
     registrar_user.registrar.refresh_from_db()
     assert link_count == registrar_user.registrar.link_count
+
+
+def test_creating_sponsored_link_increments_sponsored_link_count(sponsored_user, link_factory):
+    """ Moving a new link into a sponsored folder must increase that registrar's sponsored_link_count """
+    sponsorship = sponsored_user.sponsorships.first()
+    registrar = sponsorship.registrar
+    sponsored_folder = sponsorship.folders.first()
+
+    registrar.refresh_from_db()
+    assert registrar.sponsored_link_count == 0
+    assert registrar.link_count == 0
+
+    link = link_factory(created_by=sponsored_user, submitted_url="http://example.com/sponsored")
+    link.move_to_folder_for_user(sponsored_folder, sponsored_user)
+
+    registrar.refresh_from_db()
+    sponsored_user.refresh_from_db()
+    assert registrar.sponsored_link_count == 1
+    assert registrar.link_count == 0
+    assert sponsored_user.link_count == 1
+
+
+def test_deleting_sponsored_link_decrements_sponsored_link_count(sponsored_user, link_factory):
+    """ Soft-deleting a sponsored link must decrement sponsored_link_count, not registrar.link_count """
+    sponsorship = sponsored_user.sponsorships.first()
+    registrar = sponsorship.registrar
+    sponsored_folder = sponsorship.folders.first()
+
+    link = link_factory(created_by=sponsored_user, submitted_url="http://example.com/sponsored")
+    link.move_to_folder_for_user(sponsored_folder, sponsored_user)
+    registrar.refresh_from_db()
+    assert registrar.sponsored_link_count == 1
+
+    link.safe_delete()
+    link.save()
+
+    registrar.refresh_from_db()
+    sponsored_user.refresh_from_db()
+    assert registrar.sponsored_link_count == 0
+    assert registrar.link_count == 0
+    assert sponsored_user.link_count == 0
+
+
+def test_moving_link_into_sponsored_folder_increments_sponsored_link_count(sponsored_user, link_factory):
+    """ Moving link from personal to sponsored folder must increase sponsored_link_count and leave org registrar.link_count alone """
+    sponsorship = sponsored_user.sponsorships.first()
+    registrar = sponsorship.registrar
+    sponsored_folder = sponsorship.folders.first()
+
+    link = link_factory(created_by=sponsored_user, submitted_url="http://example.com/personal")
+    registrar.refresh_from_db()
+    assert registrar.sponsored_link_count == 0
+
+    link.move_to_folder_for_user(sponsored_folder, sponsored_user)
+
+    registrar.refresh_from_db()
+    assert registrar.sponsored_link_count == 1
+    assert registrar.link_count == 0
