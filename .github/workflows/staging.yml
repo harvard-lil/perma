@@ -1,8 +1,10 @@
 name: Staging - Deploy to AWS
 
-# Perma's staging branch has always been `stage`, not h2o's `staging`, and it
-# is not renamed here. The GitHub environment it deploys through is named
-# `staging`, with a branch policy limiting it to `stage`.
+# The ECS line's staging branch is `staging`, matching h2o and the org
+# standard. Perma's older `stage` branch belongs to the Salt line and is
+# deployed by Salt, not by this workflow. The GitHub environment this deploys
+# through is also named `staging`, with a branch policy limiting it to the
+# `staging` branch.
 
 on:
   workflow_dispatch:
@@ -20,9 +22,9 @@ on:
         type: boolean
         default: false
   pull_request:
-    branches: [stage]
+    branches: [staging]
   push:
-    branches: [stage]
+    branches: [staging]
 
 permissions:
   id-token: write     # assume the deploy role via OIDC
@@ -34,31 +36,31 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Only allow merges from develop, from this repository.
+  # Only allow merges from main, from this repository.
   check-source-branch:
     name: Check Source Branch
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
-      - name: Verify source branch is develop
+      - name: Verify source branch is main
         env:
           HEAD_REF: ${{ github.head_ref }}
           HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
           REPOSITORY: ${{ github.repository }}
         run: |
           if [ "$HEAD_REPOSITORY" != "$REPOSITORY" ]; then
-            echo "::error::Pull requests to stage cannot come from forks."
+            echo "::error::Pull requests to staging cannot come from forks."
             exit 1
           fi
-          if [ "$HEAD_REF" != "develop" ]; then
-            echo "::error::Pull requests to stage must come from the develop branch."
+          if [ "$HEAD_REF" != "main" ]; then
+            echo "::error::Pull requests to staging must come from the main branch."
             exit 1
           fi
           echo "Source branch verification passed"
 
-  # Neither deploy tier lints or tests. The pull request into stage runs the
+  # Neither deploy tier lints or tests. The pull request into staging runs the
   # promotion checks below and stops, so a merge that would fail them is
-  # visible before it happens; a push or a dispatch on stage runs the same
+  # visible before it happens; a push or a dispatch on staging runs the same
   # checks and then deploys. The checks read metadata and referrers only:
   # nothing here rebuilds, pulls, or starts the image.
   prepare:
@@ -67,7 +69,7 @@ jobs:
     if: >-
       always() && github.repository == 'harvard-lil/perma' &&
       ((github.event_name == 'pull_request' && needs.check-source-branch.result == 'success') ||
-       ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/stage'))
+       ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/staging'))
     runs-on: ubuntu-latest
     environment: staging
 
@@ -82,7 +84,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0   # need merge parents to resolve the develop commit we promote
+          fetch-depth: 0   # need merge parents to resolve the main commit we promote
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
@@ -102,8 +104,8 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
 
-      # Promote, do not rebuild. lint_test.yml built this image on develop,
-      # ran the suite against it, and pushed it tagged with the develop commit
+      # Promote, do not rebuild. lint_test.yml built this image on main,
+      # ran the suite against it, and pushed it tagged with the main commit
       # SHA. The candidate must have the same source tree as the promoted
       # revision, so a merge that changed the tree without a build is refused.
       - name: Resolve the tested image

@@ -30,13 +30,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Only allow merges from stage, from this repository.
+  # Only allow merges from staging, from this repository.
   check-source-branch:
     name: Check Source Branch
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
-      - name: Verify source branch is stage
+      - name: Verify source branch is staging
         env:
           HEAD_REF: ${{ github.head_ref }}
           HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
@@ -46,15 +46,15 @@ jobs:
             echo "::error::Pull requests to prod cannot come from forks."
             exit 1
           fi
-          if [ "$HEAD_REF" != "stage" ]; then
-            echo "::error::Pull requests to prod must come from the stage branch."
+          if [ "$HEAD_REF" != "staging" ]; then
+            echo "::error::Pull requests to prod must come from the staging branch."
             exit 1
           fi
           echo "Source branch verification passed"
 
   # Production never builds. It ships the exact image the staging web service
   # is running, read out of that service's task definition: on prod, HEAD^2 is
-  # the stage merge commit, which no image carries, so the SHA chain does not
+  # the staging merge commit, which no image carries, so the SHA chain does not
   # survive two merges, and staging pins a digest there in any case. Every
   # staging service was rolled from one digest, so the web service speaks for
   # all of them.

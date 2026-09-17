@@ -134,7 +134,7 @@ jobs:
 
       # Mark the promoted artifact before deploying it. ECR retention keeps
       # deployed images far longer than the build candidates that churn past
-      # them every merge to develop; without this tag the image the services
+      # them every merge to main; without this tag the image the services
       # run is just another candidate and ages out on the same schedule.
       - name: Protect the promoted image from retention
         uses: harvard-lil/lil-actions/ecr-tag-image@main

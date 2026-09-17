@@ -5,7 +5,7 @@ on:
     secrets:
       # The only secret this workflow reads. Publishing needs no secret: the
       # build role is a repository variable assumed over OIDC, and it can only
-      # be assumed by a push to develop in this repository.
+      # be assumed by a push to main in this repository.
       CODECOV_TOKEN:
         required: false
 
@@ -47,16 +47,16 @@ jobs:
       MIGRATIONS_TYPE: application/vnd.harvard-lil.django.migrations.v1+json
       CELERY_TYPE: application/vnd.harvard-lil.perma.celery-tasks.v1+json
       STATIC_TYPE: application/vnd.harvard-lil.perma.staticassets.v1.tar+gzip
-      # Publication happens only on a push to develop in this repository.
+      # Publication happens only on a push to main in this repository.
       # Pull requests test and stop; a fork never gets the build role.
-      PUBLISHING: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && github.repository == 'harvard-lil/perma' }}
+      PUBLISHING: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'harvard-lil/perma' }}
     # don't run on pushes to forks
     if: github.event_name == 'pull_request' || github.repository == 'harvard-lil/perma'
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # On a develop retry, ask the registry whether this commit already
+      # On a main retry, ask the registry whether this commit already
       # completed publication before spending several minutes rebuilding it.
       # Pull requests have no publishing credentials and always run the suite.
       - name: Configure build credentials
@@ -275,7 +275,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       # Push the image built at the top of this job -- not a rebuild. Tagged
-      # with the commit develop actually points at, so staging can find it.
+      # with the commit main actually points at, so staging can find it.
       # The action refuses to move an existing commit tag.
       - name: Publish the prod image to ECR
         id: publish
