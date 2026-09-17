@@ -13,6 +13,12 @@
 # /perma/perma_web the Django project (WORKDIR), /perma/services the
 # sidecar directories (js-wacz, cloudflare IP lists, the RDS CA bundle).
 
+# Pinned tool images, named once so every stage below agrees on them. uv is
+# copied out of its image as a static binary; node is both the `assets`
+# builder and the source of the node version `base` installs from apt.
+FROM ghcr.io/astral-sh/uv:0.8.17 AS uv
+FROM node:20.13.0-bookworm AS node
+
 # =====================================================================
 # base -- shared Python/node dependency layer. No app code. Not run directly.
 # =====================================================================
@@ -53,7 +59,7 @@ RUN apt-get update \
 
 # node.js, pinned. Needed in prod (not only test): the wacz-conversion worker
 # shells out to `npx js-wacz` from /perma/services/js-wacz. Version tracks the
-# `assets` stage below and Salt's warc-wacz state.
+# `node` stage above and Salt's warc-wacz state.
 RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
         | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg \
     && echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" \
@@ -62,9 +68,9 @@ RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
     && apt-get install -y --no-install-recommends nodejs=20.13.0-1nodesource1 \
     && rm -rf /var/lib/apt/lists/*
 
-# uv, pinned by image tag, for the locked Python install below and for the
-# test stage's dev-group install.
-COPY --from=ghcr.io/astral-sh/uv:0.8.17 /uv /uvx /bin/
+# uv, from the pinned stage above, for the locked Python install below and for
+# the test stage's dev-group install.
+COPY --from=uv /uv /uvx /bin/
 
 # js-wacz and its dependencies, for the wacz-conversion worker. Installed from
 # the lockfile alone so this layer is independent of app-code changes.
@@ -83,14 +89,14 @@ RUN uv sync --frozen --no-dev
 # that `prod` and `test` come out of one build graph and cannot disagree about
 # what the frontend is.
 #
-# Plain node image: this stage needs npm and nothing Python. Node version
-# tracks `base`.
+# Plain node image (the pinned `node` stage): this stage needs npm and nothing
+# Python. Same node version as `base`.
 #
 # WORKDIR matters here: webpack-bundle-tracker records absolute output paths
 # in webpack-stats.json, and django-webpack-loader reads that file at runtime,
 # so the bundles must be built at the path they are served from.
 # =====================================================================
-FROM node:20.13.0-bookworm AS assets
+FROM node AS assets
 
 WORKDIR /perma/perma_web
 
@@ -145,11 +151,22 @@ COPY --from=assets --chown=perma:perma /perma/perma_web/webpack-stats.json ./web
 # (PERMA_SETTINGS_MODULE), instead of baking a settings.py into the image.
 ENV PERMA_SETTINGS_MODULE=settings_ecs
 
-# The short commit hash the Salt template computed at deploy time; here it is
-# stamped at build time by CI (--build-arg PERMA_VERSION=<short sha>) and read
+# The short commit hash the Salt template computed at deploy time
+# (`private_source['revision'][:7]`); here it is stamped at build time and read
 # by settings_ecs. It ends up in the datapackage.json of user uploads.
+# Convention: the first seven characters of the commit SHA, i.e. CI passes
+# `--build-arg PERMA_VERSION=${GITHUB_SHA::7}`, and passes the same value to
+# the `test` build so that test's FROM-prod layers are the cached prod layers
+# rather than a second copy stamped `dev`.
 ARG PERMA_VERSION=dev
 ENV PERMA_VERSION=$PERMA_VERSION
+
+# DJANGO_SETTINGS_MODULE is deliberately not set here: manage.py, wsgi.py and
+# celery.py default it to perma.settings themselves, and an image-level value
+# would override pytest's settings_testing (pytest-django prefers the
+# environment to pyproject.toml). The shared CI inspectors, which run
+# `python -c` against this image without going through manage.py, pass
+# `settings-module: perma.settings` instead.
 
 USER perma
 
@@ -202,12 +219,19 @@ RUN /tmp/install-test-toolchain.sh && rm /tmp/install-test-toolchain.sh
 # =====================================================================
 FROM prod AS test
 
+# Inherited from prod as ENV; declared again so the build-arg is visibly part
+# of this target's interface. Pass the same value as the prod build (see the
+# prod stage) or the two builds stop sharing layers.
+ARG PERMA_VERSION=dev
+
 USER root
 
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
-# The dev dependency group, into the same venv prod uses.
-RUN uv sync --frozen && chown -R perma /opt/venv
+# The dev dependency group, into the same venv prod uses. --inexact keeps
+# uwsgi, which prod installed outside the lockfile; without it uv removes it
+# and the test image no longer holds everything the shipped one does.
+RUN uv sync --frozen --inexact && chown -R perma /opt/venv
 
 COPY docker/install-test-toolchain.sh /tmp/install-test-toolchain.sh
 RUN /tmp/install-test-toolchain.sh && rm /tmp/install-test-toolchain.sh
