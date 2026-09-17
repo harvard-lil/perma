@@ -821,13 +821,37 @@ def get_wacz_stream(link, stream=True):
         return response
 
 
-def stream_archive(link, stream=True, file_format='warc'):
+def stream_archive(link, stream=True, file_format='warc', head=False):
     # `link.user_deleted` is checked here for dev convenience:
     # it's easy to forget that deleted Perma Links' files aren't truly deleted,
     # and easy to accidentally permit the downloading of "deleted" archive files.
     # Users of stream_archive shouldn't have to worry about / remember this.
     if link.user_deleted or not link.can_play_back():
         raise Http404
+
+    if head:
+        # Check stored files without downloading them. WARC extraction still
+        # needs the ZIP directory to verify that the requested member exists.
+        if file_format == 'warc' and not link.warc_size:
+            try:
+                with link.get_warc():
+                    pass
+            except RuntimeError:
+                raise Http404
+        else:
+            if file_format == 'warc':
+                storage, name, size = settings.WARC_STORAGE, link.warc_storage_file(), link.warc_size
+            elif file_format == 'wacz':
+                storage, name, size = settings.WACZ_STORAGE, link.wacz_storage_file(), link.wacz_size
+            else:
+                raise NotImplementedError("Unsupported file format.")
+            if not size or not storages[storage].exists(name):
+                raise Http404
+        suffix, content_type = ('warc.gz', 'application/gzip') if file_format == 'warc' else ('wacz', 'application/wacz')
+        # Streaming prevents CommonMiddleware from inventing a zero file size.
+        response = StreamingHttpResponse((), content_type=content_type)
+        response['Content-Disposition'] = f'attachment; filename="{link.guid}.{suffix}"'
+        return response
 
     try:
         match file_format:
@@ -843,12 +867,12 @@ def stream_archive(link, stream=True, file_format='warc'):
         raise Http404
 
 
-def stream_archive_if_permissible(link, user, stream=True, file_format='warc'):
+def stream_archive_if_permissible(link, user, stream=True, file_format='warc', head=False):
     if not user.is_authenticated:
         return HttpResponse('Unauthenticated.', status=401)
 
     if user.can_view(link):
-        return stream_archive(link, stream, file_format)
+        return stream_archive(link, stream, file_format, head=head)
     return HttpResponseForbidden('Private archive.')
 
 

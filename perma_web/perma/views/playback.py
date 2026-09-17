@@ -59,11 +59,11 @@ def single_permalink(request, guid):
 
     # serve raw WARC
     if serve_type == 'warc_download':
-        return stream_archive_if_permissible(link, request.user, file_format='warc')
+        return stream_archive_if_permissible(link, request.user, file_format='warc', head=request.method == "HEAD")
 
     # serve raw WACZ
     if serve_type == 'wacz_download':
-        return stream_archive_if_permissible(link, request.user, file_format='wacz')
+        return stream_archive_if_permissible(link, request.user, file_format='wacz', head=request.method == "HEAD")
 
     # handle requested capture type
     if serve_type == 'image':
@@ -132,6 +132,7 @@ def single_permalink(request, guid):
 
         # Prepare a WACZ for the next attempted playback, if appropriate
         if (
+            request.method == "GET" and
             settings.WARC_TO_WACZ_ON_DEMAND and
             link.warc_size and
             link.warc_size < settings.WARC_TO_WACZ_ON_DEMAND_SIZE_LIMIT and
