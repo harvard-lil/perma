@@ -39,6 +39,25 @@ def computed_style(locator, property_name: str) -> str:
     )
 
 
+def computed_after_style(locator, property_name: str) -> str:
+    """Read one CSS property from an element's ::after pseudo-element."""
+    return locator.evaluate(
+        "(el, prop) => getComputedStyle(el, '::after').getPropertyValue(prop)", property_name
+    )
+
+
+def assert_chevron_sprite_is_the_only_arrow(toggle) -> None:
+    """
+    Perma's dropdown arrow is a sprite on ::after. Bootstrap 5's own caret
+    rule targets the same pseudo-element with a border-triangle; any border
+    width here means both arrows are drawn into one 18x9 box.
+    """
+    assert computed_after_style(toggle, "background-size") == "102px 9px"
+    for side in ("top", "right", "bottom", "left"):
+        assert computed_after_style(toggle, f"border-{side}-width") == "0px"
+    assert computed_after_style(toggle, "vertical-align") == "baseline"
+
+
 @pytest.mark.uses_storage
 def test_body_base_typography_and_background(page, ui_urls) -> None:
     """
@@ -228,3 +247,42 @@ def test_modal_z_index_and_body_padding(page, ui_urls, user, log_in) -> None:
     modal_body = page.locator("div:has(> #archive_upload_form)")
     assert computed_style(modal_body, "padding-top") == "0px"
     assert computed_style(modal_body, "padding-right") == "15px"
+
+
+@pytest.mark.uses_storage
+def test_account_dropdown_arrow_is_only_the_chevron_sprite(page, ui_urls, user, log_in) -> None:
+    """
+    The account menu toggle's arrow is the `ui-chev-down` sprite alone, closed
+    and open. Bootstrap 3 never drew a caret on `.dropdown-toggle`; Bootstrap
+    5 does unless `$enable-caret` is off, and the two overlap into a clipped
+    triangle with a stray sprite fragment.
+    """
+    log_in(page, user)
+    page.set_viewport_size(DESKTOP_VIEWPORT)
+    page.goto(ui_urls("about"))
+
+    toggle = page.get_by_role("button", name="Main Dropdown")
+    assert_chevron_sprite_is_the_only_arrow(toggle)
+
+    toggle.click()
+    expect(toggle).to_have_attribute("aria-expanded", "true")
+    assert_chevron_sprite_is_the_only_arrow(toggle)
+
+
+@pytest.mark.uses_storage
+def test_folder_selector_arrow_is_only_the_chevron_sprite(page, ui_urls, user, log_in) -> None:
+    """
+    The Create page's folder selector (FolderSelect.vue) also carries
+    `.dropdown-toggle`, so it is exposed to the same Bootstrap 5 caret as the
+    account menu, on top of its own `.dropdown .selector:after` sprite.
+    """
+    log_in(page, user)
+    page.set_viewport_size(DESKTOP_VIEWPORT)
+    page.goto(ui_urls("create_link"))
+
+    # The inline selector renders only for org users; the batch dialog's
+    # renders for everyone.
+    page.get_by_role("button", name="create multiple links").click()
+    selector = page.get_by_role("dialog").locator("#organization_select_form > button")
+    expect(selector).to_be_visible()
+    assert_chevron_sprite_is_the_only_arrow(selector)

@@ -25,6 +25,15 @@ def computed(page, selector, prop):
     )
 
 
+def computed_after(page, selector, prop):
+    """Read one resolved CSS property from an element's ::after pseudo-element."""
+    return page.eval_on_selector(
+        selector,
+        "(el, prop) => getComputedStyle(el, '::after').getPropertyValue(prop)",
+        prop,
+    )
+
+
 @pytest.mark.uses_storage
 def test_details_tray_is_hidden_until_the_details_button_is_used(page, urls) -> None:
     """
@@ -140,3 +149,23 @@ def test_archive_nav_toggle_is_currently_unlabeled_for_logged_in_users(page, url
     expect(toggle).to_have_count(1)
     assert toggle.get_attribute("aria-expanded") is None
     assert toggle.inner_text().strip() == ""
+
+
+@pytest.mark.uses_storage
+def test_archive_account_dropdown_arrow_is_only_the_chevron_sprite(page, urls, user, log_in_user) -> None:
+    """
+    The archive page draws the account menu's arrow from its own inline copy of
+    the chevron sprite rule, against its own Bootstrap build. Bootstrap 5's
+    caret must not be compiled into that build either, or it overlaps the
+    sprite exactly as on the main site.
+    """
+    log_in_user(page, user)
+    page.set_viewport_size(DESKTOP_VIEWPORT)
+    page.goto(urls.perma_link_with_warc)
+
+    toggle = "#upper_right_menu [aria-haspopup='true']"
+    expect(page.locator(toggle)).to_be_visible()
+    assert computed_after(page, toggle, "background-size") == "102px 9px"
+    for side in ("top", "right", "bottom", "left"):
+        assert computed_after(page, toggle, f"border-{side}-width") == "0px"
+    assert computed_after(page, toggle, "vertical-align") == "baseline"

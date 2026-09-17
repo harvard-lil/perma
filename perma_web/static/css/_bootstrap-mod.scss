@@ -20,8 +20,8 @@
 }
 
 // Used by the .btn-transparent filter buttons in user management. They carry
-// data-bs-toggle but not .dropdown-toggle, so Bootstrap 5's ::after arrow never
-// applies to them and this <span> is the only arrow they have.
+// data-bs-toggle but not .dropdown-toggle, so this <span> is the only arrow
+// they have.
 .caret {
   display: inline-block;
   width: 0;

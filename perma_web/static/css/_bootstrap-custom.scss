@@ -27,6 +27,11 @@ $grid-gutter-width: 32px;
 // by default, which is a behaviour change, not a style one.
 $enable-smooth-scroll: false;
 
+// Bootstrap 3 drew no caret on .dropdown-toggle. Bootstrap 5's is a
+// border-triangle on ::after, the same pseudo-element Perma's chevron sprite
+// uses, so the two overlap into a clipped triangle with a stray sprite sliver.
+$enable-caret: false;
+
 // Bootstrap 5 shifted every grid tier down: its sm/md/lg are 576/768/992 where
 // Bootstrap 3's were 768/992/1200. Taking the new map would silently re-tier all
 // ~230 grid classes in the templates -- a `col-lg-6` written for "half width at
