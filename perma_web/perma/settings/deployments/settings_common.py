@@ -41,6 +41,14 @@ USE_I18N = True
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
 
+# boto3 1.36+ sends a CRC32 checksum after the body using aws-chunked framing,
+# which omits Content-Length; the Compose MinIO (RELEASE.2022-05-03) rejects
+# that with MissingContentLength. 'when_required' restores the older framing,
+# for every deployment and not just local MinIO — drop it once nothing Perma
+# writes to predates the 2025 S3 checksums. signature_version is restated here
+# because django-storages treats an explicit client_config as complete, and
+# without it presigned URLs fall back to v2 and playback 403s. DeleteObjects
+# still sends CRC32 under this setting; see the cleanup loop in conftest.py.
 STORAGES = {
     "default": {
         "BACKEND": 'perma.storage_backends.S3MediaStorage',

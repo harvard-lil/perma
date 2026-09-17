@@ -178,6 +178,8 @@ def pytest_runtest_teardown(item: pytest.Item, nextitem: pytest.Item):
             aws_secret_access_key=settings.STORAGES[storage_option]["OPTIONS"]["secret_key"],
             verify=False
         ).Bucket(settings.STORAGES[storage_option]["OPTIONS"]["bucket_name"])
+        # One at a time, not a bulk delete: boto3 1.36+ sends CRC32 rather than
+        # Content-Md5 on DeleteObjects, which the Compose MinIO rejects.
         for stored_object in storage.objects.all():
             stored_object.delete()
 
