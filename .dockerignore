@@ -40,7 +40,7 @@ perma_web/*.pem
 perma_web/*.crt
 perma_web/*.key
 perma_web/*.conf
-services/docker/minio/ssl
+services/docker/s3/ssl
 services/docker/wacz-exhibitor/ssl
 
 # Runtime directories the compose file bind-mounts; only their READMEs are

@@ -14,7 +14,8 @@
 # Note that docker-compose.override.yml is deliberately NOT included; compose
 # only applies it automatically when no -f flags are given. The Scoop API
 # services it defines are started by the workflow from that file separately,
-# as today.
+# as today. Filecheck needs nothing here: docker-compose.yml builds it from
+# its GitHub `main` (pull_policy: build), which applies in CI as well.
 services:
   web:
     build:
@@ -41,7 +42,7 @@ services:
     # only what is not code: the Scoop access key the dev Scoop API writes,
     # and the mkcert certificates the Playwright tests need (conftest.py
     # installs perma_web/rootCA.pem, perma_web/perma-test.crt and
-    # /tmp/minio_ssl/public.crt into an NSS database, and the live server
+    # /tmp/s3_ssl/public.crt into an NSS database, and the live server
     # serves perma-test.crt/.key). The cert files must exist on the runner
     # before `up`, i.e. `bash make_cert.sh` runs first; a bind mount of a
     # missing file creates a directory in its place.
@@ -50,5 +51,5 @@ services:
       - ./perma_web/rootCA.pem:/perma/perma_web/rootCA.pem:ro
       - ./perma_web/perma-test.crt:/perma/perma_web/perma-test.crt:ro
       - ./perma_web/perma-test.key:/perma/perma_web/perma-test.key:ro
-      - ./services/docker/minio/ssl:/tmp/minio_ssl:ro
+      - ./services/docker/s3/ssl:/tmp/s3_ssl:ro
       - ./services/docker/wacz-exhibitor/ssl:/tmp/wacz-exhibitor_ssl:ro
