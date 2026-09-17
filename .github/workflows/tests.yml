@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - develop
-      - prod
+      - salt-prod
       - stage
   pull_request:
 
