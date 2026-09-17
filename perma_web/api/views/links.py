@@ -1,6 +1,5 @@
 import csv
 import logging
-import os.path
 from collections import OrderedDict
 
 import django_filters
@@ -15,7 +14,7 @@ from rest_framework import status
 
 from perma.celery_tasks import run_next_capture
 from perma.models import Capture, CaptureJob, Folder, Link, LinkBatch
-from perma.utils import stream_archive_if_permissible
+from perma.utils import deployment_pending, stream_archive_if_permissible
 
 from ..serializers import AuthenticatedLinkSerializer, LinkSerializer
 from ..utils import (
@@ -256,7 +255,7 @@ class AuthenticatedLinkListView(BaseView):
                 if validation_status_code := getattr(serializer, 'validation_status_code', None):
                     capture_job.validation_status_code = validation_status_code
                 capture_job.save(update_fields=['status', 'link', 'validation_status_code'])
-                if not os.path.exists(settings.DEPLOYMENT_SENTINEL):
+                if not deployment_pending():
                     run_next_capture.delay()
                 else:
                     logger.info("Deployment sentinel is present, not running next capture.")

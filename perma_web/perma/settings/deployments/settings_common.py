@@ -122,6 +122,7 @@ TEMPLATES = [
 ]
 
 MIDDLEWARE = [
+    'perma.middleware.HealthCheckMiddleware',  # answers /healthcheck/ first, before SSL redirects or host checks
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'perma.middleware.APISubdomainMiddleware',
@@ -652,8 +653,14 @@ SENTRY_ENVIRONMENT = 'dev'
 SENTRY_TRACES_SAMPLE_RATE = 1.0
 SENTRY_SEND_DEFAULT_PII = False
 
-# Before deployment, we suppress the addition of new capture jobs when this file is present
+# Before deployment, we suppress the addition of new capture jobs when this file
+# is present, or when the flag `manage.py deployment_sentinel set` stores in the
+# cache is present. See perma.utils.deployment_pending.
 DEPLOYMENT_SENTINEL = '/tmp/perma-deployment-pending'
+# Whether a cache read failure while checking the flag counts as pending.
+# False wherever the file is the primary signal (Salt hosts, dev); settings_ecs
+# sets it True, since there the cache is the only signal the deploy uses.
+DEPLOYMENT_SENTINEL_CACHE_REQUIRED = False
 
 # for inclusion in datapackage.json for user uploads; to be replaced with a
 # short commit hash in deployments

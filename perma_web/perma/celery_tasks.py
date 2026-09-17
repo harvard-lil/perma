@@ -37,7 +37,7 @@ from perma.utils import (
     remove_whitespace,
     get_ia_session, ia_global_task_limit_approaching,
     ia_perma_task_limit_approaching, ia_bucket_task_limit_approaching,
-    copy_file_data, date_range, send_to_scoop, calculate_s3_etag)
+    copy_file_data, date_range, deployment_pending, send_to_scoop, calculate_s3_etag)
 from perma.email import send_staff_invited_new_user_email, send_user_email
 from perma.wsgi_utils import retry_on_exception
 
@@ -270,7 +270,7 @@ def run_next_capture():
         capture_job.link.captures.filter(status='pending').update(status='failed')
         capture_job.mark_failed('Failed due to invalid settings.CAPTURE_ENGINE')
 
-    if not os.path.exists(settings.DEPLOYMENT_SENTINEL):
+    if not deployment_pending():
         run_next_capture.delay()
     else:
         logger.info("Deployment sentinel is present, not running next capture.")
