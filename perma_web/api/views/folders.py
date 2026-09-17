@@ -1,4 +1,5 @@
 from django.db import transaction
+from rest_framework.exceptions import ValidationError
 
 from perma.models import Folder
 
@@ -37,7 +38,12 @@ class FolderListView(BaseView):
         with transaction.atomic():
             if data.get('parent'):
                 # Lock the parent to prevent anyone from deleting it while this operation is validated and saved.
-                parent = Folder.objects.select_for_update().get(pk=data['parent'])
+                try:
+                    parent = Folder.objects.accessible_to(request.user).select_for_update().get(pk=data['parent'])
+                except (Folder.DoesNotExist, TypeError, ValueError):
+                    raise ValidationError({
+                        'parent': [f'Invalid pk "{data["parent"]}" - object does not exist.']
+                    })
                 # We don't want to insert any new folders while a tree's folders are being moved around.
                 # Since moves lock the whole subtree, we can take out the same lock, to ensure no move is underway.
                 Folder.objects.select_for_update().get(pk=parent.tree_root_id)

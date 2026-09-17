@@ -635,7 +635,7 @@ class LinkAdmin(SimpleHistoryAdmin):
         ('Organization', {'fields': ('folders', 'notes')}),
         ('Mirroring', {'fields': ('archive_timestamp', 'internet_archive_upload_status', 'cached_can_play_back')}),
     )
-    readonly_fields = ['guid', 'capture_job', 'folders', 'creation_timestamp', 'formatted_warc_size', 'formatted_wacz_size', 'captured_by_software', 'captured_by_browser', 'archive_timestamp']
+    readonly_fields = ['guid', 'capture_job', 'folders', 'creation_timestamp', 'created_by', 'formatted_warc_size', 'formatted_wacz_size', 'captured_by_software', 'captured_by_browser', 'user_deleted', 'user_deleted_timestamp', 'archive_timestamp']
     inlines = [
         new_class("CaptureInline", admin.TabularInline, model=Capture,
                   fields=['role', 'status', 'url', 'content_type', 'record_type', 'user_upload'],

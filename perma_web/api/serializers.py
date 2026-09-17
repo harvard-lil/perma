@@ -2,7 +2,6 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import URLValidator
 from django.db.models import F, Case, When, Value, BooleanField
-import requests
 from rest_framework import serializers
 import waffle
 
@@ -10,10 +9,26 @@ from perma.exceptions import ScoopAPIException
 from perma.models import LinkUser, Folder, CaptureJob, Capture, Link, Organization, LinkBatch
 from perma.utils import send_to_scoop
 
+from .filecheck import scan_upload
 from .utils import get_mime_type, mime_type_lookup, get_download_url
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+def scope_folder_relationship(serializer, field_name):
+    """Limit a writable folder relationship to folders visible to the requester."""
+    field = serializer.fields[field_name]
+    if field.read_only or field_name not in getattr(serializer, 'initial_data', {}):
+        return
+
+    request = serializer.context.get('request')
+    field.queryset = (
+        Folder.objects.accessible_to(request.user)
+        if request and request.user.is_authenticated
+        else Folder.objects.none()
+    )
+
 
 class BaseSerializer(serializers.ModelSerializer):
     """ Base serializer from which all of our serializers inherit. """
@@ -80,13 +95,17 @@ class LinkUserSerializer(BaseSerializer):
 ### FOLDER ###
 
 class FolderSerializer(BaseSerializer):
+    parent = serializers.PrimaryKeyRelatedField(queryset=Folder.objects.none())
     has_children = serializers.SerializerMethodField()
     path = serializers.CharField(source='cached_path', read_only=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        scope_folder_relationship(self, 'parent')
 
     class Meta:
         model = Folder
         fields = ('id', 'name', 'parent', 'has_children', 'path', 'organization', 'sponsored_by', 'is_sponsored_root_folder', 'read_only')
-        extra_kwargs = {'parent': {'required': True, 'allow_null': False}}
         allowed_update_fields = ['name', 'parent']
 
     def get_has_children(self, folder):
@@ -318,30 +337,12 @@ class AuthenticatedLinkSerializer(LinkSerializer):
                     errors['file'] = "File is too large."
 
                 elif not errors.get('file') and settings.SCAN_UPLOADS:
-                    uploaded_file.file.seek(0)
-                    try:
-                        r = requests.post(
-                            settings.SCAN_URL,
-                            files={'file': (uploaded_file.name, uploaded_file.file.read())}
-                        )
-                        assert r.ok, r.status_code
-                        scan_results = r.json()
-                    except (requests.RequestException, AssertionError) as e:
-                        scan_results = {"safe": False, "reason": f"Communication with filecheck API failed: {str(e)}"}
-
-                    if not scan_results['safe']:
-                        if scan_results['reason'].startswith("Communication with filecheck API failed"):
-                            # Report the error, but pass the file through.
-                            logger.error(scan_results['reason'])
-                        elif scan_results['reason'] in ["clamav not running", "clamav out of date"]:
-                            # Report the error, but pass the file through.
-                            msg = f"Filecheck service reports: {scan_results['reason']}"
-                            logger.error(msg)
-                        else:
-                            # Report the error and block the file.
-                            msg = f"Unsafe file upload attempt by user {user.id}: {scan_results['reason']}"
-                            logger.warning(msg)
-                            errors['file'] = "Validation failed."
+                    verdict, reason = scan_upload(uploaded_file, settings.SCAN_URL, settings.SCAN_TIMEOUT)
+                    if verdict == 'unavailable':
+                        logger.error("Filecheck service unavailable: %s", reason)
+                    elif verdict in ('unsafe', 'rejected'):
+                        logger.warning("Unsafe file upload attempt by user %s: %s", user.id, reason)
+                        errors['file'] = "Validation failed."
 
         if errors:
             raise serializers.ValidationError(errors)
@@ -352,7 +353,12 @@ class AuthenticatedLinkSerializer(LinkSerializer):
 ### LINKBATCH ###
 
 class LinkBatchSerializer(BaseSerializer):
+    target_folder = serializers.PrimaryKeyRelatedField(queryset=Folder.objects.none())
     capture_jobs = CaptureJobSerializer(many=True, read_only=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        scope_folder_relationship(self, 'target_folder')
 
     class Meta:
         model = LinkBatch
@@ -367,4 +373,3 @@ class DetailedLinkBatchSerializer(LinkBatchSerializer):
 
 class InternalDailyLinkCountsQuerySerializer(serializers.Serializer):
     lookback_period = serializers.IntegerField(default=30, min_value=1, max_value=365, required=False)
-

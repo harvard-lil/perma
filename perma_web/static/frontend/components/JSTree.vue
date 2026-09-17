@@ -74,6 +74,10 @@ var ls = {
 
     if (folderIds && folderIds.length) {
       history.pushState(null, null, "?folder=" + folderIds.join('-'));
+    } else {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('folder');
+      history.replaceState(null, null, url);
     }
 
     jsonLocalStorage.setItem(localStorageKey, selectedFolders);
@@ -151,7 +155,12 @@ function handleSelectionChange(data) {
   ls.setCurrent(parseInt(data.orgId), folderList);
   folderTree.close_all();
   folderTree.deselect_all();
-  selectSavedFolder();
+  if (getNodeByFolderID(getSavedFolder())) {
+    selectSavedFolder();
+  } else {
+    // Refresh is asynchronous; load_node selects the folder once it exists.
+    folderTree.refresh(false, () => {});
+  }
 }
 
 function selectSavedFolder() {
@@ -162,18 +171,6 @@ function selectSavedFolder() {
   }
   if (folderToSelect) {
     let node = getNodeByFolderID(folderToSelect);
-    if (!node) {
-      folderTree.refresh(false, function (state) {
-        // This empty function let's the node get selected after the refresh,
-        // necessary when selecting a Sponsored Folder from the dropdown, if
-        // a Sponsored Folder has not previously been loaded.
-        //
-        // I don't understand why this works, and suspect it's brittle.
-        // https://www.jstree.com/api/#/?q=(&f=refresh()
-      });
-      node = getNodeByFolderID(folderToSelect);
-      node.state.selected = true;
-    }
     if (node) {
       folderTree.select_node(node);
     }
@@ -255,12 +252,12 @@ function loadSingleFolder(folderId, callback) {
   });
 }
 
-function loadInitialFolders(preloadedData, subfoldersToPreload, callback) {
+function loadInitialFolders(preloadedData, subfoldersToPreload, callback, recoverPath = true) {
   // This runs once at startup. Starting from the list of the user's root folders, fetch any
   // subfolders in the tree that the user previously had open, and load the entire tree into jsTree at the end.
 
   // simple case -- user has no folders selected
-  if (!subfoldersToPreload) {
+  if (!subfoldersToPreload || !subfoldersToPreload.length) {
     callback(preloadedData);
     return;
   }
@@ -289,7 +286,7 @@ function loadInitialFolders(preloadedData, subfoldersToPreload, callback) {
           parentFolder.state.opened = true;
 
           // find the subfolders and load them in:
-          let apiResponse = apiResponses[i][0];
+          let apiResponse = subfoldersToPreload.length === 1 ? apiResponses[0] : apiResponses[i][0];
           let subfolders = apiResponse ? apiResponse.objects : null;  // if API response doesn't make sense, we'll just stop loading the tree here
           if (subfolders && subfolders.length) {
             parentFolder.children = apiFoldersToJsTreeFolders(subfolders);
@@ -303,14 +300,45 @@ function loadInitialFolders(preloadedData, subfoldersToPreload, callback) {
           }
         }
 
-        // pass our folder tree to jsTree for display
+        const selectedId = subfoldersToPreload[subfoldersToPreload.length - 1];
+        function containsSelected(folders) {
+          return folders.some(folder => folder.data.folder_id === selectedId ||
+              (Array.isArray(folder.children) && containsSelected(folder.children)));
+        }
+        if (!containsSelected(preloadedData)) {
+          if (recoverPath) {
+            // Another tab/user may have moved the folder since this path was saved.
+            APIModule.request("GET", `/folders/${selectedId}/`, null, {"error": null})
+                .done(folder => {
+                  const path = folder.path.split('-').map(Number);
+                  const rootIndex = path.findIndex(id =>
+                      preloadedData.some(root => root.data.folder_id === id));
+                  if (rootIndex >= 0 && path[path.length - 1] === selectedId) {
+                    const currentPath = path.slice(rootIndex);
+                    ls.setCurrent(folder.organization, currentPath);
+                    loadInitialFolders(apiFoldersToJsTreeFolders(current_user.top_level_folders),
+                        currentPath, callback, false);
+                  } else {
+                    ls.setCurrent(null, []);
+                    callback(preloadedData);
+                  }
+                })
+                .fail(() => {
+                  ls.setCurrent(null, []);
+                  callback(preloadedData);
+                });
+            return;
+          }
+          // The path changed again, or the folder is no longer available.
+          ls.setCurrent(null, []);
+        }
         callback(preloadedData);
       })
 
       // If fetching saved folders threw any API errors, something is wrong with the saved folder path (like maybe another user
       // moved the target folder) -- wipe the path and show top-level folders only.
       .fail(function () {
-        localStorage.clear();
+        ls.setCurrent(null, []);
         callback(preloadedData);
       });
 }
@@ -319,6 +347,7 @@ function domTreeInit() {
   $(folderTreeRef.value)
       .jstree({
         core: {
+          force_text: true,
           strings: {
             'New node': 'New Folder'
           },
@@ -365,6 +394,11 @@ function domTreeInit() {
                 moveFolder(targetNode.data.folder_id, node.data.folder_id).done(function () {
                   allowedEventsCount++;
                   folderTree.move_node(node, targetNode);
+                  const selected = getSelectedNode();
+                  if (selected) {
+                    folderTree.open_node(selected.parents.filter(id => id !== '#'));
+                    setSavedFolder(selected);
+                  }
                 });
               } else if (operation == 'delete_node') {
                 deleteFolder(node.data.folder_id).done(function () {

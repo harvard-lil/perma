@@ -27,7 +27,7 @@ Perma.cc is a web archiving service that creates permanent links to web content.
 
 ### Infrastructure
 - **Docker**: `docker-compose.yml` - Multi-service container setup
-- **Services**: `services/` - External services (Redis, MinIO, etc.)
+- **Services**: `services/` - External services (Redis, S3-compatible storage, etc.)
 
 ## Key Models and Relationships
 
@@ -57,7 +57,7 @@ Perma.cc is a web archiving service that creates permanent links to web content.
 ### Setup
 - Uses Docker Compose for local development
 - PostgreSQL database with Redis for caching
-- MinIO for S3-compatible storage
+- Versity S3 Gateway for S3-compatible storage
 - Celery for background tasks
 
 ### Key Commands

@@ -18,15 +18,16 @@ class FolderQuerySet(TreeQuerySet):
         if user.is_staff:
             return Q()  # all
 
-        # personal folders
-        folder_list = list(Folder.objects.filter(owned_by=user).values_list('id', flat=True))
+        access_filter = (
+            Q(owned_by=user) |
+            Q(organization__in=user.get_orgs())
+        )
 
-        # folders owned by orgs in which the user a member
-        orgs = user.get_orgs()
-        if orgs:
-            folder_list.extend(Folder.objects.filter(organization__in=list(orgs)).values_list('id', flat=True))
+        # folders sponsored by the user's registrar
+        if user.registrar_id:
+            access_filter |= Q(sponsored_by_id=user.registrar_id)
 
-        return Q(id__in=folder_list)
+        return access_filter
 
     def accessible_to(self, user):
         return self.filter(self.user_access_filter(user))

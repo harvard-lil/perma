@@ -17,6 +17,7 @@ from .base import BaseView
 class LinkBatchesListView(BaseView):
     serializer_class = LinkBatchSerializer
     queryset = (LinkBatch.objects
+        .select_related('target_folder')
         # order capture_jobs for each batch by order they were run
         .prefetch_related(
             Prefetch(
@@ -91,7 +92,7 @@ class LinkBatchesListView(BaseView):
 # /archives/batches/:id
 class LinkBatchesDetailView(BaseView):
     serializer_class = DetailedLinkBatchSerializer
-    queryset = LinkBatchesListView.queryset.select_related('target_folder')
+    queryset = LinkBatchesListView.queryset
 
     def get(self, request, pk, format=None):
         """

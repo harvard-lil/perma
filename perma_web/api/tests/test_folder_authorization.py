@@ -1,3 +1,8 @@
+from types import SimpleNamespace
+from unittest.mock import patch
+
+from api.serializers import FolderSerializer
+
 from .utils import ApiResourceTestCase
 from perma.models import LinkUser, Folder
 
@@ -63,6 +68,19 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
                            expected_status_code=403,
                            data={'name': 'Test Folder'})
 
+    def test_should_reject_create_with_inaccessible_parent_in_request_data(self):
+        folder_name = 'Unrelated folder'
+
+        self.rejected_post(
+            self.list_url,
+            user=self.regular_user,
+            format='json',
+            expected_status_code=400,
+            data={'name': folder_name, 'parent': self.org_user.root_folder.pk},
+        )
+
+        self.assertFalse(Folder.objects.filter(name=folder_name).exists())
+
     ###########
     # Viewing #
     ###########
@@ -81,6 +99,17 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
                           user=self.regular_user,
                           expected_status_code=403)
 
+    def test_read_serializer_does_not_build_parent_access_queryset(self):
+        request = SimpleNamespace(user=self.regular_user)
+
+        with patch('api.serializers.Folder.objects.accessible_to') as accessible_to:
+            FolderSerializer(
+                self.regular_user_nonempty_child_folder,
+                context={'request': request},
+            ).data
+
+        accessible_to.assert_not_called()
+
     ############
     # Renaming #
     ############
@@ -89,6 +118,20 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
         self.successful_patch(self.detail_url(self.regular_user_nonempty_child_folder),
                               user=self.regular_user_nonempty_child_folder.created_by,
                               data={'name': 'A new name'})
+
+    def test_name_only_serializer_update_does_not_build_parent_access_queryset(self):
+        request = SimpleNamespace(user=self.regular_user)
+
+        with patch('api.serializers.Folder.objects.accessible_to') as accessible_to:
+            serializer = FolderSerializer(
+                self.regular_user_nonempty_child_folder,
+                data={'name': 'A new name'},
+                partial=True,
+                context={'request': request},
+            )
+            self.assertTrue(serializer.is_valid(), serializer.errors)
+
+        accessible_to.assert_not_called()
 
     def test_should_reject_rename_from_user_lacking_owner_access(self):
         self.rejected_patch(self.detail_url(self.regular_user_nonempty_child_folder),
@@ -320,6 +363,23 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
                                   self.regular_user_empty_child_folder,
                                   expected_status_code=403)
 
+    def test_should_reject_patch_move_to_inaccessible_parent(self):
+        child_folder = self.regular_user_empty_child_folder
+        original_parent_id = child_folder.parent_id
+        original_owner_id = child_folder.owned_by_id
+
+        self.rejected_patch(
+            self.detail_url(child_folder),
+            user=self.regular_user,
+            format='json',
+            expected_status_code=400,
+            data={'parent': self.org_user.root_folder.pk},
+        )
+
+        child_folder.refresh_from_db()
+        self.assertEqual(child_folder.parent_id, original_parent_id)
+        self.assertEqual(child_folder.owned_by_id, original_owner_id)
+
     ############
     # Deleting #
     ############
@@ -350,4 +410,3 @@ class FolderAuthorizationTestCase(ApiResourceTestCase):
                              expected_status_code=400,
                              expected_data={"error": ["Folders can only be deleted if they are empty."]},
                              user=self.org_user)
-

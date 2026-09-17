@@ -9,13 +9,15 @@ from .models import Link
 @receiver(pre_save, sender=Link)
 def update_link_count(sender, instance, **kwargs):
     try:
-        # get an existing link
-        loaded_link = sender.objects.get(pk=instance.pk)
+        # include user deleted links, so we don't hit the new link signal when a link is deleted and later saved
+        loaded_link = sender.objects.all_with_deleted().get(pk=instance.pk)
+        if loaded_link.user_deleted and instance.user_deleted:
+            return
 
         def decrement_link_count(loaded_link):
             # minus one from user's organization and related registar
             if loaded_link.organization:
-                if  loaded_link.organization.link_count > 0:
+                if loaded_link.organization.link_count > 0:
                     loaded_link.organization.link_count -= 1
                     loaded_link.organization.save()
 
