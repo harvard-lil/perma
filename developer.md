@@ -278,7 +278,7 @@ docker compose exec web npm run build
 
 This is automatically run in the background by `d invoke run`, so there is usually no need to run it manually.
 
-Compiled bundles (`perma_web/static/bundles/` and `perma_web/webpack-stats.json`) are build output and are not committed. `perma_web/frontend_assets.py` rebuilds them when their inputs change, and `d invoke run` and `d pytest` call it; `d invoke dev.build-frontend` runs it by hand. The container image compiles its own copy during the build.
+Compiled bundles (`perma_web/static/bundles/` and `perma_web/webpack-stats.json`) are build output, but they are still committed: the Salt hosts deploy from a checkout and never build. `perma_web/frontend_assets.py` rebuilds them when their inputs change, and `d invoke run` and `d pytest` call it; `d invoke dev.build-frontend` runs it by hand. CI on the Salt branches commits the rebuilt copies as it always has, and the container image ignores all of it and compiles its own during the build. Once Salt no longer deploys Perma these files leave the repository.
 
 ### Managing static files and user-generated files
 

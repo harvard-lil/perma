@@ -85,9 +85,9 @@ COPY perma_web/pyproject.toml perma_web/uv.lock ./
 RUN uv sync --frozen --no-dev
 
 # =====================================================================
-# assets -- the compiled JS/CSS bundles. Built here rather than committed, so
-# that `prod` and `test` come out of one build graph and cannot disagree about
-# what the frontend is.
+# assets -- the compiled JS/CSS bundles. Built here rather than taken from the
+# checkout's committed copies, so that `prod` and `test` come out of one build
+# graph and cannot disagree about what the frontend is.
 #
 # Plain node image (the pinned `node` stage): this stage needs npm and nothing
 # Python. Same node version as `base`.
@@ -141,9 +141,11 @@ COPY --chown=perma:perma perma_web/ ./
 COPY --chown=perma:perma services/ /perma/services/
 COPY --chown=perma:perma uwsgi.ini /perma/uwsgi.ini
 
-# Overwrite whatever bundles the checkout happened to carry (none, once they
-# are no longer committed) with the ones just built. This is what makes the
-# shipped image self-contained.
+# Add the bundles just built. The tracked copies the Salt hosts deploy from
+# never reach this stage: .dockerignore excludes perma_web/static/bundles and
+# webpack-stats.json from the build context, so the only bundles in the image
+# are the ones the assets stage compiled. This is what makes the shipped image
+# self-contained.
 COPY --from=assets --chown=perma:perma /perma/perma_web/static/bundles ./static/bundles
 COPY --from=assets --chown=perma:perma /perma/perma_web/webpack-stats.json ./webpack-stats.json
 

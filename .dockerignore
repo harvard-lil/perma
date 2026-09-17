@@ -25,7 +25,11 @@ perma_web/perma/settings/settings.py
 .env
 
 # Build output. The assets stage produces the bundles and webpack-stats.json;
-# the prod stage produces static-collected.
+# the prod stage produces static-collected. The bundles and webpack-stats.json
+# are still tracked in git for the Salt hosts, which deploy from a checkout
+# and run only collectstatic; excluding them here keeps a developer's or CI's
+# stale copy out of the image, which always compiles its own. Remove them from
+# git once Salt no longer deploys Perma.
 node_modules
 perma_web/static/bundles
 perma_web/webpack-stats.json

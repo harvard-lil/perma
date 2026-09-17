@@ -31,13 +31,6 @@ services/django/generated_archives/*
 services/logs/*
 !services/logs/README
 perma_web/static-collected
-
-# Compiled frontend bundles. Build output, produced by `npm run build` (or
-# automatically by `invoke run` / pytest via perma_web/frontend_assets.py).
-# Not committed: a checked-in build goes stale against its sources and
-# conflicts unmergeably between branches. The image build produces its own.
-perma_web/static/bundles/
-perma_web/webpack-stats.json
 /perma_web/api/tests/.coverage
 /.dir-locals.el
 /perma_web/src/
