@@ -108,27 +108,17 @@ jobs:
       STATIC_TYPE: application/vnd.harvard-lil.perma.staticassets.v1.tar+gzip
 
     steps:
-      # Checked before anything changes: an empty token would otherwise be
-      # found at the maintenance step, after the rollout had begun.
-      - name: Validate deployment inputs
-        env:
-          DIGEST: ${{ inputs.image-digest }}
-          SOURCE_SHA: ${{ inputs.source-sha }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        run: |
-          set -euo pipefail
-          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
-            echo "::error::CLOUDFLARE_API_TOKEN is unavailable in the ${TIER} environment."
-            exit 1
-          fi
-          if [ -z "$SLACK_WEBHOOK_URL" ]; then
-            echo "::error::SLACK_WEBHOOK_URL is unavailable in the ${TIER} environment."
-            exit 1
-          fi
-          [[ "$TIER" == staging || "$TIER" == prod ]]
-          [[ "$DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
-          [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+      # App-specific steps are marked below; everything else is the shared
+      # sequence lil-actions provides.
+      - name: Check the deploy inputs
+        uses: harvard-lil/lil-actions/deploy-preflight@main
+        with:
+          image-digest: ${{ inputs.image-digest }}
+          source-sha: ${{ inputs.source-sha }}
+          tier: ${{ inputs.environment }}
+          required-secrets: >-
+            {"CLOUDFLARE_API_TOKEN":"${{ secrets.CLOUDFLARE_API_TOKEN }}",
+             "SLACK_WEBHOOK_URL":"${{ secrets.SLACK_WEBHOOK_URL }}"}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
@@ -153,11 +143,11 @@ jobs:
           source: ${{ inputs.image-digest }}
           tag: ${{ inputs.environment }}-deployed-${{ inputs.source-sha }}
 
-      # One revision per family, all pinned to the same digest, registered
-      # before anything moves so that a registration failure stops the deploy
-      # with nothing changed. Each family's newest revision is the base, so
-      # structural changes Terraform registered since the last deploy reach
-      # the service here.
+      # Perma-specific: one revision per family, six families, all pinned to
+      # the same digest and registered before anything moves so that a
+      # registration failure stops the deploy with nothing changed. Each
+      # family's newest revision is the base, so structural changes Terraform
+      # registered since the last deploy reach the service here.
       - name: Register the web revision
         id: web
         uses: harvard-lil/lil-actions/ecs-register-task-def@main
@@ -220,22 +210,16 @@ jobs:
              {"type":"${{ env.CELERY_TYPE }}","path":"image-artifacts/celery-tasks.json"},
              {"type":"${{ env.STATIC_TYPE }}","path":"static-assets.tar.gz"}]
 
-      - name: Unpack the published static files
-        run: tar -xzf static-assets.tar.gz -C image-artifacts
-
       # Above the rollout, because a task that starts before its files are in
-      # the bucket serves pages referencing paths that 404. Objects are only
-      # ever added: no --delete, so a browser holding a page from the previous
-      # deploy can still fetch its assets. Nothing in Perma's collected tree
-      # is content-hashed, so one short lifetime for everything; the edge
-      # cache is purged at the end of the run.
+      # the bucket serves pages referencing paths that 404. Nothing in Perma's
+      # collected tree is content-hashed, so no hashed-subdir: one short
+      # lifetime for everything, and the edge cache is purged at the end of
+      # the run.
       - name: Publish the image's static files
-        env:
-          STATIC_BUCKET: ${{ vars.STATIC_BUCKET }}
-        run: |
-          set -euxo pipefail
-          aws s3 sync image-artifacts/static "s3://${STATIC_BUCKET}/static" \
-            --cache-control 'public, max-age=300' --no-progress
+        uses: harvard-lil/lil-actions/static-assets-publish@main
+        with:
+          bucket: ${{ vars.STATIC_BUCKET }}
+          archive: static-assets.tar.gz
 
       # Labels on the merged pull request, dispatch inputs (only on a
       # dispatch) and a standing HOLD_MAINTENANCE variable, resolved into
@@ -265,6 +249,9 @@ jobs:
           force: ${{ steps.flags.outputs.force }}
           skip: ${{ steps.flags.outputs.skip }}
 
+      # Perma-specific, through to the idle wait: the Celery comparison and
+      # the pause it decides.
+      #
       # The running code's Celery manifest is the referrer of the digest the
       # web service runs, read with three registry requests. Reading the
       # artifact CI attached to that digest is the same fact as executing the
@@ -364,43 +351,14 @@ jobs:
       # roll with the other services, keeps it from enqueuing work the workers
       # are being asked to finish, and guarantees the old and new beat never
       # overlap: the new one starts, below, only after the old one is gone.
-      # The desired count and revision it had are recorded so it can be put
-      # back rather than guessed.
       - name: Stop the scheduler
         id: stop-beat
         if: steps.plan.outputs.pause == 'true'
-        run: |
-          set -euo pipefail
-          read -r desired previous < <(aws ecs describe-services --cluster "$ECS_CLUSTER" \
-            --services "$BEAT_SERVICE" \
-            --query 'services[0].[desiredCount, taskDefinition]' --output text)
-          if [ -z "$previous" ] || [ "$previous" = "None" ]; then
-            echo "::error::No service '${BEAT_SERVICE}' in '${ECS_CLUSTER}'."
-            exit 1
-          fi
-          {
-            echo "previous-desired-count=${desired}"
-            echo "previous-task-definition=${previous}"
-          } >> "$GITHUB_OUTPUT"
-          echo "${BEAT_SERVICE} desired count is ${desired} on ${previous##*/}; setting it to 0."
-          aws ecs update-service --cluster "$ECS_CLUSTER" --service "$BEAT_SERVICE" \
-            --desired-count 0 --query 'service.serviceName' --output text >/dev/null
-
-          deadline=$(( $(date +%s) + 300 ))
-          while :; do
-            running="$(aws ecs describe-services --cluster "$ECS_CLUSTER" --services "$BEAT_SERVICE" \
-              --query 'services[0].runningCount' --output text)"
-            echo "$(date -u +%H:%M:%S) ${BEAT_SERVICE}: ${running} running"
-            if [ "$running" = "0" ]; then
-              break
-            fi
-            if [ "$(date +%s)" -ge "$deadline" ]; then
-              echo "::error::${BEAT_SERVICE} still has ${running} task(s) running after 300s."
-              exit 1
-            fi
-            sleep 10
-          done
-          echo "Scheduler stopped."
+        uses: harvard-lil/lil-actions/ecs-scale-service@main
+        with:
+          mode: stop
+          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ env.BEAT_SERVICE }}
 
       # Intake is paused and the scheduler is stopped, so nothing new is being
       # queued; this gives the workers a bounded time to finish what they
@@ -433,13 +391,14 @@ jobs:
           hostnames: ${{ vars.MAINTENANCE_HOSTNAMES }}
           token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
-      # Every service moves to its registered revision and the rollouts are
-      # watched together, so a worker that fails to stabilise is named
-      # alongside the ones that succeeded. The scheduler is in the list: on a
-      # compatible deploy it rolls here like any other service (0%/100% in
-      # its service definition, so the old task stops before the new one
-      # starts); on a paused deploy it is at desired count 0, so its revision
-      # is recorded and it is reported as skipped, then started below.
+      # Perma-specific: every service moves to its registered revision and
+      # the rollouts are watched together, so a worker that fails to
+      # stabilise is named alongside the ones that succeeded. The scheduler
+      # is in the list: on a compatible deploy it rolls here like any other
+      # service (0%/100% in its service definition, so the old task stops
+      # before the new one starts); on a paused deploy it is at desired count
+      # 0, so its revision is recorded and it is reported as skipped, then
+      # started below.
       - name: Roll the services to the registered revisions
         id: roll
         uses: harvard-lil/lil-actions/ecs-roll-services@main
@@ -480,36 +439,18 @@ jobs:
       # never ran, nothing has changed underneath the old version, so the
       # scheduler goes back on its previous revision. After a migration that
       # the rollout then failed to follow, or a migration that failed, it
-      # stays stopped for a person.
+      # stays stopped for a person. A recorded count of 0 is restored without
+      # a wait.
       - name: Start the scheduler
         id: start-beat
         if: always() && steps.stop-beat.outcome == 'success' && (steps.roll.outcome == 'success' || steps.migrate.outcome == 'skipped')
-        env:
-          DESIRED: ${{ steps.stop-beat.outputs.previous-desired-count }}
-          NEW_REVISION: ${{ steps.beat.outputs.task-definition-arn }}
-          PREVIOUS_REVISION: ${{ steps.stop-beat.outputs.previous-task-definition }}
-          ROLLED: ${{ steps.roll.outcome }}
-        run: |
-          set -euo pipefail
-          if [ "$ROLLED" = "success" ]; then
-            revision="$NEW_REVISION"
-          else
-            revision="$PREVIOUS_REVISION"
-          fi
-          echo "revision=${revision}" >> "$GITHUB_OUTPUT"
-          echo "Starting ${BEAT_SERVICE} at desired count ${DESIRED} on ${revision##*/}."
-          aws ecs update-service --cluster "$ECS_CLUSTER" --service "$BEAT_SERVICE" \
-            --task-definition "$revision" --desired-count "$DESIRED" --force-new-deployment \
-            --query 'service.serviceName' --output text >/dev/null
-
-      - name: Wait for the scheduler to become stable
-        id: wait-beat
-        if: always() && steps.start-beat.outcome == 'success' && steps.stop-beat.outputs.previous-desired-count != '0'
-        uses: harvard-lil/lil-actions/ecs-wait-for-deployment@main
+        uses: harvard-lil/lil-actions/ecs-scale-service@main
         with:
+          mode: start
           cluster: ${{ env.ECS_CLUSTER }}
           service: ${{ env.BEAT_SERVICE }}
-          task-definition: ${{ steps.start-beat.outputs.revision }}
+          desired-count: ${{ steps.stop-beat.outputs.desired-count }}
+          task-definition: ${{ steps.roll.outcome == 'success' && steps.beat.outputs.task-definition-arn || steps.stop-beat.outputs.task-definition }}
           timeout-seconds: '600'
 
       # Terraform's task definitions name `perma:<tier>-latest`; moving it
@@ -532,9 +473,7 @@ jobs:
       # for a person, as does a deliberate hold.
       - name: Release traffic at the edge
         id: release
-        if: >-
-          always() && steps.window.outputs.needed == 'true' && steps.flags.outputs.hold != 'true' &&
-          (steps.migrate.outcome == 'success' || steps.migrate.outcome == 'skipped')
+        if: always() && steps.window.outputs.needed == 'true' && steps.flags.outputs.hold != 'true' && (steps.migrate.outcome == 'success' || steps.migrate.outcome == 'skipped')
         uses: harvard-lil/lil-actions/cloudflare-maintenance@main
         with:
           mode: 'off'
@@ -542,9 +481,10 @@ jobs:
           hostnames: ${{ vars.MAINTENANCE_HOSTNAMES }}
           token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
-      # Intake resumes under the same condition the page is lifted: the code
-      # serving is consistent with the schema. Beat re-dispatches the pending
-      # capture jobs on its every-minute run, which is why it restarts above.
+      # Perma-specific: intake resumes under the same condition the page is
+      # lifted: the code serving is consistent with the schema. Beat
+      # re-dispatches the pending capture jobs on its every-minute run, which
+      # is why it restarts above.
       - name: Resume capture intake
         id: resume
         if: always() && steps.pause.outcome == 'success' && (steps.migrate.outcome == 'success' || steps.migrate.outcome == 'skipped')
@@ -555,67 +495,36 @@ jobs:
           container: ${{ env.WEB_SERVICE }}
           command: python manage.py deployment_sentinel clear
 
-      # One step, always run, that says what this run left switched off and
-      # fails the run with the commands that undo each thing. Both Slack
-      # messages carry its text.
-      - name: Report what this run left behind
-        id: report
+      # Perma-specific: the state the shared report does not know about, one
+      # line each, and whether any of it was left switched off. The report
+      # below runs after the resume rather than directly after the release so
+      # that it can say whether intake came back.
+      - name: Gather the intake, worker and scheduler state
+        id: state
         if: always()
         env:
-          WINDOW: ${{ steps.window.outputs.needed }}
-          HOLD_WANTED: ${{ steps.flags.outputs.hold }}
-          HOLD: ${{ steps.hold.outcome }}
-          RELEASE: ${{ steps.release.outcome }}
           PAUSE_PLANNED: ${{ steps.plan.outputs.pause }}
           PAUSE: ${{ steps.pause.outcome }}
           RESUME: ${{ steps.resume.outcome }}
           IDLE: ${{ steps.idle.outcome }}
           IDLE_RESULT: ${{ steps.idle.outputs.idle }}
-          MIGRATE: ${{ steps.migrate.outcome }}
           ROLL: ${{ steps.roll.outcome }}
           ROLL_SUMMARY: ${{ steps.roll.outputs.summary }}
           BEAT_STOPPED: ${{ steps.stop-beat.outcome }}
-          BEAT_PREVIOUS: ${{ steps.stop-beat.outputs.previous-desired-count }}
+          BEAT_PREVIOUS: ${{ steps.stop-beat.outputs.desired-count }}
           START_BEAT: ${{ steps.start-beat.outcome }}
-          WAIT_BEAT: ${{ steps.wait-beat.outcome }}
-          SITE_URL: ${{ vars.SITE_URL }}
-          FLAG_SOURCES: ${{ steps.flags.outputs.sources }}
           CELERY: ${{ steps.plan.outputs.celery }}
         run: |
-          set -uo pipefail
-          left=0
+          set -euo pipefail
+          left=false
           lines=()
-
-          case "$HOLD" in
-            skipped)
-              if [ "$WINDOW" = "true" ]; then
-                lines+=("Maintenance page: never shown; the run stopped before holding traffic")
-              else
-                lines+=("Maintenance page: never shown (no window needed)")
-              fi
-              ;;
-            success)
-              if [ "$RELEASE" = "success" ]; then
-                lines+=("Maintenance page: shown for the deploy, now lifted")
-              elif [ "$HOLD_WANTED" = "true" ]; then
-                lines+=("Maintenance page: STILL UP at ${SITE_URL}, held deliberately for the cutover")
-              else
-                left=1
-                lines+=("Maintenance page: STILL UP at ${SITE_URL} (release: ${RELEASE})")
-              fi
-              ;;
-            *)
-              left=1
-              lines+=("Maintenance page: hold ${HOLD}; check the route before assuming either state")
-              ;;
-          esac
 
           case "$PAUSE" in
             success)
               if [ "$RESUME" = "success" ]; then
                 lines+=("Capture intake: paused for the deploy, now resumed")
               else
-                left=1
+                left=true
                 lines+=("Capture intake: STILL PAUSED (resume: ${RESUME})")
               fi
               ;;
@@ -641,12 +550,6 @@ jobs:
             *) lines+=("Workers: idle wait ${IDLE}") ;;
           esac
 
-          case "$MIGRATE" in
-            success) lines+=("Migrations: applied (or none pending)") ;;
-            skipped) lines+=("Migrations: never ran") ;;
-            *) lines+=("Migrations: ${MIGRATE}; check the database before doing anything else") ;;
-          esac
-
           case "$ROLL" in
             success) lines+=("Services: every service is on the new revision") ;;
             skipped) lines+=("Services: not rolled; the previous version is still running") ;;
@@ -659,50 +562,51 @@ jobs:
           if [ "$BEAT_STOPPED" = "skipped" ]; then
             lines+=("Scheduler: rolled with the services, never stopped")
           elif [ "$BEAT_STOPPED" != "success" ]; then
-            lines+=("Scheduler: stop ${BEAT_STOPPED}; check its desired count")
-            left=1
-          elif [ "$START_BEAT" = "success" ] && { [ "$WAIT_BEAT" = "success" ] || [ "$WAIT_BEAT" = "skipped" ]; }; then
+            left=true
+            lines+=("Scheduler: STILL at an unknown desired count (stop: ${BEAT_STOPPED})")
+          elif [ "$START_BEAT" = "success" ]; then
             lines+=("Scheduler: stopped for the deploy, restarted at desired count ${BEAT_PREVIOUS}")
           else
-            left=1
-            lines+=("Scheduler: STILL STOPPED (was at desired count ${BEAT_PREVIOUS}; start: ${START_BEAT}, wait: ${WAIT_BEAT})")
+            left=true
+            lines+=("Scheduler: STILL STOPPED or not stable (was at desired count ${BEAT_PREVIOUS}; start: ${START_BEAT})")
           fi
 
+          lines+=("Celery tasks: ${CELERY:-undecided}")
+
           {
-            echo "status<<LIL_EOF"
+            echo "lines<<LIL_EOF"
             printf '%s\n' "${lines[@]}"
             echo "LIL_EOF"
             echo "left-behind=${left}"
-            # The Slack messages' body, built here so the multi-line text is
-            # JSON-encoded by toJSON in one place rather than assembled in a
-            # payload template.
-            echo "notice<<LIL_EOF"
-            echo "*State:*"
-            printf '%s\n' "${lines[@]}"
-            echo "*Deploy flags:* ${FLAG_SOURCES:-unresolved}"
-            echo "*Celery tasks:* ${CELERY:-undecided}"
-            echo "*Run:* <https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}|${GITHUB_RUN_ID}>"
-            echo "*Site:* <${SITE_URL}|${SITE_URL}>"
-            echo "LIL_EOF"
           } >> "$GITHUB_OUTPUT"
-
           printf '%s\n' "${lines[@]}"
-          if [ "$left" -eq 0 ]; then
-            echo "Nothing left switched off."
-            exit 0
-          fi
 
-          echo "::error::This deploy left ${TIER} perma in a state that needs a person:"
-          for line in "${lines[@]}"; do
-            case "$line" in
-              *STILL*) echo "::error::${line}" ;;
-            esac
-          done
+      # Fails the run when the page, the intake or the scheduler was left
+      # switched off unintentionally; a deliberate hold is a notice. The
+      # Slack message at the end carries its summary either way.
+      - name: Report what this run left behind
+        id: outcome
+        if: always()
+        uses: harvard-lil/lil-actions/deploy-outcome@main
+        with:
+          window: ${{ steps.window.outputs.needed }}
+          hold: ${{ steps.flags.outputs.hold }}
+          migrate-outcome: ${{ steps.migrate.outcome }}
+          release-outcome: ${{ steps.release.outcome }}
+          site-url: ${{ vars.SITE_URL }}
+          sources: ${{ steps.flags.outputs.sources }}
+          extra-lines: ${{ steps.state.outputs.lines }}
+          extra-left-behind: ${{ steps.state.outputs.left-behind }}
+
+      # Perma-specific: the commands that undo each thing the report named.
+      - name: Say how to recover
+        if: always() && steps.outcome.outputs.left-behind == 'true'
+        env:
+          BEAT_PREVIOUS: ${{ steps.stop-beat.outputs.desired-count }}
+        run: |
           echo "::error::To lift the page once the site is known good:  just maintenance perma ${TIER} off"
           echo "::error::To resume captures:  aws ecs execute-command --cluster ${ECS_CLUSTER} --task <a ${WEB_SERVICE} task> --container ${WEB_SERVICE} --interactive --command 'python manage.py deployment_sentinel clear'"
           echo "::error::To restart the scheduler:  aws ecs update-service --cluster ${ECS_CLUSTER} --service ${BEAT_SERVICE} --desired-count ${BEAT_PREVIOUS:-1}"
-          echo "::error::Re-running this workflow will not do these for you; it will stop at the same step."
-          exit 1
 
       # Static files were published above with a short cache lifetime, and
       # pages the old tasks served are cached at the edge; both are cleared
@@ -713,67 +617,14 @@ jobs:
           zone: ${{ vars.CLOUDFLARE_ZONE_ID }}
           token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
-      - name: Report the intentional hold
-        if: success() && steps.flags.outputs.hold == 'true'
-        run: echo "::notice::Deployment verified. Traffic remains held for the cutover; release it with a dispatch that forces a window without holding, or by detaching the route."
-
-      # The success notification below does not run on failure, so this is
-      # the only thing that reports a failed deploy. The status text is the
-      # report's, built from what actually happened.
-      - name: Notify Slack on failure
-        if: failure()
-        uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
-        with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
-          webhook-type: incoming-webhook
-          payload: |
-            {
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*${{ inputs.environment-label }} Perma deploy FAILED*"
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": ${{ toJSON(steps.report.outputs.notice) }}
-                  }
-                }
-              ]
-            }
-
       - name: Notify Slack
-        uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
+        if: always()
+        uses: harvard-lil/lil-actions/deploy-notify@main
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
-          webhook-type: incoming-webhook
-          payload: |
-            {
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*${{ inputs.environment-label }} Perma deployed successfully!*"
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*Repo:*\n<https://github.com/${{ github.repository }}|`${{ github.repository }}`>\n*Branch:*\n<https://github.com/${{ github.repository }}/tree/${{ github.ref_name }}|`${{ github.ref_name }}`>\n*Commit:*\n<https://github.com/${{ github.repository }}/commit/${{ inputs.source-sha }}|`${{ inputs.source-sha }}`>"
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": ${{ toJSON(steps.report.outputs.notice) }}
-                  }
-                }
-              ]
-            }
+          status: ${{ job.status }}
+          product: Perma
+          tier-label: ${{ inputs.environment-label }}
+          site-url: ${{ vars.SITE_URL }}
+          summary: ${{ steps.outcome.outputs.summary }}
+          commit: ${{ inputs.source-sha }}
