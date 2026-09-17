@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.utils.cache import patch_vary_headers
 from django.utils.deprecation import MiddlewareMixin
 
@@ -51,3 +51,17 @@ class APISubdomainMiddleware(BaseSubdomainMiddleware):
     subdomain = settings.API_SUBDOMAIN
     urlconf = 'api.urls'
 
+
+
+class HealthCheckMiddleware(MiddlewareMixin):
+    """
+        Answer /healthcheck/ before any other middleware runs. The ECS
+        container health check (and the cloudflared sidecar, which waits on
+        it) asks over plain HTTP to localhost, so this has to come before
+        SecurityMiddleware's SSL redirect and must not consult ALLOWED_HOSTS.
+        It reads PATH_INFO rather than request.path for the same reason:
+        nothing here should call get_host().
+    """
+    def process_request(self, request):
+        if request.META.get('PATH_INFO') == '/healthcheck/':
+            return HttpResponse('ok')
