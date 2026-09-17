@@ -1,3 +1,11 @@
+// webpack.config.js instantiates BundleTracker when it is required, writing
+// the karma build's chunk list to webpack-stats.json -- the file Django reads
+// to find the real bundles. Point it elsewhere before the require, so running
+// the JS tests cannot clobber the app's stats file (which, in the test image,
+// is baked in with no way to regenerate it).
+if (!process.env.BUNDLE_TRACKER_PATH) {
+  process.env.BUNDLE_TRACKER_PATH = '/tmp/webpack-stats-karma.json';
+}
 var webpackConfig = require('./webpack.config.js');
 var path = require("path");
 

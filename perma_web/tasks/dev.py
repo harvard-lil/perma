@@ -28,6 +28,13 @@ def run(ctx, port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-te
     """
     commands = []
 
+    # With DEBUG=False the server reads whatever bundles are on disk, so they
+    # have to exist and match their sources. With DEBUG=True `npm start` below
+    # rebuilds them continuously anyway; this just makes the first page load
+    # not wait on it.
+    import frontend_assets
+    frontend_assets.ensure_current()
+
     if settings.CELERY_TASK_ALWAYS_EAGER:
         print("\nWarning! Batch Link creation will not work as expected:\n" +
               "to create new batches you should run with settings.CELERY_TASK_ALWAYS_EAGER = False\n")
@@ -55,6 +62,15 @@ def run(ctx, port="0.0.0.0:8000", cert_file='perma-test.crt', key_file='perma-te
         finally:
             for proc in proc_list:
                 os.kill(proc.pid, signal.SIGKILL)
+
+
+@task
+def build_frontend(ctx):
+    """Compile the frontend bundles, if they are missing or out of date."""
+    import frontend_assets
+
+    if not frontend_assets.ensure_current():
+        print("Frontend assets are already up to date.")
 
 
 @task
