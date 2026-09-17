@@ -7,6 +7,7 @@ from requests.exceptions import RequestException
 from requests import request as orig_request
 
 from django.conf import settings
+from django.core.files.storage import storages
 from django.urls import reverse
 from django.test.utils import override_settings
 
@@ -194,6 +195,19 @@ class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
         self.assertEqual(resp.get('Content-Disposition', ''), f'attachment; filename="{self.unrelated_private_link.pk}.wacz"')
         self.assertEqual(resp.get('Content-Type', ''), 'application/wacz')
         self.assertEqual(get_wacz.call_count, 1)
+
+    @patch('perma.models.Link.get_warc', autospec=True)
+    def test_private_download_head(self, get_warc):
+        with open(os.path.join(TEST_ASSETS_DIR, 'new_style_archive/archive.warc.gz'), 'rb') as warc_file:
+            storages[settings.WARC_STORAGE].store_file(warc_file, self.unrelated_private_link.warc_storage_file(), overwrite=True)
+            self.unrelated_private_link.warc_size = warc_file.tell()
+        self.unrelated_private_link.save()
+        self.api_client.force_authenticate(user=self.regular_user)
+        resp = self.api_client.head(self.logged_in_private_link_download_url)
+        self.assertHttpOK(resp)
+        self.assertEqual(resp.get('Content-Disposition', ''), f'attachment; filename="{self.unrelated_private_link.pk}.warc.gz"')
+        self.assertEqual(resp.get('Content-Type', ''), 'application/gzip')
+        self.assertEqual(get_warc.call_count, 0)
 
 
     ############

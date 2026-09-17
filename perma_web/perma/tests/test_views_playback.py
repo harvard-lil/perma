@@ -1,6 +1,8 @@
-from io import StringIO
+from io import BytesIO, StringIO
 from warcio.timeutils import datetime_to_http_date
 
+from django.conf import settings
+from django.core.files.storage import storages
 from django.urls import reverse
 
 import pytest
@@ -340,7 +342,65 @@ def test_can_download_if_logged_in(link_user, complete_link, client, mocker, dow
         'wacz',
     ]
 )
-def test_cannot_download_if_logged_out(complete_link, client, download_format):
+@pytest.mark.parametrize("method", ["GET", "HEAD"])
+def test_cannot_download_if_logged_out(complete_link, client, download_format, method):
     url = reverse('single_permalink', kwargs={'guid': complete_link.guid}) + f"?type={download_format}_download"
-    response = client.get(url, secure=True)
+    response = client.generic(method, url, secure=True)
     assert response.status_code == 401
+
+
+@pytest.mark.parametrize(
+    "download_format,stored_formats,expected_status",
+    [
+        ('warc', ['warc'], 200),
+        ('warc', ['wacz'], 200),  # served by extracting the WARC from the WACZ
+        ('warc', [], 404),
+        ('wacz', ['warc', 'wacz'], 200),
+        ('wacz', ['warc'], 404),
+    ]
+)
+def test_head_download_checks_storage_without_reading(link_user, complete_link, client, mocker, download_format, stored_formats, expected_status):
+    get_warc = mocker.patch('perma.models.Link.get_warc', autospec=True)
+    get_wacz = mocker.patch('perma.models.Link.get_wacz', autospec=True)
+    complete_link.warc_size = complete_link.wacz_size = 0
+    for stored_format in stored_formats:
+        if stored_format == 'warc':
+            storage, name = storages[settings.WARC_STORAGE], complete_link.warc_storage_file()
+        else:
+            storage, name = storages[settings.WACZ_STORAGE], complete_link.wacz_storage_file()
+        storage.store_file(BytesIO(b"archive placeholder"), name, overwrite=True)
+        setattr(complete_link, f"{stored_format}_size", len(b"archive placeholder"))
+    complete_link.save()
+
+    client.force_login(link_user)
+    url = reverse('single_permalink', kwargs={'guid': complete_link.guid}) + f"?type={download_format}_download"
+    response = client.head(url, secure=True)
+
+    assert response.status_code == expected_status
+    if expected_status == 200:
+        suffix = 'warc.gz' if download_format == 'warc' else 'wacz'
+        assert response['Content-Disposition'] == f'attachment; filename="{complete_link.guid}.{suffix}"'
+        assert response['Content-Type'] == ('application/gzip' if download_format == 'warc' else 'application/wacz')
+        assert 'Content-Length' not in response
+    get_warc.assert_not_called()
+    get_wacz.assert_not_called()
+
+
+def test_head_download_missing_stored_file(link_user, complete_link_factory, client):
+    link = complete_link_factory({"warc_size": 100})
+    client.force_login(link_user)
+    url = reverse('single_permalink', kwargs={'guid': link.guid}) + "?type=warc_download"
+    response = client.head(url, secure=True)
+    assert response.status_code == 404
+
+
+@pytest.mark.parametrize("method,queued", [("GET", True), ("HEAD", False)])
+def test_only_get_queues_wacz_conversion(client, complete_link_factory, mocker, settings, method, queued):
+    settings.WARC_TO_WACZ_ON_DEMAND = True
+    convert = mocker.patch('perma.views.playback.convert_warc_to_wacz')
+    link = complete_link_factory({"warc_size": 100, "wacz_size": 0})
+
+    response = client.generic(method, reverse('single_permalink', kwargs={'guid': link.guid}), secure=True)
+
+    assert response.status_code == 200
+    assert convert.delay.called == queued
