@@ -38,10 +38,6 @@ perma_web/static-collected
 # conflicts unmergeably between branches. The image build produces its own.
 perma_web/static/bundles/
 perma_web/webpack-stats.json
-
-# The migration list ./manage.py migration_manifest writes. The image build
-# produces it; running the command in a dev container leaves a copy here.
-perma_web/migrations.json
 /perma_web/api/tests/.coverage
 /.dir-locals.el
 /perma_web/src/

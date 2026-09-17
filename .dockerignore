@@ -25,12 +25,11 @@ perma_web/perma/settings/settings.py
 .env
 
 # Build output. The assets stage produces the bundles and webpack-stats.json;
-# the prod stage produces static-collected and migrations.json.
+# the prod stage produces static-collected.
 node_modules
 perma_web/static/bundles
 perma_web/webpack-stats.json
 perma_web/static-collected
-perma_web/migrations.json
 perma_web/static/css/style-responsive.css
 perma_web/static/css/style-responsive-archive.css
 perma_web/.sass-cache

@@ -3,7 +3,7 @@
 #   base    Python + node runtime and Perma's dependency set. No app code.
 #   assets  The compiled webpack bundles, built from source in a node image.
 #   prod    The deployable image: base + app code + bundles + uwsgi, non-root.
-#           Every ECS role (web, migrate, beat, each worker) runs this image;
+#           Every ECS role (web, beat, each worker) runs this image;
 #           the container command chooses the role.
 #   test    prod + the test toolchain. What CI runs the suite against.
 #   dev     base + the test toolchain, no app code; docker-compose bind-mounts
@@ -153,31 +153,24 @@ ENV PERMA_VERSION=$PERMA_VERSION
 
 USER perma
 
-# Two artifacts derived from INSTALLED_APPS, built here so they describe the
-# image itself and can be read out of it without running it. The deploy
-# sequence reads both, and CI attaches both to the published image.
-#
 # collectstatic fills STATIC_ROOT -- /perma/perma_web/static-collected under
 # settings_prod and everything derived from it -- with perma_web/static, the
 # compiled bundles, and the files that come from installed packages (admin,
-# rest_framework, django_json_widget...). WhiteNoise serves it from there; the
-# deploy publishes the same tree to the static bucket.
+# rest_framework, django_json_widget...). WhiteNoise serves it from there; CI
+# extracts the same tree from the image and publishes it as an artifact.
 #
-# migrations.json records the migration graph as it exists here, third-party
-# migrations from site-packages included. perma/management/commands/
-# migration_manifest.py documents the format.
-#
-# Both run as perma rather than root, so a container -- which runs as perma
-# too -- can rewrite what they produced. They run under settings_build
-# because settings_ecs, the runtime default set above, reads APP_CONFIG,
-# which exists only in a deployed task.
-RUN PERMA_SETTINGS_MODULE=settings_build python manage.py collectstatic --noinput \
-    && PERMA_SETTINGS_MODULE=settings_build python manage.py migration_manifest --output ./migrations.json
+# Runs as perma rather than root, so a container -- which runs as perma too --
+# can rewrite what it produced. It runs under settings_build because
+# settings_ecs, the runtime default set above, reads APP_CONFIG, which exists
+# only in a deployed task. Migration and Celery task inspection are done by
+# shared CI tooling against this image under the same settings module, not
+# baked in here.
+RUN PERMA_SETTINGS_MODULE=settings_build python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
-# The web role. Workers, beat and the migrate task override this with the
-# commands listed in the ECS task definitions. --die-on-term is set in the
+# The web role. Workers and beat override this with the commands listed in
+# the ECS task definitions; migrations run by ECS Exec into the web task. --die-on-term is set in the
 # ini: without it uwsgi treats SIGTERM as "reload" and ECS has to kill it.
 CMD ["uwsgi", "--ini", "/perma/uwsgi.ini"]
 

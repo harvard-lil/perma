@@ -1,6 +1,10 @@
-# Settings for the management commands that run during the image build:
-# collectstatic and migration_manifest. Both derive their output from
-# INSTALLED_APPS, and nothing else here is consulted by either one.
+# Settings for collectstatic during the image build and for the inspectors
+# shared CI tooling runs against the built image (lil-actions'
+# django-migration-manifest, and `manage.py celery_task_manifest`). All of
+# them derive their output from INSTALLED_APPS and the Celery configuration;
+# nothing else here is consulted. The inspectors run with no network and a
+# read-only root, so nothing imported here may open a file for writing or
+# resolve a hostname.
 #
 # The deployment targets are unusable at build time: settings_ecs reads
 # APP_CONFIG out of the environment on import, and that config is a runtime
@@ -15,19 +19,20 @@ from .settings_prod import *  # noqa
 
 DEBUG = False
 
-# Django refuses to start with SECRET_KEY unset, and neither build command signs
+# Django refuses to start with SECRET_KEY unset, and none of these commands sign
 # anything. This value is deliberately not a secret; a container that booted with
 # these settings would be serving one it published on GitHub, so nothing selects
 # this module except the RUN lines that produce the two build artifacts.
 SECRET_KEY = "not-a-secret-this-module-only-runs-at-build-time"
 
-# post_process_settings asserts these are set. Neither build command makes a
+# post_process_settings asserts these are set. None of these commands make a
 # request to the payments app.
 STRIPE_PAYMENTS_APP_INTERNAL_URL = "http://payments.invalid"
 STRIPE_PAYMENTS_APP_EXTERNAL_URL = "http://payments.invalid"
 
 # settings_prod logs to /var/log/perma/perma.log, which does not exist in the
-# image; logging.config would try to open it. Console only, as settings_ecs.
+# image (and the inspectors' root is read-only); logging.config would try to
+# open it. Console only, as settings_ecs.
 del LOGGING["handlers"]["file"]  # noqa: F821
 for _logger in LOGGING["loggers"].values():  # noqa: F821
     if "file" in _logger.get("handlers", []):

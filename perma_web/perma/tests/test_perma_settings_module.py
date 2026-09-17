@@ -103,10 +103,10 @@ def _installed_apps(settings_module, env_overrides=None):
 
 
 def test_settings_build_installed_apps_match_the_deployed_ones():
-    # The image build runs collectstatic and migration_manifest under
-    # settings_build, and both commands derive their whole output from
-    # INSTALLED_APPS. What they bake into the image describes the deployed app
-    # only for as long as the two lists agree.
+    # The image build runs collectstatic under settings_build, and CI's
+    # migration and Celery task inspectors run against the image under it too;
+    # all of them derive their output from INSTALLED_APPS. What they record
+    # describes the deployed app only for as long as the two lists agree.
     assert _installed_apps("settings_build") == _installed_apps(
         "settings_ecs", {"APP_CONFIG": json.dumps(FAKE_APP_CONFIG)}
     )

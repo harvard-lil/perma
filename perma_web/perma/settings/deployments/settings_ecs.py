@@ -1,6 +1,6 @@
 # Settings for the ECS tiers. The prod image selects this module by default
 # (PERMA_SETTINGS_MODULE=settings_ecs in the Dockerfile) and every role -- web,
-# migrate, beat, each worker -- boots from it.
+# beat, each worker -- boots from it.
 #
 # Everything tier-specific comes from one JSON document in the APP_CONFIG
 # environment variable, which the ECS task definition injects from the
