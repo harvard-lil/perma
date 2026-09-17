@@ -1,23 +1,40 @@
 name: Staging - Deploy to AWS
 
 # Perma's staging branch has always been `stage`, not h2o's `staging`, and it
-# is not renamed here. The GitHub environment it deploys through is still
-# named `staging`, as the contract for this pipeline requires, with a branch
-# policy limiting it to `stage`.
+# is not renamed here. The GitHub environment it deploys through is named
+# `staging`, with a branch policy limiting it to `stage`.
 
 on:
-  push:
-    branches: [stage]
+  workflow_dispatch:
+    inputs:
+      hold-maintenance:
+        description: Keep traffic held after a successful deploy (the tunnel cutover); implies force-maintenance
+        type: boolean
+        default: false
+      force-maintenance:
+        description: Open a maintenance window whether or not migrations call for one
+        type: boolean
+        default: false
+      skip-maintenance:
+        description: Assert the migrations are compatible with serving traffic and take no window
+        type: boolean
+        default: false
   pull_request:
+    branches: [stage]
+  push:
     branches: [stage]
 
 permissions:
-    id-token: write     # assume the deploy role via OIDC
-    contents: read
-    pull-requests: read # read deploy labels off the merged pull request
+  id-token: write     # assume the deploy role via OIDC
+  contents: read
+  pull-requests: read # read deploy labels off the merged pull request
+
+concurrency:
+  group: perma-staging-${{ github.event_name == 'pull_request' && github.event.pull_request.number || 'deploy' }}
+  cancel-in-progress: false
 
 jobs:
-  # Only allow merges from develop
+  # Only allow merges from develop, from this repository.
   check-source-branch:
     name: Check Source Branch
     runs-on: ubuntu-latest
@@ -26,32 +43,40 @@ jobs:
       - name: Verify source branch is develop
         env:
           HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          REPOSITORY: ${{ github.repository }}
         run: |
+          if [ "$HEAD_REPOSITORY" != "$REPOSITORY" ]; then
+            echo "::error::Pull requests to stage cannot come from forks."
+            exit 1
+          fi
           if [ "$HEAD_REF" != "develop" ]; then
-            echo "::error::Pull requests to stage must come from the develop branch"
+            echo "::error::Pull requests to stage must come from the develop branch."
             exit 1
           fi
           echo "Source branch verification passed"
 
-  # Neither deploy tier lints or tests. check-source-branch limits this branch
-  # to merges from develop, so the tree here is one develop has already run
-  # the suite against, and the resolve step below will not deploy an image
-  # that develop did not publish.
+  # Neither deploy tier lints or tests. The pull request into stage runs the
+  # promotion checks below and stops, so a merge that would fail them is
+  # visible before it happens; a push or a dispatch on stage runs the same
+  # checks and then deploys. The checks read metadata and referrers only:
+  # nothing here rebuilds, pulls, or starts the image.
   prepare:
     name: Prepare the staging artifact
+    needs: check-source-branch
+    if: >-
+      always() && github.repository == 'harvard-lil/perma' &&
+      ((github.event_name == 'pull_request' && needs.check-source-branch.result == 'success') ||
+       ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/stage'))
     runs-on: ubuntu-latest
     environment: staging
-    if: github.event_name == 'push'
 
     outputs:
       image-digest: ${{ steps.resolve.outputs.image-digest }}
       source-sha: ${{ steps.resolve.outputs.source-sha }}
 
     env:
-      ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-      # The tier's moving tag. Every deploy replaces it with a digest, and
-      # nothing reads it to decide what to ship.
-      IMAGE_TAG: staging
+      ECR_REPOSITORY: perma
 
     steps:
       - name: Checkout code
@@ -63,7 +88,15 @@ jobs:
         uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: us-east-1
+          # The promotion checks read; the session cannot do more even on a
+          # pull request, whatever the role itself allows.
+          inline-session-policy: >-
+            {"Version":"2012-10-17","Statement":[{"Effect":"Allow",
+            "Action":["ecr:DescribeRepositories","ecr:DescribeImages","ecr:BatchGetImage","ecr:GetAuthorizationToken",
+            "ecr:GetDownloadUrlForLayer","ecr:BatchCheckLayerAvailability",
+            "ecs:DescribeServices","ecs:DescribeTaskDefinition","ecs:DescribeTasks","ecs:ListTasks"],
+            "Resource":"*"}]}
 
       - name: Login to AWS ECR
         id: login-ecr
@@ -71,106 +104,76 @@ jobs:
 
       # Promote, do not rebuild. lint_test.yml built this image on develop,
       # ran the suite against it, and pushed it tagged with the develop commit
-      # SHA. Deploying that exact artifact is what makes "tested" and
-      # "shipped" the same bytes. Fails loudly rather than quietly building
-      # something new.
+      # SHA. The candidate must have the same source tree as the promoted
+      # revision, so a merge that changed the tree without a build is refused.
       - name: Resolve the tested image
         id: resolve
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        run: |
-          set -euo pipefail
-          # Which commit on develop produced the image we should deploy? That
-          # depends on how the merge was made, and the repo permits all three
-          # methods, so try the candidates rather than assuming one:
-          #   HEAD^2  -- merge commit; the develop tip that was merged in
-          #   HEAD    -- fast-forward, squash, or direct push
-          digest=""
-          SOURCE_SHA=""
-          for candidate in $(git rev-parse HEAD^2 2>/dev/null) $(git rev-parse HEAD); do
-            echo "Looking for an image built from $candidate"
-            # Resolve to a digest, not a tag: tags can be moved, digests cannot.
-            found="$(aws ecr describe-images \
-              --repository-name "$ECR_REPOSITORY" \
-              --image-ids "imageTag=$candidate" \
-              --query 'imageDetails[0].imageDigest' \
-              --output text 2>/dev/null || true)"
-            if [ -n "$found" ] && [ "$found" != "None" ]; then
-              digest="$found"
-              SOURCE_SHA="$candidate"
-              break
-            fi
-          done
-
-          if [ -z "$digest" ]; then
-            echo "::error::No image found for any candidate commit in $ECR_REPOSITORY."
-            echo "::error::That means this commit was never built and tested on develop."
-            echo "Recent tags in $ECR_REPOSITORY:"
-            aws ecr describe-images --repository-name "$ECR_REPOSITORY" \
-              --query 'reverse(sort_by(imageDetails,&imagePushedAt))[:10].imageTags' \
-              --output text || true
-            exit 1
-          fi
-
-          {
-            echo "source-sha=$SOURCE_SHA"
-            echo "image-digest=$digest"
-            echo "image-uri=${REGISTRY}/${ECR_REPOSITORY}@${digest}"
-          } >> "$GITHUB_OUTPUT"
-
-      # Mark the promoted artifact before deploying it. ECR retention keeps
-      # deployed images far longer than the build candidates that churn past
-      # them every merge to develop -- without this tag, the image the
-      # services run is just another candidate and ages out on the same
-      # schedule. The repository holds both tiers' images, so the tag carries
-      # the tier.
-      - name: Mark the promoted image as deployed
-        uses: harvard-lil/lil-actions/ecr-tag-image@main
+        uses: harvard-lil/lil-actions/ecr-resolve-git-image@main
         with:
           repository: ${{ env.ECR_REPOSITORY }}
-          source: ${{ steps.resolve.outputs.image-digest }}
-          tag: staging-deployed-${{ steps.resolve.outputs.source-sha }}
+          registry: ${{ steps.login-ecr.outputs.registry }}
 
-      # Keep the moving :staging tag pointing at what we deploy, so a
-      # Terraform apply (whose task definitions reference it) cannot quietly
-      # revert a service to an older image. The two tiers share a repository
-      # but not this tag.
-      - name: Point :staging at the promoted image
+      - name: Require the published image and its referrers
+        id: publication
+        uses: harvard-lil/lil-actions/ecr-publication-state@main
+        with:
+          repository: ${{ env.ECR_REPOSITORY }}
+          registry: ${{ steps.login-ecr.outputs.registry }}
+          tag: ${{ steps.resolve.outputs.source-sha }}
+          required-artifact-types: >-
+            ["application/vnd.harvard-lil.django.migrations.v1+json",
+             "application/vnd.harvard-lil.perma.celery-tasks.v1+json",
+             "application/vnd.harvard-lil.perma.staticassets.v1.tar+gzip"]
+
+      - name: Verify complete publication of the selected digest
         env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_URI: ${{ steps.resolve.outputs.image-uri }}
+          PUBLICATION_STATE: ${{ steps.publication.outputs.state }}
+          PUBLISHED_DIGEST: ${{ steps.publication.outputs.digest }}
+          SELECTED_DIGEST: ${{ steps.resolve.outputs.image-digest }}
+          MISSING: ${{ steps.publication.outputs.missing-artifact-types }}
         run: |
-          set -euxo pipefail
-          docker buildx imagetools create \
-            --tag "${REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}" \
-            "$IMAGE_URI"
+          if [ "$PUBLICATION_STATE" != complete ]; then
+            echo "::error::Publication is '$PUBLICATION_STATE'; missing referrer types: $MISSING"
+            exit 1
+          fi
+          test "$PUBLISHED_DIGEST" = "$SELECTED_DIGEST"
 
-  # The shared sequence. Everything above identifies which artifact to deploy
-  # and marks it for this tier; everything below is identical for both tiers
-  # and lives in one file so a staging run exercises production's code.
+  # The shared sequence. Everything above identifies which artifact to deploy;
+  # everything below is identical for both tiers and lives in one file so a
+  # staging run exercises production's code.
   deploy:
     needs: prepare
     # Named rather than left to the default success(): a job with no condition
-    # of its own is skipped when anything in its needs graph is skipped,
-    # regardless of whether the jobs it depends on succeeded.
-    if: always() && needs.prepare.result == 'success'
+    # of its own is skipped when anything in its needs graph is skipped.
+    if: always() && github.event_name != 'pull_request' && needs.prepare.result == 'success'
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: read
     uses: ./.github/workflows/deploy_sequence.yml
     with:
       environment: staging
       environment-label: Staging
       image-digest: ${{ needs.prepare.outputs.image-digest }}
       source-sha: ${{ needs.prepare.outputs.source-sha }}
+      # Guarded on the event so a push passes false rather than an empty value
+      # to a boolean input; the sequence's deploy-flags step applies the same
+      # guard before it reads them.
+      force-maintenance: ${{ github.event_name == 'workflow_dispatch' && inputs.force-maintenance }}
+      skip-maintenance: ${{ github.event_name == 'workflow_dispatch' && inputs.skip-maintenance }}
+      hold-maintenance: ${{ github.event_name == 'workflow_dispatch' && inputs.hold-maintenance }}
     secrets:
-      cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
   # A job whose condition does not hold is skipped, and a skipped job leaves
   # the run green. This job is what makes a deploy that did not happen show up
-  # as a failed run rather than a successful build.
+  # as a failed run rather than a successful build. Pull requests are meant to
+  # stop after prepare, so they are not held to it.
   confirm-deploy:
     name: Confirm the deploy ran
     needs: [prepare, deploy]
-    if: always() && needs.prepare.result == 'success'
+    if: always() && github.event_name != 'pull_request' && needs.prepare.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Require a completed deploy

@@ -10,10 +10,14 @@ on:
   pull_request:
     branches: [develop]
 
+concurrency:
+  group: perma-build-${{ github.event_name }}-${{ github.sha }}
+  cancel-in-progress: false
+
 jobs:
-  # Pull requests only ever test. No publishing, so no publishing credentials:
-  # a read-only token and one named secret, rather than `secrets: inherit`
-  # handing the whole repository's secrets to a branch build.
+  # Pull requests only ever test: a read-only token and the one secret the
+  # suite uses. The build role is a repository variable, so there is nothing
+  # else to withhold from a branch build.
   test:
     if: github.event_name == 'pull_request'
     permissions:
@@ -22,12 +26,14 @@ jobs:
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  # Pushes to develop run the same suite and then publish, so they need the
-  # OIDC scope for the build role and the repository's publishing values.
+  # A new commit on develop runs the same suite and then publishes. A retry
+  # first verifies the immutable image and its required referrers; a complete
+  # publication is reused without rebuilding or retesting it.
   test-and-publish:
     if: github.event_name == 'push'
     permissions:
       id-token: write   # assume the build AWS role
       contents: read    # nothing commits back to develop any more
     uses: ./.github/workflows/lint_test.yml
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -1,18 +1,36 @@
 name: Production - Deploy to AWS
 
 on:
-  push:
-    branches: [prod]
+  workflow_dispatch:
+    inputs:
+      hold-maintenance:
+        description: Keep traffic held after a successful deploy (the tunnel cutover); implies force-maintenance
+        type: boolean
+        default: false
+      force-maintenance:
+        description: Open a maintenance window whether or not migrations call for one
+        type: boolean
+        default: false
+      skip-maintenance:
+        description: Assert the migrations are compatible with serving traffic and take no window
+        type: boolean
+        default: false
   pull_request:
+    branches: [prod]
+  push:
     branches: [prod]
 
 permissions:
-    id-token: write     # assume the deploy role via OIDC
-    contents: read
-    pull-requests: read # read deploy labels off the merged pull request
+  id-token: write     # assume the deploy role via OIDC
+  contents: read
+  pull-requests: read # read deploy labels off the merged pull request
+
+concurrency:
+  group: perma-prod-${{ github.event_name == 'pull_request' && github.event.pull_request.number || 'deploy' }}
+  cancel-in-progress: false
 
 jobs:
-  # Only allow merges from stage
+  # Only allow merges from stage, from this repository.
   check-source-branch:
     name: Check Source Branch
     runs-on: ubuntu-latest
@@ -21,196 +39,142 @@ jobs:
       - name: Verify source branch is stage
         env:
           HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          REPOSITORY: ${{ github.repository }}
         run: |
+          if [ "$HEAD_REPOSITORY" != "$REPOSITORY" ]; then
+            echo "::error::Pull requests to prod cannot come from forks."
+            exit 1
+          fi
           if [ "$HEAD_REF" != "stage" ]; then
-            echo "::error::Pull requests to prod must come from the stage branch"
+            echo "::error::Pull requests to prod must come from the stage branch."
             exit 1
           fi
           echo "Source branch verification passed"
 
-  # Neither deploy tier lints or tests. check-source-branch limits this branch
-  # to merges from stage, and the resolve step below promotes the image the
-  # staging web service is running rather than building anything.
+  # Production never builds. It ships the exact image the staging web service
+  # is running, read out of that service's task definition: on prod, HEAD^2 is
+  # the stage merge commit, which no image carries, so the SHA chain does not
+  # survive two merges, and staging pins a digest there in any case. Every
+  # staging service was rolled from one digest, so the web service speaks for
+  # all of them.
+  #
+  # A pull request into prod runs these checks under the staging environment,
+  # whose role can already read the staging service; a push or dispatch runs
+  # them under prod, whose role must be allowed to describe the staging
+  # cluster's web service and task definition as well as its own.
   prepare:
     name: Prepare the production artifact
+    needs: check-source-branch
+    if: >-
+      always() && github.repository == 'harvard-lil/perma' &&
+      ((github.event_name == 'pull_request' && needs.check-source-branch.result == 'success') ||
+       ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/prod'))
     runs-on: ubuntu-latest
-    environment: prod
-    if: github.event_name == 'push'
+    environment: ${{ github.event_name == 'pull_request' && 'staging' || 'prod' }}
 
     outputs:
-      image-digest: ${{ steps.resolve.outputs.staging-digest }}
+      image-digest: ${{ steps.resolve.outputs.image-digest }}
       source-sha: ${{ steps.resolve.outputs.source-sha }}
 
     env:
-      ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-      IMAGE_TAG: prod
-      # Where the validated artifact is read from. The names follow the
-      # `<tier>-<product>[-<role>]` pattern every Perma resource uses, and the
-      # container inside each task is named after its family.
-      STAGING_ECS_CLUSTER: staging-${{ vars.PRODUCT }}
-      STAGING_ECS_SERVICE: staging-${{ vars.PRODUCT }}-web
-      STAGING_CONTAINER_NAME: staging-${{ vars.PRODUCT }}-web
+      ECR_REPOSITORY: perma
 
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: us-east-1
+          inline-session-policy: >-
+            {"Version":"2012-10-17","Statement":[{"Effect":"Allow",
+            "Action":["ecr:DescribeRepositories","ecr:DescribeImages","ecr:BatchGetImage","ecr:GetAuthorizationToken",
+            "ecr:GetDownloadUrlForLayer","ecr:BatchCheckLayerAvailability",
+            "ecs:DescribeServices","ecs:DescribeTaskDefinition","ecs:DescribeTasks","ecs:ListTasks"],
+            "Resource":"*"}]}
 
       - name: Login to AWS ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
 
-      # Production never builds. It ships the exact image staging is running.
-      #
-      # We read that image out of staging's web service rather than resolving
-      # a git SHA, because the SHA chain does not survive two merges: on
-      # stage, HEAD^2 is the develop tip the image was tagged with, but on
-      # prod HEAD^2 is the stage *merge commit*, which no image carries.
-      # Reading the running definition is also independent of whether merges
-      # were merge commits, squashes, or rebases -- staging pins a digest
-      # there, so that definition IS the record of what was validated. Every
-      # staging service was rolled from one digest, so the web service speaks
-      # for all of them.
       - name: Resolve the image staging validated
         id: resolve
+        uses: harvard-lil/lil-actions/ecs-resolve-service-image@main
+        with:
+          cluster: staging-perma
+          service: staging-perma-web
+          container-name: staging-perma-web
+          ecr-repository: ${{ env.ECR_REPOSITORY }}
+
+      - name: Match the production branch to the staged source
         env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        run: |
-          set -euo pipefail
+          SOURCE_SHA: ${{ steps.resolve.outputs.source-sha }}
+        run: test "$(git rev-parse 'HEAD^{tree}')" = "$(git rev-parse "${SOURCE_SHA}^{tree}")"
 
-          # Ask the staging SERVICE which revision it is running, then read
-          # that exact revision. Querying the family instead returns its
-          # latest ACTIVE revision, which is not necessarily the deployed one
-          # -- a failed deploy, a Terraform apply, or a half-finished rollout
-          # all register revisions the service never adopted.
-          STAGING_TASK_DEF=$(aws ecs describe-services \
-            --cluster "$STAGING_ECS_CLUSTER" \
-            --services "$STAGING_ECS_SERVICE" \
-            --query "services[0].taskDefinition" \
-            --output text)
-
-          if [ -z "$STAGING_TASK_DEF" ] || [ "$STAGING_TASK_DEF" = "None" ]; then
-            echo "::error::Could not read the running task definition for service"
-            echo "::error::'$STAGING_ECS_SERVICE' in cluster '$STAGING_ECS_CLUSTER'."
-            exit 1
-          fi
-          echo "Staging is running $STAGING_TASK_DEF"
-
-          STAGING_IMAGE=$(aws ecs describe-task-definition \
-            --task-definition "$STAGING_TASK_DEF" \
-            --query "taskDefinition.containerDefinitions[?name=='${STAGING_CONTAINER_NAME}'].image | [0]" \
-            --output text)
-
-          if [ -z "$STAGING_IMAGE" ] || [ "$STAGING_IMAGE" = "None" ]; then
-            echo "::error::Could not read an image for container '$STAGING_CONTAINER_NAME'"
-            echo "::error::from task definition '$STAGING_TASK_DEF'."
-            exit 1
-          fi
-
-          # Require a digest. Staging pins one; a floating tag here means
-          # staging was deployed by something older and we cannot prove what
-          # it is running.
-          case "$STAGING_IMAGE" in
-            *@sha256:*) ;;
-            *)
-              echo "::error::Staging is running '$STAGING_IMAGE', which is not digest-pinned."
-              echo "::error::Refusing to promote an artifact we cannot identify."
-              echo "::error::Re-run the staging deploy first."
-              exit 1
-              ;;
-          esac
-
-          DIGEST="${STAGING_IMAGE#*@}"
-
-          # Both tiers run out of one repository, and promotion is a tag added
-          # to the image already in it, so staging has to be running an image
-          # from that repository for there to be anything to tag.
-          case "$STAGING_IMAGE" in
-            */"${ECR_REPOSITORY}"@*) ;;
-            *)
-              echo "::error::Staging is running '$STAGING_IMAGE', which is not"
-              echo "::error::in the ${ECR_REPOSITORY} repository. Re-run the staging deploy,"
-              echo "::error::so that it promotes an image production can tag."
-              exit 1
-              ;;
-          esac
-
-          # Recover which commit built this artifact, by reading the other
-          # tags on the same digest.
-          SOURCE_SHA=$(aws ecr describe-images \
-            --repository-name "$ECR_REPOSITORY" \
-            --image-ids "imageDigest=$DIGEST" \
-            --query 'imageDetails[0].imageTags' --output text \
-            | tr '\t' '\n' | { grep -E '^[0-9a-f]{40}$' || true; } | head -n1)
-
-          if [ -z "$SOURCE_SHA" ]; then
-            echo "::error::No commit-SHA tag on $DIGEST in $ECR_REPOSITORY,"
-            echo "::error::so the commit this image was built from cannot be named."
-            exit 1
-          fi
-
-          echo "Promoting $STAGING_IMAGE, built from $SOURCE_SHA"
-          {
-            echo "staging-image=$STAGING_IMAGE"
-            echo "source-sha=$SOURCE_SHA"
-            echo "staging-digest=$DIGEST"
-          } >> "$GITHUB_OUTPUT"
-
-      # Promotion is a tag, not a copy. The image staging tested is already in
-      # this repository, so production adds `prod-deployed-<sha>` to that
-      # exact digest and deploys it -- there is no second repository to move
-      # it to and so no second digest to reconcile with the first.
-      - name: Mark the promoted image as deployed
-        uses: harvard-lil/lil-actions/ecr-tag-image@main
+      - name: Require the published image and its referrers
+        id: publication
+        uses: harvard-lil/lil-actions/ecr-publication-state@main
         with:
           repository: ${{ env.ECR_REPOSITORY }}
-          source: ${{ steps.resolve.outputs.staging-digest }}
-          tag: prod-deployed-${{ steps.resolve.outputs.source-sha }}
+          registry: ${{ steps.login-ecr.outputs.registry }}
+          tag: ${{ steps.resolve.outputs.source-sha }}
+          required-artifact-types: >-
+            ["application/vnd.harvard-lil.django.migrations.v1+json",
+             "application/vnd.harvard-lil.perma.celery-tasks.v1+json",
+             "application/vnd.harvard-lil.perma.staticassets.v1.tar+gzip"]
 
-      # Keep the moving :prod tag pointing at what we deploy, so a Terraform
-      # apply (whose task definitions reference it) cannot quietly revert a
-      # service to an older image.
-      - name: Point :prod at the promoted image
+      - name: Verify complete publication of the selected digest
         env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          STAGING_IMAGE: ${{ steps.resolve.outputs.staging-image }}
+          PUBLICATION_STATE: ${{ steps.publication.outputs.state }}
+          PUBLISHED_DIGEST: ${{ steps.publication.outputs.digest }}
+          SELECTED_DIGEST: ${{ steps.resolve.outputs.image-digest }}
+          MISSING: ${{ steps.publication.outputs.missing-artifact-types }}
         run: |
-          set -euxo pipefail
-          docker buildx imagetools create \
-            --tag "${REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}" \
-            "$STAGING_IMAGE"
+          if [ "$PUBLICATION_STATE" != complete ]; then
+            echo "::error::Publication is '$PUBLICATION_STATE'; missing referrer types: $MISSING"
+            exit 1
+          fi
+          test "$PUBLISHED_DIGEST" = "$SELECTED_DIGEST"
 
-  # The shared sequence. Everything above identifies which artifact to deploy
-  # and marks it for this tier; everything below is identical for both tiers
-  # and lives in one file so a staging run exercises production's code.
+  # The shared sequence. Everything above identifies which artifact to deploy;
+  # everything below is identical for both tiers and lives in one file so a
+  # staging run exercises production's code.
   deploy:
     needs: prepare
-    # Named rather than left to the default success(): a job with no condition
-    # of its own is skipped when anything in its needs graph is skipped,
-    # regardless of whether the jobs it depends on succeeded.
-    if: always() && needs.prepare.result == 'success'
+    if: always() && github.event_name != 'pull_request' && needs.prepare.result == 'success'
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: read
     uses: ./.github/workflows/deploy_sequence.yml
     with:
       environment: prod
       environment-label: Prod
       image-digest: ${{ needs.prepare.outputs.image-digest }}
       source-sha: ${{ needs.prepare.outputs.source-sha }}
+      # Guarded on the event so a push passes false rather than an empty value
+      # to a boolean input; the sequence's deploy-flags step applies the same
+      # guard before it reads them.
+      force-maintenance: ${{ github.event_name == 'workflow_dispatch' && inputs.force-maintenance }}
+      skip-maintenance: ${{ github.event_name == 'workflow_dispatch' && inputs.skip-maintenance }}
+      hold-maintenance: ${{ github.event_name == 'workflow_dispatch' && inputs.hold-maintenance }}
     secrets:
-      cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
   # A job whose condition does not hold is skipped, and a skipped job leaves
   # the run green. This job is what makes a deploy that did not happen show up
-  # as a failed run rather than a successful build.
+  # as a failed run rather than a successful build. Pull requests are meant to
+  # stop after prepare, so they are not held to it.
   confirm-deploy:
     name: Confirm the deploy ran
     needs: [prepare, deploy]
-    if: always() && needs.prepare.result == 'success'
+    if: always() && github.event_name != 'pull_request' && needs.prepare.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Require a completed deploy

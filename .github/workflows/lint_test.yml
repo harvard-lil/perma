@@ -3,15 +3,10 @@ name: Lint and Test
 on:
   workflow_call:
     secrets:
-      # Declared so a caller can pass exactly what a given event needs. A
-      # pull_request run gets only CODECOV_TOKEN; publishing values are
-      # required=false and simply absent there, which is what keeps the
-      # publish steps unable to run even if their `if:` guards were wrong.
+      # The only secret this workflow reads. Publishing needs no secret: the
+      # build role is a repository variable assumed over OIDC, and it can only
+      # be assumed by a push to develop in this repository.
       CODECOV_TOKEN:
-        required: false
-      BUILD_AWS_ROLE_TO_ASSUME:
-        required: false
-      STAGING_AWS_REGION:
         required: false
 
 jobs:
@@ -37,6 +32,7 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     needs: lint
+    timeout-minutes: 60
     env:
       # The one repository Perma's images are published to and both tiers
       # deploy from. Named here rather than read from an environment because
@@ -46,62 +42,102 @@ jobs:
       # up both files with no flags. Setting it also stops compose auto-loading
       # docker-compose.override.yml, which is developer-only.
       COMPOSE_FILE: docker-compose.yml:docker-compose.ci.yml
+      # The three referrers a complete publication carries. A deploy fetches
+      # all three from the image digest and refuses an image missing any.
+      MIGRATIONS_TYPE: application/vnd.harvard-lil.django.migrations.v1+json
+      CELERY_TYPE: application/vnd.harvard-lil.perma.celery-tasks.v1+json
+      STATIC_TYPE: application/vnd.harvard-lil.perma.staticassets.v1.tar+gzip
+      # Publication happens only on a push to develop in this repository.
+      # Pull requests test and stop; a fork never gets the build role.
+      PUBLISHING: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && github.repository == 'harvard-lil/perma' }}
     # don't run on pushes to forks
     if: github.event_name == 'pull_request' || github.repository == 'harvard-lil/perma'
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # On a develop retry, ask the registry whether this commit already
+      # completed publication before spending several minutes rebuilding it.
+      # Pull requests have no publishing credentials and always run the suite.
+      - name: Configure build credentials
+        if: env.PUBLISHING == 'true'
+        uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
+        with:
+          role-to-assume: ${{ vars.BUILD_AWS_ROLE_TO_ASSUME }}
+          aws-region: us-east-1
+
+      - name: Login to AWS ECR
+        id: publish-ecr-login
+        if: env.PUBLISHING == 'true'
+        uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
+
+      - name: Inspect the image publication
+        id: publication
+        if: env.PUBLISHING == 'true'
+        uses: harvard-lil/lil-actions/ecr-publication-state@main
+        with:
+          repository: ${{ env.ECR_REPOSITORY }}
+          tag: ${{ github.sha }}
+          registry: ${{ steps.publish-ecr-login.outputs.registry }}
+          required-artifact-types: >-
+            ["${{ env.MIGRATIONS_TYPE }}", "${{ env.CELERY_TYPE }}", "${{ env.STATIC_TYPE }}"]
+
+      # An image without all of its declared referrers records a failed run
+      # after the immutable image push. Rebuilding cannot safely repair it: the
+      # rebuilt bytes may differ from the image already carrying this SHA.
+      - name: Refuse a partial publication
+        if: steps.publication.outputs.state == 'partial'
+        env:
+          DIGEST: ${{ steps.publication.outputs.digest }}
+          MISSING: ${{ steps.publication.outputs.missing-artifact-types }}
+        run: |
+          echo "::error::${ECR_REPOSITORY}:${GITHUB_SHA} is a partial publication at ${DIGEST}."
+          echo "::error::Missing referrer types: ${MISSING}"
+          echo "::error::Repair those referrers from the existing digest; do not rebuild the SHA."
+          exit 1
+
       # Build the deployable image and the image the suite runs against in one
       # go. `test` is FROM `prod`, so this produces prod's layers once and
-      # tests against exactly them.
+      # tests against exactly them. Nothing is pushed here: the prod image is
+      # held locally and published further down, only if the suite is green.
       #
-      # Nothing is pushed here. The prod image is held locally and published
-      # further down, only if the suite is green. Deliberately uncached, for
-      # the reasons h2o's lint_test.yml records: a remote layer cache was
-      # measured there at about ten seconds saved on a five-minute job.
-      #
-      # PERMA_VERSION is the Dockerfile's build argument (ARG -> ENV in the
-      # prod stage; settings_ecs reports it, and it lands in the
-      # datapackage.json of user uploads). Salt computed it from the branch
-      # tip at deploy time; here the image carries the commit it was built
-      # from. The same value goes to both builds: the ARG sits above the
-      # collectstatic layer, so a test build with a different value would
-      # rebuild prod's layers instead of reusing them.
+      # PERMA_VERSION is the short commit hash Salt used to render into
+      # settings; the Dockerfile's ARG sits above the collectstatic layer, so
+      # the test build passes the same value or it rebuilds those layers
+      # instead of reusing them. Deliberately uncached, for the reasons h2o's
+      # lint_test.yml records.
       - name: Build the prod and test images
-        env:
-          PERMA_VERSION: ${{ github.sha }}
+        if: github.event_name == 'pull_request' || steps.publication.outputs.state == 'absent'
         run: |
           set -euxo pipefail
           docker buildx build \
             --target prod \
-            --build-arg "PERMA_VERSION=${PERMA_VERSION}" \
+            --build-arg "PERMA_VERSION=${GITHUB_SHA::7}" \
             --load \
-            -t perma-prod:${{ github.sha }} \
+            -t "perma-prod:${GITHUB_SHA}" \
             -f ./Dockerfile .
 
           # `test` reuses the prod layers just built, so this is nearly free.
           docker buildx build \
             --target test \
-            --build-arg "PERMA_VERSION=${PERMA_VERSION}" \
+            --build-arg "PERMA_VERSION=${GITHUB_SHA::7}" \
             --load \
             -t perma-test:ci \
             -f ./Dockerfile .
 
-      # The collected static files and the migration list are built into the
-      # image (see the Dockerfile), so they are read out of it with `docker
-      # create`, which gives a container filesystem without starting anything.
-      # They describe the image that ships rather than whatever a running
-      # service happened to have on disk. Both are needed as files on the
-      # runner for the attachment seam further down.
-      - name: Extract the image's static files and migration list
+      # collectstatic runs during the build into /perma/perma_web/static-collected
+      # (perma_web/static is a source directory and cannot be STATIC_ROOT), so
+      # the tree is read out of the image with `docker create`, which gives a
+      # container filesystem without starting anything. Copied to `static` so
+      # the tarball's top-level directory matches the bucket prefix.
+      - name: Extract the image's static files
+        if: github.event_name == 'pull_request' || steps.publication.outputs.state == 'absent'
         run: |
           set -euxo pipefail
           rm -rf image-artifacts
           mkdir -p image-artifacts
-          container="$(docker create "perma-prod:${{ github.sha }}")"
+          container="$(docker create "perma-prod:${GITHUB_SHA}")"
           docker cp "${container}:/perma/perma_web/static-collected" image-artifacts/static
-          docker cp "${container}:/perma/perma_web/migrations.json" image-artifacts/migrations.json
           docker rm "${container}"
 
           # admin and rest_framework come from installed packages, bundles
@@ -110,15 +146,58 @@ jobs:
           for collected in admin rest_framework bundles; do
             test -d "image-artifacts/static/${collected}"
           done
-          jq -e '.migrations | length > 0' image-artifacts/migrations.json
-          jq -r '"migrations.json: \(.count) migrations, hash \(.hash)"' image-artifacts/migrations.json
+
+      # The shared inspectors run `python -c` against the image with no
+      # network and a read-only root. settings_build imports settings_prod
+      # without APP_CONFIG, which is why it exists; DJANGO_SETTINGS_MODULE is
+      # set by the image.
+      - name: Inspect migrations in the built image
+        if: github.event_name == 'pull_request' || steps.publication.outputs.state == 'absent'
+        uses: harvard-lil/lil-actions/django-migration-manifest@main
+        with:
+          image: perma-prod:${{ github.sha }}
+          output: image-artifacts/migrations.json
+          environment: '{"PERMA_SETTINGS_MODULE":"settings_build"}'
+
+      - name: Inspect Celery tasks in the built image
+        if: github.event_name == 'pull_request' || steps.publication.outputs.state == 'absent'
+        uses: harvard-lil/lil-actions/celery-task-manifest@main
+        with:
+          image: perma-prod:${{ github.sha }}
+          output: image-artifacts/celery-tasks.json
+          environment: '{"PERMA_SETTINGS_MODULE":"settings_build"}'
+
+      # The runtime settings module reads one APP_CONFIG JSON value; the
+      # placeholder in .github/ci carries every required key with values that
+      # resolve nowhere. The probe runs inside the container, against the
+      # health-check path the task definitions use. No network, so anything in
+      # startup that needs the database or the broker fails here rather than
+      # in a deploy.
+      - name: Compose the placeholder runtime environment
+        id: placeholder
+        if: github.event_name == 'pull_request' || steps.publication.outputs.state == 'absent'
+        run: |
+          set -euo pipefail
+          environment="$(jq -c '{APP_CONFIG: tojson, PERMA_SETTINGS_MODULE: "settings_ecs"}' \
+            .github/ci/app-config.placeholder.json)"
+          echo "environment=${environment}" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke-test the prod image
+        if: github.event_name == 'pull_request' || steps.publication.outputs.state == 'absent'
+        uses: harvard-lil/lil-actions/container-smoke-test@main
+        with:
+          image: perma-prod:${{ github.sha }}
+          environment: ${{ steps.placeholder.outputs.environment }}
+          probe-command: >-
+            ["python", "-c", "import urllib.request; assert urllib.request.urlopen('http://127.0.0.1:8000/healthcheck/', timeout=2).status == 200"]
 
       # The functional tests drive a browser against a TLS live server and a
-      # TLS MinIO, and Playwright will not accept an untrusted certificate for
-      # that, so the certificates come from a CA the browser trusts. mkcert
-      # from the distribution's package, rather than a release binary fetched
-      # from GitHub by version-less URL as the previous workflow did.
+      # TLS S3 gateway, and Playwright will not accept an untrusted certificate
+      # for that, so the certificates come from a CA the browser trusts.
+      # mkcert from the distribution's package rather than a release binary
+      # fetched by version-less URL, as the previous workflow did.
       - name: Install mkcert
+        if: github.event_name == 'pull_request' || steps.publication.outputs.state == 'absent'
         run: |
           set -euxo pipefail
           sudo apt-get update
@@ -128,22 +207,23 @@ jobs:
       # make_cert.sh writes the CA root and the per-host certificates into the
       # working tree. docker-compose.ci.yml bind-mounts exactly those files,
       # read-only, into the web container (the code itself is not mounted;
-      # the image's copy is what runs), and MinIO and wacz-exhibitor read
-      # theirs from the mounts docker-compose.yml gives them. Before `up`,
-      # because a bind mount of a file that does not exist yet creates a
-      # directory in its place. The script's two `docker compose restart`
-      # calls are no-ops here: nothing is running yet.
+      # the image's copy is what runs), and the S3 gateway and wacz-exhibitor
+      # read theirs from the mounts docker-compose.yml gives them. Before
+      # `up`, because a bind mount of a file that does not exist yet creates a
+      # directory in its place. The script's `docker compose restart` calls
+      # are no-ops here: nothing is running yet.
       - name: Generate test certificates
+        if: github.event_name == 'pull_request' || steps.publication.outputs.state == 'absent'
         run: bash make_cert.sh
 
       # Two compose invocations, as the previous workflow made them. The
       # first is Perma's own stack from COMPOSE_FILE (the CI override, no
-      # developer override). The second starts the Scoop API and its Redis and
-      # Postgres, which are defined only in docker-compose.override.yml: the
-      # link-validation tests in api/tests call it, and fail without it.
-      # Named services only, so nothing else in the override file is started
-      # or built; the web service is untouched.
+      # developer override); Filecheck is built from docker-compose.yml. The
+      # second starts the Scoop API and its Redis and Postgres, which are
+      # defined only in docker-compose.override.yml: the link-validation
+      # tests in api/tests call it, and fail without it.
       - name: docker compose up
+        if: github.event_name == 'pull_request' || steps.publication.outputs.state == 'absent'
         run: |
           docker compose pull --ignore-pull-failures || true
           docker compose up -d
@@ -153,6 +233,7 @@ jobs:
           docker compose logs
 
       - name: Javascript tests
+        if: github.event_name == 'pull_request' || steps.publication.outputs.state == 'absent'
         shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
         run: |
           set -x
@@ -161,6 +242,7 @@ jobs:
           docker compose exec web npm run test
 
       - name: Python tests
+        if: github.event_name == 'pull_request' || steps.publication.outputs.state == 'absent'
         shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
         run: |
           set -x
@@ -175,6 +257,7 @@ jobs:
       # without this codecov finds no report -- it fails soft, so that would
       # pass silently rather than erroring.
       - name: Extract coverage report
+        if: github.event_name == 'pull_request' || steps.publication.outputs.state == 'absent'
         run: |
           set -euxo pipefail
           docker compose cp web:/perma/perma_web/coverage.xml perma_web/coverage.xml
@@ -183,121 +266,62 @@ jobs:
       ### codecov ###
       # https://github.com/codecov/codecov-action
       - name: Codecov
+        if: github.event_name == 'pull_request' || steps.publication.outputs.state == 'absent'
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-      # One OIDC session for everything below that touches AWS, under an
-      # identity that can publish images and cannot deploy them.
-      - name: Configure AWS credentials
-        if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
-        uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
-        with:
-          role-to-assume: ${{ secrets.BUILD_AWS_ROLE_TO_ASSUME }}
-          aws-region: ${{ secrets.STAGING_AWS_REGION }}
-
-      - name: Login to AWS ECR
-        id: publish-ecr-login
-        if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
-        uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
-
-      # A commit is published once. This build is not reproducible -- no
-      # cache, a floating base image, unpinned apt -- so re-running develop
-      # produces different bytes for the same source, and pushing them would
-      # move the SHA tag off the image the earlier run tested and staging may
-      # already be running.
-      #
-      # Refusing is the whole of it: there is no safe partial republish. The
-      # collected static files travel inside the image, so a second push of
-      # this commit would move the SHA tag -- and the assets that go with it
-      # -- to bytes nothing has tested.
-      - name: Refuse to republish a commit
-        if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
-        env:
-          SHA: ${{ github.sha }}
-        run: |
-          set -uo pipefail
-          # describe-images does not answer "no" -- it fails, with
-          # ImageNotFoundException, and that is the ordinary case here. So the
-          # exit status is the answer, and anything that is not a missing image
-          # is a question this cannot answer rather than a no.
-          if out="$(aws ecr describe-images --repository-name "$ECR_REPOSITORY" \
-                     --image-ids "imageTag=${SHA}" \
-                     --query 'imageDetails[0].imageDigest' --output text 2>&1)"; then
-            echo "::error::${ECR_REPOSITORY}:${SHA} already exists, at ${out}."
-            echo "::error::An earlier run published this commit. Re-running would replace"
-            echo "::error::what it published with bytes nothing has tested."
-            echo "::error::To ship a change, push a new commit. To genuinely replace what"
-            echo "::error::was published, delete the tag named above and run this again."
-            exit 1
-          elif ! grep -q 'ImageNotFoundException' <<< "$out"; then
-            echo "::error::Could not tell whether ${ECR_REPOSITORY}:${SHA} is published."
-            echo "::error::${out}"
-            exit 1
-          fi
-          echo "Nothing published for ${SHA} yet."
-
       # Push the image built at the top of this job -- not a rebuild. Tagged
       # with the commit develop actually points at, so staging can find it.
+      # The action refuses to move an existing commit tag.
       - name: Publish the prod image to ECR
-        if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
-        env:
-          REGISTRY: ${{ steps.publish-ecr-login.outputs.registry }}
+        id: publish
+        if: steps.publication.outputs.state == 'absent'
+        uses: harvard-lil/lil-actions/ecr-publish-image@main
+        with:
+          repository: ${{ env.ECR_REPOSITORY }}
+          registry: ${{ steps.publish-ecr-login.outputs.registry }}
+          local-image: perma-prod:${{ github.sha }}
+          tag: ${{ github.sha }}
+
+      # Sorted names and zeroed mtimes, owners and gzip header, so one image
+      # produces one tarball: the bytes decide the blob digest, and the blob
+      # digest decides whether a re-attach is the same referrer or a second
+      # one.
+      - name: Pack static files reproducibly
+        if: steps.publication.outputs.state == 'absent'
         run: |
-          set -euxo pipefail
-          docker tag "perma-prod:${{ github.sha }}" "${REGISTRY}/${ECR_REPOSITORY}:${{ github.sha }}"
-          docker push "${REGISTRY}/${ECR_REPOSITORY}:${{ github.sha }}"
-
-      # The ORAS project's own action, pinned to a commit like every other
-      # action here. Which ORAS it installs is the action's default rather
-      # than a version named here, so that dependabot maintains the whole
-      # thing; nothing below depends on a particular ORAS.
-      - name: Install oras
-        if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
-        uses: oras-project/setup-oras@1d808f7d7f6995cc68b7bf507bfe5c5446e1dc9d # v2.0.1
-
-      # `image-artifacts/static` and `image-artifacts/migrations.json` are on
-      # the runner from the extraction step near the top of this job, and the
-      # image they were read out of has just been pushed. Attaching them to
-      # that image as OCI referrers is what lets a deploy learn what an image
-      # contains -- which assets to publish, which migrations it expects --
-      # without starting it or pulling it. ECR answers the referrers API
-      # natively and filters by artifact type server-side, so a reader fetches
-      # one of these with three requests and no oras binary.
-      #
-      # Nothing publishes the static files to S3 here; the bucket is the
-      # deploy's to write, from these referrers.
-      - name: Attach the static files and migration list to the pushed image
-        if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
-        env:
-          REGISTRY: ${{ steps.publish-ecr-login.outputs.registry }}
-          SHA: ${{ github.sha }}
-          MIGRATIONS_TYPE: application/vnd.harvard-lil.perma.migrations.v1+json
-          STATIC_TYPE: application/vnd.harvard-lil.perma.staticassets.v1.tar+gzip
-        run: |
-          set -euxo pipefail
-
-          # A referrer's subject is a digest, so the registry says which digest
-          # the tag just pushed resolves to rather than the local image saying.
-          DIGEST="$(aws ecr describe-images --repository-name "$ECR_REPOSITORY" \
-            --image-ids "imageTag=${SHA}" \
-            --query 'imageDetails[0].imageDigest' --output text)"
-          IMAGE="${REGISTRY}/${ECR_REPOSITORY}@${DIGEST}"
-
-          # Sorted names and zeroed mtimes, owners and gzip header, so one image
-          # produces one tarball: the bytes decide the blob digest, and the blob
-          # digest decides whether a re-attach is the same referrer or a second
-          # one.
           tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner \
             -cf - -C image-artifacts static | gzip -n > static-assets.tar.gz
 
-          # oras stamps org.opencontainers.image.created with the current time
-          # unless it is given one, which makes every attach of identical
-          # content a distinct referrer. A fixed value keeps attach idempotent.
-          oras attach --artifact-type "$MIGRATIONS_TYPE" \
-            --annotation "org.opencontainers.image.created=1970-01-01T00:00:00Z" \
-            "$IMAGE" image-artifacts/migrations.json:application/json
+      - name: Attach the migration manifest, Celery manifest and static files
+        if: steps.publication.outputs.state == 'absent'
+        uses: harvard-lil/lil-actions/ecr-artifacts@main
+        with:
+          mode: publish
+          image: ${{ steps.publish.outputs.image-uri }}
+          artifacts: >-
+            [{"type":"${{ env.MIGRATIONS_TYPE }}","path":"image-artifacts/migrations.json","media-type":"application/json"},
+             {"type":"${{ env.CELERY_TYPE }}","path":"image-artifacts/celery-tasks.json","media-type":"application/json"},
+             {"type":"${{ env.STATIC_TYPE }}","path":"static-assets.tar.gz","media-type":"application/gzip"}]
 
-          oras attach --artifact-type "$STATIC_TYPE" \
-            --annotation "org.opencontainers.image.created=1970-01-01T00:00:00Z" \
-            "$IMAGE" static-assets.tar.gz:application/gzip
+      - name: Verify the completed publication
+        id: verify
+        if: steps.publication.outputs.state == 'absent'
+        uses: harvard-lil/lil-actions/ecr-publication-state@main
+        with:
+          repository: ${{ env.ECR_REPOSITORY }}
+          tag: ${{ github.sha }}
+          registry: ${{ steps.publish-ecr-login.outputs.registry }}
+          required-artifact-types: >-
+            ["${{ env.MIGRATIONS_TYPE }}", "${{ env.CELERY_TYPE }}", "${{ env.STATIC_TYPE }}"]
+
+      - name: Require a complete publication
+        if: steps.verify.outcome == 'success' && steps.verify.outputs.state != 'complete'
+        env:
+          STATE: ${{ steps.verify.outputs.state }}
+          MISSING: ${{ steps.verify.outputs.missing-artifact-types }}
+        run: |
+          echo "::error::Publication ended in state '$STATE'."
+          echo "::error::Missing referrer types: $MISSING"
+          exit 1

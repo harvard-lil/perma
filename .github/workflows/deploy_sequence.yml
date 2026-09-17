@@ -1,62 +1,84 @@
 name: ECS deploy sequence
 
 # Everything both tiers do identically once the artifact to deploy has been
-# identified: publish the static files the artifact carries, decide whether a
-# maintenance window is needed, pause capture intake and drain the queues,
-# hold traffic, migrate once from the migrate task, roll every service to the
-# same digest, bring the scheduler back, release traffic, and report what
-# happened -- including anything a failure left switched off.
+# identified: register a pinned revision for each of the six services, publish
+# the static files the artifact carries, decide whether the deploy needs a
+# maintenance window or a queue pause, roll the services, migrate, and report.
 #
 # Sharing it means a staging deploy exercises the same code a production
-# deploy will run, rather than a second copy of it that happens to look the
-# same. What differs by tier stays in the caller: how the artifact is
-# identified and how it is marked as this tier's.
+# deploy will run. What differs by tier stays in the caller: how the artifact
+# is identified. Names below derive from the tier: cluster `<tier>-perma`,
+# services and task families `<tier>-perma-<role>`, each with a container of
+# the same name.
 #
-# This is the shape Salt's orch/perma-deploy.sls has: drain, maintenance on,
-# workers down, migrate, servers, workers up, maintenance off, sentinels
-# removed. Two things differ. Migrations run from a task started for the
-# purpose, not on a worker host; and the window is taken only when the image's
-# migration list says the schema is changing, the way h2o decides it.
+# Two decisions shape a run:
+#
+#   window  -- ecs-django-maintenance: the incoming migration manifest differs
+#              from the running one, the database has pending migrations, or a
+#              flag forces it. Traffic is held at the edge around the rollout
+#              and the migration.
+#   pause   -- a window, or a Celery task manifest that differs from the
+#              running image's: messages the outgoing code queued might name
+#              tasks, arguments or queues the incoming code does not have. The
+#              capture-intake sentinel is set, beat is stopped, and the workers
+#              are given time to finish before they are replaced.
+#
+# A deploy that needs neither rolls every service with ECS's warm shutdown and
+# nothing paused. The broker is never purged on either path: Perma's capture
+# queue is the database, and queued messages are work for the incoming code.
 
 on:
   workflow_call:
     inputs:
+      environment:
+        description: >
+          GitHub environment this tier deploys to (`staging` or `prod`). It
+          carries the tier's variables and secrets, and its branch policy is
+          what stops another branch reaching them, so naming it here is what
+          selects the tier. Every AWS name derives from it.
+        required: true
+        type: string
       environment-label:
         description: 'Name for this tier in notifications, e.g. Staging'
         required: true
         type: string
       image-digest:
         description: >
-          Digest of the image to deploy, already present in the product's ECR
-          repository. A digest and not a full URI: a URI contains the registry,
-          the registry contains the account ID, the account ID is masked, and
-          GitHub silently drops a job output it believes holds a secret rather
-          than passing it on.
+          Digest of the image to deploy, already present in the `perma` ECR
+          repository. A digest and not a full URI: a URI contains the account
+          ID, which is masked, and GitHub drops a job output it believes holds
+          a secret rather than passing it on.
         required: true
         type: string
       source-sha:
         description: 'Commit the artifact was built from'
         required: true
         type: string
-      environment:
-        description: >
-          GitHub environment this tier deploys to. It carries the tier's
-          variables, and its branch policy is what stops another branch
-          reaching them, so naming it here is what selects the tier. Its name
-          is also the tier prefix of every AWS resource name (`staging-perma`,
-          `prod-perma-web`), which is how the steps below find the services
-          with roles of their own.
-        required: true
-        type: string
+      # The deploy flags a workflow_dispatch can set. A called workflow sees
+      # the caller's event but not its inputs, so the tier passes them
+      # through; deploy-flags below reads them only when that event is a
+      # dispatch, and reads the labels on the merged pull request whatever
+      # the event.
+      force-maintenance:
+        description: 'Open a maintenance window whether or not migrations call for one'
+        type: boolean
+        default: false
+      skip-maintenance:
+        description: 'Assert the migrations are compatible with serving traffic and take no window'
+        type: boolean
+        default: false
+      hold-maintenance:
+        description: 'Keep traffic held after a successful deploy; implies force-maintenance'
+        type: boolean
+        default: false
 
     secrets:
       # A called workflow's secrets context is only what the caller passes it.
-      # Naming an environment here supplies that environment's variables, and
-      # everything the tier differs by is one, so what is left to pass is the
-      # two values that are secret and the same for every tier.
-      cloudflare-api-token:
+      # Both names are declared here and passed by the caller under the same
+      # name, the contract verified for payments' environment-scoped token.
+      CLOUDFLARE_API_TOKEN:
         required: true
-      slack-webhook-url:
+      SLACK_WEBHOOK_URL:
         required: true
 
 permissions:
@@ -69,216 +91,144 @@ jobs:
     name: Deploy to ${{ inputs.environment-label }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
+    timeout-minutes: 90
 
     env:
-      ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-      ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
-      ECS_SERVICES: ${{ vars.ECS_SERVICES }}
-      PRODUCT: ${{ vars.PRODUCT }}
       TIER: ${{ inputs.environment }}
-      # The container in every task is named after its family, and the family
-      # after the service.
-      WEB_SERVICE: ${{ inputs.environment }}-${{ vars.PRODUCT }}-web
-      BEAT_SERVICE: ${{ inputs.environment }}-${{ vars.PRODUCT }}-beat
-      MIGRATE_FAMILY: ${{ inputs.environment }}-${{ vars.PRODUCT }}-migrate
+      ECR_REPOSITORY: perma
+      ECS_CLUSTER: ${{ inputs.environment }}-perma
+      WEB_SERVICE: ${{ inputs.environment }}-perma-web
+      BEAT_SERVICE: ${{ inputs.environment }}-perma-beat
+      CAPTURE_SERVICE: ${{ inputs.environment }}-perma-capture
+      BACKGROUND_SERVICE: ${{ inputs.environment }}-perma-background
+      IA_SERVICE: ${{ inputs.environment }}-perma-ia
+      WACZ_SERVICE: ${{ inputs.environment }}-perma-wacz-conversion
+      MIGRATIONS_TYPE: application/vnd.harvard-lil.django.migrations.v1+json
+      CELERY_TYPE: application/vnd.harvard-lil.perma.celery-tasks.v1+json
+      STATIC_TYPE: application/vnd.harvard-lil.perma.staticassets.v1.tar+gzip
 
     steps:
-      # ECS_SERVICES is the whole list the tier runs. The web service is where
-      # commands are run and the scheduler is handled on its own, so the roll
-      # gets everything but beat, and the drain counts everything but web and
-      # beat as a worker.
-      - name: Sort the tier's services by role
-        id: names
+      # Checked before anything changes: an empty token would otherwise be
+      # found at the maintenance step, after the rollout had begun.
+      - name: Validate deployment inputs
+        env:
+          DIGEST: ${{ inputs.image-digest }}
+          SOURCE_SHA: ${{ inputs.source-sha }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           set -euo pipefail
-          roll=""
-          workers=""
-          have_web=""
-          have_beat=""
-          for svc in $ECS_SERVICES; do
-            case "$svc" in
-              "$WEB_SERVICE")  have_web=yes; roll="${roll} ${svc}" ;;
-              "$BEAT_SERVICE") have_beat=yes ;;
-              *)               roll="${roll} ${svc}"; workers="${workers} ${svc}" ;;
-            esac
-          done
-          if [ -z "$have_web" ] || [ -z "$have_beat" ]; then
-            echo "::error::ECS_SERVICES must name ${WEB_SERVICE} and ${BEAT_SERVICE}; it is: ${ECS_SERVICES}"
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN is unavailable in the ${TIER} environment."
             exit 1
           fi
-          roll="${roll# }"
-          workers="${workers# }"
-          echo "roll=${roll}" >> "$GITHUB_OUTPUT"
-          echo "workers=${workers}" >> "$GITHUB_OUTPUT"
-          echo "Web: ${WEB_SERVICE}"
-          echo "Scheduler: ${BEAT_SERVICE}"
-          echo "Workers: ${workers}"
-          echo "Rolled together: ${roll}"
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "::error::SLACK_WEBHOOK_URL is unavailable in the ${TIER} environment."
+            exit 1
+          fi
+          [[ "$TIER" == staging || "$TIER" == prod ]]
+          [[ "$DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
+          [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: us-east-1
 
-      # The registry is derived here rather than passed in, for the same reason
-      # the inputs above are pieces rather than URIs.
+      # The registry is derived here rather than passed in, for the same
+      # reason the inputs above are pieces rather than URIs.
       - name: Login to AWS ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
 
-      # The build collected the static files and wrote the migration list into
-      # the image, then attached both to the image's digest as OCI referrers.
-      # Reading them here ties the assets that get published, and the answer
-      # the window decision is made from, to the exact bytes being deployed.
-      #
-      # Three requests fetch one: the referrers index for this digest filtered
-      # by artifact type, the manifest it names, then that manifest's one
-      # layer. The fallback reads the image itself, which covers an image
-      # whose referrers are missing or unreadable, not a tier: both tiers
-      # deploy the digest the build attached the referrers to.
-      - name: Read the image's static files and migration list
-        id: artifacts
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_DIGEST: ${{ inputs.image-digest }}
-          MIGRATIONS_TYPE: application/vnd.harvard-lil.perma.migrations.v1+json
-          STATIC_TYPE: application/vnd.harvard-lil.perma.staticassets.v1.tar+gzip
-        run: |
-          set -uo pipefail
+      # Mark the promoted artifact before deploying it. ECR retention keeps
+      # deployed images far longer than the build candidates that churn past
+      # them every merge to develop; without this tag the image the services
+      # run is just another candidate and ages out on the same schedule.
+      - name: Protect the promoted image from retention
+        uses: harvard-lil/lil-actions/ecr-tag-image@main
+        with:
+          repository: ${{ env.ECR_REPOSITORY }}
+          source: ${{ inputs.image-digest }}
+          tag: ${{ inputs.environment }}-deployed-${{ inputs.source-sha }}
 
-          rm -rf image-artifacts
-          mkdir -p image-artifacts
-          ECR_PASSWORD="$(aws ecr get-login-password)"
+      # One revision per family, all pinned to the same digest, registered
+      # before anything moves so that a registration failure stops the deploy
+      # with nothing changed. Each family's newest revision is the base, so
+      # structural changes Terraform registered since the last deploy reach
+      # the service here.
+      - name: Register the web revision
+        id: web
+        uses: harvard-lil/lil-actions/ecs-register-task-def@main
+        with:
+          task-definition-family: ${{ env.WEB_SERVICE }}
+          container-name: ${{ env.WEB_SERVICE }}
+          image-uri: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}@${{ inputs.image-digest }}
 
-          # $1 path under /v2/<repo>/, $2 Accept, $3 output file. Basic auth
-          # with the ECR token; -L for the blob endpoint, which answers with a
-          # 307 to S3. curl drops the credentials on a redirect to another
-          # host, which is what the presigned URL there wants.
-          registry_get() {
-            curl -sSfL --retry 3 --retry-delay 2 \
-              -H "Accept: $2" -u "AWS:${ECR_PASSWORD}" -o "$3" \
-              "https://${REGISTRY}/v2/${ECR_REPOSITORY}/$1"
-          }
+      - name: Register the capture worker revision
+        id: capture
+        uses: harvard-lil/lil-actions/ecs-register-task-def@main
+        with:
+          task-definition-family: ${{ env.CAPTURE_SERVICE }}
+          container-name: ${{ env.CAPTURE_SERVICE }}
+          image-uri: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}@${{ inputs.image-digest }}
 
-          # $1 artifact type, $2 destination. Writes the referrer's single
-          # layer to the destination, or explains why there is nothing to
-          # write.
-          fetch_referrer() {
-            artifact_type="$1"
-            destination="$2"
-            encoded="$(jq -rn --arg t "$artifact_type" '$t|@uri')"
+      - name: Register the background worker revision
+        id: background
+        uses: harvard-lil/lil-actions/ecs-register-task-def@main
+        with:
+          task-definition-family: ${{ env.BACKGROUND_SERVICE }}
+          container-name: ${{ env.BACKGROUND_SERVICE }}
+          image-uri: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}@${{ inputs.image-digest }}
 
-            if ! registry_get "referrers/${IMAGE_DIGEST}?artifactType=${encoded}" \
-                 'application/vnd.oci.image.index.v1+json' referrers.json; then
-              echo "No referrers index for ${artifact_type}."
-              return 1
-            fi
-            referrer="$(jq -r --arg t "$artifact_type" \
-              'first(.manifests[]? | select(.artifactType == $t) | .digest) // empty' \
-              referrers.json 2>/dev/null || true)"
-            if [ -z "$referrer" ]; then
-              echo "The referrers index names nothing of type ${artifact_type}."
-              return 1
-            fi
+      - name: Register the Internet Archive worker revision
+        id: ia
+        uses: harvard-lil/lil-actions/ecs-register-task-def@main
+        with:
+          task-definition-family: ${{ env.IA_SERVICE }}
+          container-name: ${{ env.IA_SERVICE }}
+          image-uri: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}@${{ inputs.image-digest }}
 
-            if ! registry_get "manifests/${referrer}" \
-                 'application/vnd.oci.image.manifest.v1+json' referrer-manifest.json; then
-              echo "Could not read referring manifest ${referrer}."
-              return 1
-            fi
-            layer="$(jq -r 'first(.layers[]?.digest) // empty' \
-              referrer-manifest.json 2>/dev/null || true)"
-            if [ -z "$layer" ]; then
-              echo "Referring manifest ${referrer} carries no layer."
-              return 1
-            fi
+      - name: Register the WACZ conversion worker revision
+        id: wacz
+        uses: harvard-lil/lil-actions/ecs-register-task-def@main
+        with:
+          task-definition-family: ${{ env.WACZ_SERVICE }}
+          container-name: ${{ env.WACZ_SERVICE }}
+          image-uri: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}@${{ inputs.image-digest }}
 
-            if ! registry_get "blobs/${layer}" '*/*' "$destination"; then
-              echo "Could not read blob ${layer}."
-              return 1
-            fi
-            echo "${artifact_type} <- ${referrer}"
-            return 0
-          }
+      - name: Register the scheduler revision
+        id: beat
+        uses: harvard-lil/lil-actions/ecs-register-task-def@main
+        with:
+          task-definition-family: ${{ env.BEAT_SERVICE }}
+          container-name: ${{ env.BEAT_SERVICE }}
+          image-uri: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}@${{ inputs.image-digest }}
 
-          static_source=""
-          migrations_source=""
+      # What the image contains, read from its referrers rather than by
+      # pulling or starting it: the migration list, the Celery task manifest,
+      # and the collected static files. A missing referrer stops the deploy
+      # here; the promotion checks already required all three.
+      - name: Fetch the published manifests and static files
+        uses: harvard-lil/lil-actions/ecr-artifacts@main
+        with:
+          mode: fetch
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}@${{ inputs.image-digest }}
+          artifacts: >-
+            [{"type":"${{ env.MIGRATIONS_TYPE }}","path":"image-artifacts/migrations.json"},
+             {"type":"${{ env.CELERY_TYPE }}","path":"image-artifacts/celery-tasks.json"},
+             {"type":"${{ env.STATIC_TYPE }}","path":"static-assets.tar.gz"}]
 
-          if fetch_referrer "$STATIC_TYPE" static-assets.tar.gz; then
-            mkdir -p image-artifacts/static
-            if tar -xzf static-assets.tar.gz -C image-artifacts; then
-              static_source="referrer"
-            else
-              echo "::warning::The static assets referrer did not unpack."
-              rm -rf image-artifacts/static
-            fi
-          fi
+      - name: Unpack the published static files
+        run: tar -xzf static-assets.tar.gz -C image-artifacts
 
-          if fetch_referrer "$MIGRATIONS_TYPE" image-artifacts/migrations.json; then
-            if jq -e '.hash' image-artifacts/migrations.json >/dev/null 2>&1; then
-              migrations_source="referrer"
-            else
-              echo "::warning::The migration list referrer is not a manifest document."
-              rm -f image-artifacts/migrations.json
-            fi
-          fi
-
-          if [ -z "$static_source" ] || [ -z "$migrations_source" ]; then
-            echo "Reading what is missing out of the image itself."
-            IMAGE="${REGISTRY}/${ECR_REPOSITORY}@${IMAGE_DIGEST}"
-            container=""
-            if docker pull -q "$IMAGE" && container="$(docker create "$IMAGE")"; then
-              if [ -z "$static_source" ]; then
-                rm -rf image-artifacts/static
-                if docker cp "${container}:/perma/perma_web/static-collected" image-artifacts/static; then
-                  static_source="image"
-                fi
-              fi
-              if [ -z "$migrations_source" ]; then
-                if docker cp "${container}:/perma/perma_web/migrations.json" \
-                     image-artifacts/migrations.json; then
-                  migrations_source="image"
-                fi
-              fi
-              docker rm "$container" >/dev/null
-            else
-              echo "::warning::Could not read ${IMAGE_DIGEST} as an image."
-            fi
-          fi
-
-          echo "static-source=${static_source:-none}" >> "$GITHUB_OUTPUT"
-          echo "migrations-source=${migrations_source:-none}" >> "$GITHUB_OUTPUT"
-          echo "Static files: ${static_source:-NOT AVAILABLE}"
-          echo "Migration list: ${migrations_source:-NOT AVAILABLE}"
-
-          # Nothing has been deployed yet, so failing here leaves the running
-          # version serving. Going on would put tasks in front of traffic that
-          # render pages naming files the bucket does not hold.
-          if [ -z "$static_source" ]; then
-            echo "::error::The static files for ${IMAGE_DIGEST} are readable neither"
-            echo "::error::from its referrer nor from the image."
-            exit 1
-          fi
-          if [ -z "$migrations_source" ]; then
-            echo "::warning::No migration list for ${IMAGE_DIGEST}; the window"
-            echo "::warning::decision will be taken without it."
-          fi
-
-      # Every version's assets live together in one bucket, so a browser
-      # holding a page from an earlier deploy can still fetch what it names.
-      # Objects are only ever added: there is no --delete here and there
-      # should not be.
-      #
-      # One pass, unlike h2o's two: Perma's bundles are named without a
-      # content hash (webpack.config.js leaves hashing to Django, and
-      # StaticStorage is WhiteNoise's non-manifest storage), so nothing here
-      # can be cached as immutable. A short lifetime is what lets a deploy's
-      # new bundle reach browsers; the Cloudflare purge at the end clears the
-      # edge's copy.
-      #
       # Above the rollout, because a task that starts before its files are in
-      # the bucket serves pages referencing paths that 404.
+      # the bucket serves pages referencing paths that 404. Objects are only
+      # ever added: no --delete, so a browser holding a page from the previous
+      # deploy can still fetch its assets. Nothing in Perma's collected tree
+      # is content-hashed, so one short lifetime for everything; the edge
+      # cache is purged at the end of the run.
       - name: Publish the image's static files
         env:
           STATIC_BUCKET: ${{ vars.STATIC_BUCKET }}
@@ -287,206 +237,152 @@ jobs:
           aws s3 sync image-artifacts/static "s3://${STATIC_BUCKET}/static" \
             --cache-control 'public, max-age=300' --no-progress
 
-      # A push carries no pull request context, so the labels are looked up
-      # from the commit. A direct push, or a merge whose pull request has since
-      # been deleted, returns nothing and the deploy proceeds on its own
-      # judgement.
-      - name: Read the deploy labels off the merged pull request
-        id: labels
+      # Labels on the merged pull request, dispatch inputs (only on a
+      # dispatch) and a standing HOLD_MAINTENANCE variable, resolved into
+      # force, skip and hold with a record of where each came from. Hold
+      # implies force; force wins over skip.
+      - name: Resolve the deploy flags
+        id: flags
+        uses: harvard-lil/lil-actions/deploy-flags@main
+        with:
+          event-name: ${{ github.event_name }}
+          inputs: ${{ toJSON(inputs) }}
+          hold-variable: ${{ vars.HOLD_MAINTENANCE }}
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          set -uo pipefail
-          if ! labels="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" \
-                          --jq '.[].labels[].name')"; then
-            echo "::warning::Could not read pull request labels for ${GITHUB_SHA}."
-            echo "::warning::Continuing as though none were set."
-            labels=""
-          fi
-          echo "Labels: ${labels:-(none)}"
-          if grep -qx 'deploy:force-maintenance-mode' <<< "$labels"; then
-            echo "force-maintenance=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "force-maintenance=false" >> "$GITHUB_OUTPUT"
-          fi
-          if grep -qx 'deploy:skip-maintenance-mode' <<< "$labels"; then
-            echo "skip-maintenance=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "skip-maintenance=false" >> "$GITHUB_OUTPUT"
-          fi
 
-      # A window is needed when the schema the running tasks are serving
-      # against is not the schema the new code expects. That is two questions,
-      # and both are answered without starting anything: the new image's
-      # migration list came out of its referrer above, and a task the web
-      # service is already running answers for itself over ECS Exec.
-      #
-      # Equal migration lists mean the new image adds no migrations, which is
-      # not yet an answer -- the database can be behind the image already
-      # running, from a deploy whose migrations never ran. `migrate --plan` on
-      # the running task settles that.
-      #
-      # The comparison is of migration names, not contents, and asks one task;
-      # it is the convention that migrations are not rewritten that makes
-      # equal lists mean equal schemas. h2o's review recorded that as an
-      # assumption, and it is the same one here.
-      #
-      # `aws ecs execute-command` exits with the status of the SSM session and
-      # not of the command it carried, so every answer here is read out of the
-      # session's output.
-      #
-      # `sh -c`, not `sh -lc`: the image keeps its Python in /opt/venv, which
-      # is on PATH through the container environment ECS Exec passes in. A
-      # login shell would source /etc/profile, which on Debian resets PATH,
-      # and `python` would then be the interpreter with nothing installed.
-      #
-      # Every answer except a clean "nothing to apply" opens the window: no
-      # manifest, no running task, a session that will not start, output that
-      # says neither thing. Two outputs: `needed` is the window, `migrations`
-      # says whether the migrate task has anything to do (none, pending,
-      # unknown), so a deploy that adds nothing does not start a task to find
-      # that out again.
+      # Compares the fetched manifest with the running web task's migration
+      # graph, then asks the database for pending migrations. Unknown state
+      # takes the window. `skip` suppresses the window, never the migration.
       - name: Does this deploy need a maintenance window?
         id: window
+        uses: harvard-lil/lil-actions/ecs-django-maintenance@main
+        with:
+          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ env.WEB_SERVICE }}
+          container: ${{ env.WEB_SERVICE }}
+          manifest: image-artifacts/migrations.json
+          force: ${{ steps.flags.outputs.force }}
+          skip: ${{ steps.flags.outputs.skip }}
+
+      # The running code's Celery manifest is the referrer of the digest the
+      # web service runs, read with three registry requests. Reading the
+      # artifact CI attached to that digest is the same fact as executing the
+      # command in the running container, since the service pins the digest
+      # and the manifest is a function of the image; it costs no ECS Exec
+      # session and works while the web task is busy. The three steps are
+      # allowed to fail: a service not running a digest-pinned image (the
+      # first deploy from Terraform's placeholder tag), an image published
+      # before this referrer existed, or an unstable service all mean the
+      # running tasks are unknown, and unknown takes the pause.
+      - name: Resolve the image the web service is running
+        id: running
+        continue-on-error: true
+        uses: harvard-lil/lil-actions/ecs-resolve-service-image@main
+        with:
+          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ env.WEB_SERVICE }}
+          container-name: ${{ env.WEB_SERVICE }}
+          ecr-repository: ${{ env.ECR_REPOSITORY }}
+
+      - name: Fetch the running image's Celery manifest
+        id: running-manifest
+        if: steps.running.outcome == 'success'
+        continue-on-error: true
+        uses: harvard-lil/lil-actions/ecr-artifacts@main
+        with:
+          mode: fetch
+          image: ${{ steps.running.outputs.image-uri }}
+          artifacts: '[{"type":"${{ env.CELERY_TYPE }}","path":"running/celery-tasks.json"}]'
+
+      - name: Compare the Celery manifests
+        id: celery
+        if: steps.running-manifest.outcome == 'success'
+        continue-on-error: true
+        uses: harvard-lil/lil-actions/celery-manifest-compare@main
+        with:
+          base: running/celery-tasks.json
+          incoming: image-artifacts/celery-tasks.json
+
+      # The pause decision, in one place so every later condition reads one
+      # output. Same image digest as the running one (a re-run) compares equal
+      # and pauses only if the window does.
+      - name: Decide whether to pause intake and drain the workers
+        id: plan
         env:
-          FORCED: ${{ steps.labels.outputs.force-maintenance }}
-          SKIPPED: ${{ steps.labels.outputs.skip-maintenance }}
+          WINDOW: ${{ steps.window.outputs.needed }}
+          RUNNING: ${{ steps.running.outcome }}
+          RUNNING_SHA: ${{ steps.running.outputs.source-sha }}
+          FETCH: ${{ steps.running-manifest.outcome }}
+          COMPARE: ${{ steps.celery.outcome }}
+          CHANGED: ${{ steps.celery.outputs.changed }}
+          SUMMARY: ${{ steps.celery.outputs.summary }}
         run: |
-          set -uo pipefail
-          needed=true
-          migrations=unknown
-
-          # Asked for explicitly, so there is nothing to work out. This is also
-          # the only way to exercise the window on a deploy that carries no
-          # migrations. The two labels are checked in this order so that
-          # setting both takes the window.
-          if [ "$FORCED" = "true" ]; then
-            echo "needed=true" >> "$GITHUB_OUTPUT"
-            echo "migrations=unknown" >> "$GITHUB_OUTPUT"
-            echo "deploy:force-maintenance-mode is set: taking a maintenance window."
-            if [ "$SKIPPED" = "true" ]; then
-              echo "::warning::deploy:skip-maintenance-mode is set too, and is ignored."
-            fi
-            exit 0
-          fi
-
-          # The other direction. Skipping the window does not skip the
-          # migrations: they still run, from the migrate task, before the
-          # services roll, with the old code still serving. So this asserts
-          # that they are backward compatible with the code currently running
-          # -- additive columns, new tables, a new index -- and it is wrong for
-          # anything that drops or renames what the running code still reads.
-          if [ "$SKIPPED" = "true" ]; then
-            echo "needed=false" >> "$GITHUB_OUTPUT"
-            echo "migrations=unknown" >> "$GITHUB_OUTPUT"
-            echo "::warning::deploy:skip-maintenance-mode is set: deploying without a maintenance window, whatever the migrations say."
-            exit 0
-          fi
-
-          # $1 is a shell command; its output, and the session's chatter
-          # around it, come back together on stdout.
-          exec_in_running_task() {
-            aws ecs execute-command \
-              --cluster "$ECS_CLUSTER" --task "$TASK_ARN" --container "$WEB_SERVICE" \
-              --interactive --command "/bin/sh -c '$1'" 2>&1
-          }
-
-          new_hash="$(jq -r '.hash // empty' image-artifacts/migrations.json 2>/dev/null || true)"
-
-          TASK_ARN=""
-          if [ -n "$new_hash" ]; then
-            TASK_ARN="$(aws ecs list-tasks --cluster "$ECS_CLUSTER" \
-              --service-name "$WEB_SERVICE" --desired-status RUNNING \
-              --query 'taskArns[0]' --output text 2>/dev/null || true)"
-            if [ "$TASK_ARN" = "None" ]; then
-              TASK_ARN=""
-            fi
-          fi
-
-          if [ -z "$new_hash" ]; then
-            echo "::warning::The image being deployed carries no migration list."
-          elif [ -z "$TASK_ARN" ]; then
-            echo "::warning::The web service is running no task to compare against."
+          set -euo pipefail
+          if [ "$COMPARE" = "success" ] && [ "$CHANGED" = "false" ]; then
+            celery="unchanged since ${RUNNING_SHA:0:7}"
+          elif [ "$COMPARE" = "success" ]; then
+            celery="changed since ${RUNNING_SHA:0:7}: ${SUMMARY}"
+          elif [ "$RUNNING" != "success" ]; then
+            celery="unknown: the running web image could not be resolved to a published digest"
+          elif [ "$FETCH" != "success" ]; then
+            celery="unknown: the running image ${RUNNING_SHA:0:7} has no readable Celery manifest"
           else
-            echo "Asking ${TASK_ARN##*/} what it has."
-            manifest="$(exec_in_running_task 'python manage.py migration_manifest' || true)"
-            # The manifest is printed as indented JSON, so its hash is one
-            # field on one line, wherever the session chatter put it.
-            running_hash="$(printf '%s' "$manifest" | tr -d '\r' \
-              | sed -n 's/.*"hash"[[:space:]]*:[[:space:]]*"\([0-9a-f]\{1,\}\)".*/\1/p' \
-              | head -n1 || true)"
-
-            if [ -z "$running_hash" ]; then
-              echo "::warning::The running task returned no migration list."
-              printf '%s\n' "$manifest" | tail -n 20
-            elif [ "$running_hash" != "$new_hash" ]; then
-              echo "Migration lists differ: the image has ${new_hash}, the running tasks have ${running_hash}."
-              migrations=pending
-            else
-              echo "Both the image and the running tasks have migration list ${new_hash}."
-              plan="$(exec_in_running_task 'python manage.py migrate --plan' || true)"
-              if grep -q 'No planned migration operations' <<< "$plan"; then
-                needed=false
-                migrations=none
-              elif grep -q 'Planned operations:' <<< "$plan"; then
-                echo "The image adds no migrations, but the database is behind the running one."
-                migrations=pending
-              else
-                echo "::warning::The running task returned no migration plan."
-                printf '%s\n' "$plan" | tail -n 20
-              fi
-            fi
+            celery="unknown: the manifests could not be compared"
           fi
-
-          echo "needed=$needed" >> "$GITHUB_OUTPUT"
-          echo "migrations=$migrations" >> "$GITHUB_OUTPUT"
-          if [ "$needed" = "true" ]; then
-            echo "Migrations to apply, or an inconclusive answer: taking a maintenance window."
+          if [ "$WINDOW" = "true" ] || [ "$COMPARE" != "success" ] || [ "$CHANGED" != "false" ]; then
+            pause=true
           else
-            echo "Nothing to apply: deploying without a maintenance window."
+            pause=false
           fi
+          echo "Maintenance window: ${WINDOW}"
+          echo "Celery tasks: ${celery}"
+          echo "Pause intake and drain: ${pause}"
+          {
+            echo "pause=${pause}"
+            echo "celery=${celery}"
+          } >> "$GITHUB_OUTPUT"
 
-      # From here to the rollout is Salt's drain, in the same order: stop new
-      # capture jobs being dispatched, stop the scheduler, empty the queues,
-      # wait for the workers to finish what they hold. Each of these is undone
-      # near the end of this file, on success or on a failure that left the
-      # running version intact.
-      #
       # The sentinel Salt touched on every host is a flag the application
-      # keeps in its shared cache now, set and cleared by this management
+      # keeps in its shared cache, set and cleared by this management
       # command; run_next_capture and the link-creation view consult it before
-      # dispatching the next capture. Set on the web task because every task
+      # dispatching the next capture. Set from the web task because every task
       # of the image shares the cache, and the web service is the one that is
-      # certainly running.
+      # certainly running. The action verifies the command's exit status, so a
+      # missing command or an unwritable cache stops the deploy here.
       - name: Pause capture intake
         id: pause
+        if: steps.plan.outputs.pause == 'true'
         uses: harvard-lil/lil-actions/ecs-exec-command@main
         with:
           cluster: ${{ env.ECS_CLUSTER }}
           service: ${{ env.WEB_SERVICE }}
           container: ${{ env.WEB_SERVICE }}
           command: python manage.py deployment_sentinel set
-          check-exit-code: 'true'
 
       # Exactly one scheduler, ever. Stopping it here, rather than letting it
-      # roll with the other services, is what keeps it from enqueuing work
-      # into queues the next step is emptying, and what guarantees the old
-      # and new beat never overlap: the new one starts, near the end of this
-      # file, only after the old one is gone. The desired count it had is
-      # recorded so it can be put back rather than guessed.
+      # roll with the other services, keeps it from enqueuing work the workers
+      # are being asked to finish, and guarantees the old and new beat never
+      # overlap: the new one starts, below, only after the old one is gone.
+      # The desired count and revision it had are recorded so it can be put
+      # back rather than guessed.
       - name: Stop the scheduler
         id: stop-beat
+        if: steps.plan.outputs.pause == 'true'
         run: |
           set -euo pipefail
-          # shellcheck disable=SC2016  # the backticks are JMESPath, not shell
-          desired="$(aws ecs describe-services --cluster "$ECS_CLUSTER" --services "$BEAT_SERVICE" \
-            --query 'services[?status==`ACTIVE`] | [0].desiredCount' --output text)"
-          if [ -z "$desired" ] || [ "$desired" = "None" ]; then
-            echo "::error::No active service '${BEAT_SERVICE}' in '${ECS_CLUSTER}'."
+          read -r desired previous < <(aws ecs describe-services --cluster "$ECS_CLUSTER" \
+            --services "$BEAT_SERVICE" \
+            --query 'services[0].[desiredCount, taskDefinition]' --output text)
+          if [ -z "$previous" ] || [ "$previous" = "None" ]; then
+            echo "::error::No service '${BEAT_SERVICE}' in '${ECS_CLUSTER}'."
             exit 1
           fi
-          echo "previous-desired-count=${desired}" >> "$GITHUB_OUTPUT"
-          echo "${BEAT_SERVICE} desired count is ${desired}; setting it to 0."
+          {
+            echo "previous-desired-count=${desired}"
+            echo "previous-task-definition=${previous}"
+          } >> "$GITHUB_OUTPUT"
+          echo "${BEAT_SERVICE} desired count is ${desired} on ${previous##*/}; setting it to 0."
           aws ecs update-service --cluster "$ECS_CLUSTER" --service "$BEAT_SERVICE" \
             --desired-count 0 --query 'service.serviceName' --output text >/dev/null
 
@@ -506,32 +402,26 @@ jobs:
           done
           echo "Scheduler stopped."
 
-      # Salt purges celery, background, ia and ia-readonly and leaves
-      # wacz-conversion alone; the same here. Intake is paused and the
-      # scheduler is stopped, so nothing refills them. The wait is reported
-      # rather than enforced, as Salt's is: a worker still busy after the
-      # timeout is replaced busy by the rollout below, and the warning says
-      # so. Celery's hard time limit bounds what can be lost.
-      - name: Drain the queues
-        id: drain
-        uses: harvard-lil/lil-actions/celery-drain@main
+      # Intake is paused and the scheduler is stopped, so nothing new is being
+      # queued; this gives the workers a bounded time to finish what they
+      # hold. Reported rather than enforced, as Salt's drain was: a worker
+      # still busy after the timeout is replaced busy by the rollout below,
+      # under ECS's stop timeout, and the report says so. Nothing is purged.
+      - name: Wait for the workers to go idle
+        id: idle
+        if: steps.plan.outputs.pause == 'true'
+        uses: harvard-lil/lil-actions/celery-wait-idle@main
         with:
           cluster: ${{ env.ECS_CLUSTER }}
           service: ${{ env.WEB_SERVICE }}
           container: ${{ env.WEB_SERVICE }}
-          worker-services: ${{ steps.names.outputs.workers }}
           app: perma
-          queues: celery,background,ia,ia-readonly
           timeout-seconds: '120'
 
       # Held at Cloudflare's edge, so the page still answers if the origin is
       # unreachable. The action confirms the route by reading it back and
-      # fails if it is not there, so the migration below does not start
-      # against traffic that is still flowing.
-      #
-      # Before the migration and before any service moves, which is the order
-      # h2o's review asked for: nothing starts new code, and nothing changes
-      # the schema, until traffic is held.
+      # fails if it is not there, so the rollout and migration below do not
+      # start against traffic that is still flowing.
       - name: Hold traffic at the edge
         id: hold
         if: steps.window.outputs.needed == 'true'
@@ -541,159 +431,156 @@ jobs:
           zone-id: ${{ vars.CLOUDFLARE_ZONE_ID }}
           script: ${{ vars.MAINTENANCE_SCRIPT }}
           hostnames: ${{ vars.MAINTENANCE_HOSTNAMES }}
-          token: ${{ secrets.cloudflare-api-token }}
+          token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
-      # Migrations run once, from a task started for the purpose, pinned to
-      # the digest being deployed: the migrate family's command is
-      # `python manage.py migrate --noinput`, and its task and execution roles
-      # are its own. Not from a web task, which is serving the old code and
-      # about to be replaced, and not from a worker, which Salt used because
-      # a worker host was where the code was.
-      #
-      # Before the rollout, so every task the rollout starts finds the schema
-      # its code expects. Skipped only when the window check saw a clean
-      # "nothing to apply"; a forced or skipped window still runs it, and so
-      # does any answer the check could not read.
-      - name: Pin the migrate task to the promoted digest
-        id: migrate-task-def
-        if: steps.window.outputs.migrations != 'none'
-        uses: harvard-lil/lil-actions/ecs-register-task-def@main
-        with:
-          task-definition-family: ${{ env.MIGRATE_FAMILY }}
-          container-name: ${{ env.MIGRATE_FAMILY }}
-          image-uri: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}@${{ inputs.image-digest }}
-
-      - name: Run Django migrations
-        id: migrate
-        if: steps.window.outputs.migrations != 'none'
-        uses: harvard-lil/lil-actions/ecs-run-task@main
-        with:
-          cluster: ${{ env.ECS_CLUSTER }}
-          task-definition: ${{ steps.migrate-task-def.outputs.task-definition-arn }}
-          network-from-service: ${{ env.WEB_SERVICE }}
-          container: ${{ env.MIGRATE_FAMILY }}
-          timeout-seconds: '1800'
-
-      # Every service but the scheduler, from the one digest, together. Each
-      # gets a new revision of its family's latest definition with the image
-      # swapped on the container named after the family, and the wait watches
-      # all of them until none is still rolling out, so the report names each
-      # service's outcome rather than stopping at the first. A rollout the
-      # circuit breaker rolled back is reported as such and fails the step.
-      - name: Roll the web and worker services
+      # Every service moves to its registered revision and the rollouts are
+      # watched together, so a worker that fails to stabilise is named
+      # alongside the ones that succeeded. The scheduler is in the list: on a
+      # compatible deploy it rolls here like any other service (0%/100% in
+      # its service definition, so the old task stops before the new one
+      # starts); on a paused deploy it is at desired count 0, so its revision
+      # is recorded and it is reported as skipped, then started below.
+      - name: Roll the services to the registered revisions
         id: roll
         uses: harvard-lil/lil-actions/ecs-roll-services@main
         with:
           cluster: ${{ env.ECS_CLUSTER }}
-          services: ${{ steps.names.outputs.roll }}
-          image-uri: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}@${{ inputs.image-digest }}
-          timeout-seconds: '900'
+          services: >-
+            {"${{ env.WEB_SERVICE }}": "${{ steps.web.outputs.task-definition-arn }}",
+             "${{ env.CAPTURE_SERVICE }}": "${{ steps.capture.outputs.task-definition-arn }}",
+             "${{ env.BACKGROUND_SERVICE }}": "${{ steps.background.outputs.task-definition-arn }}",
+             "${{ env.IA_SERVICE }}": "${{ steps.ia.outputs.task-definition-arn }}",
+             "${{ env.WACZ_SERVICE }}": "${{ steps.wacz.outputs.task-definition-arn }}",
+             "${{ env.BEAT_SERVICE }}": "${{ steps.beat.outputs.task-definition-arn }}"}
 
-      # The scheduler comes back on the new revision once every other service
-      # is on it, at the desired count it had. If the rollout did not succeed
-      # but nothing else changed either -- migrations never ran -- it comes
-      # back on the revision it was stopped on, because the running version is
-      # intact and should keep scheduling. After a migration that the rollout
-      # then failed to follow, it stays stopped: a scheduler feeding old
-      # workers against a new schema is not a state to leave running
-      # unattended, and the report below says so.
-      - name: Pin the scheduler to the promoted digest
-        id: beat-task-def
-        if: always() && steps.roll.outcome == 'success'
-        uses: harvard-lil/lil-actions/ecs-register-task-def@main
+      # The migration below execs into whichever web task it finds, so the
+      # exact revision is confirmed once more, with the shared action's
+      # definition of success, before it runs.
+      - name: Verify the exact web revision
+        uses: harvard-lil/lil-actions/ecs-wait-for-deployment@main
         with:
-          task-definition-family: ${{ env.BEAT_SERVICE }}
-          container-name: ${{ env.BEAT_SERVICE }}
-          image-uri: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}@${{ inputs.image-digest }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ env.WEB_SERVICE }}
+          task-definition: ${{ steps.web.outputs.task-definition-arn }}
 
+      # Checks the plan, migrates if anything is pending, and checks the plan
+      # again; the remote exit status is framed, so an SSM session that
+      # closed cleanly around a failed migrate does not pass.
+      - name: Run Django migrations in the deployed web task
+        id: migrate
+        uses: harvard-lil/lil-actions/ecs-django-migrations@main
+        with:
+          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ env.WEB_SERVICE }}
+          container: ${{ env.WEB_SERVICE }}
+          task-definition: ${{ steps.web.outputs.task-definition-arn }}
+
+      # Started at the recorded desired count, on the new revision when the
+      # rollout succeeded. If the rollout did not succeed but the migration
+      # never ran, nothing has changed underneath the old version, so the
+      # scheduler goes back on its previous revision. After a migration that
+      # the rollout then failed to follow, or a migration that failed, it
+      # stays stopped for a person.
       - name: Start the scheduler
         id: start-beat
-        if: always() && steps.stop-beat.outputs.previous-desired-count != '' && (steps.roll.outcome == 'success' || steps.migrate.outcome == 'skipped')
+        if: always() && steps.stop-beat.outcome == 'success' && (steps.roll.outcome == 'success' || steps.migrate.outcome == 'skipped')
         env:
-          PREVIOUS_DESIRED_COUNT: ${{ steps.stop-beat.outputs.previous-desired-count }}
-          NEW_TASK_DEFINITION: ${{ steps.beat-task-def.outputs.task-definition-arn }}
+          DESIRED: ${{ steps.stop-beat.outputs.previous-desired-count }}
+          NEW_REVISION: ${{ steps.beat.outputs.task-definition-arn }}
+          PREVIOUS_REVISION: ${{ steps.stop-beat.outputs.previous-task-definition }}
+          ROLLED: ${{ steps.roll.outcome }}
         run: |
           set -euo pipefail
-          args=()
-          if [ -n "$NEW_TASK_DEFINITION" ]; then
-            args=(--task-definition "$NEW_TASK_DEFINITION")
-            echo "Starting ${BEAT_SERVICE} on ${NEW_TASK_DEFINITION##*/} at desired count ${PREVIOUS_DESIRED_COUNT}."
+          if [ "$ROLLED" = "success" ]; then
+            revision="$NEW_REVISION"
           else
-            echo "Starting ${BEAT_SERVICE} on the revision it was stopped on, at desired count ${PREVIOUS_DESIRED_COUNT}."
+            revision="$PREVIOUS_REVISION"
           fi
+          echo "revision=${revision}" >> "$GITHUB_OUTPUT"
+          echo "Starting ${BEAT_SERVICE} at desired count ${DESIRED} on ${revision##*/}."
           aws ecs update-service --cluster "$ECS_CLUSTER" --service "$BEAT_SERVICE" \
-            --desired-count "$PREVIOUS_DESIRED_COUNT" "${args[@]}" \
-            --query 'service.taskDefinition' --output text
+            --task-definition "$revision" --desired-count "$DESIRED" --force-new-deployment \
+            --query 'service.serviceName' --output text >/dev/null
 
       - name: Wait for the scheduler to become stable
-        if: always() && steps.start-beat.outcome == 'success'
+        id: wait-beat
+        if: always() && steps.start-beat.outcome == 'success' && steps.stop-beat.outputs.previous-desired-count != '0'
         uses: harvard-lil/lil-actions/ecs-wait-for-deployment@main
         with:
           cluster: ${{ env.ECS_CLUSTER }}
           service: ${{ env.BEAT_SERVICE }}
-          timeout-seconds: '300'
-          poll-interval-seconds: '15'
+          task-definition: ${{ steps.start-beat.outputs.revision }}
+          timeout-seconds: '600'
 
-      # Lifted when the site underneath is one this workflow can vouch for:
-      # either nothing changed (migrations never ran, so whatever failed left
-      # the previous version serving against its own schema), or the migration
-      # ran and every service followed it. A migration that ran and a rollout
-      # that did not is the case h2o's review found the old condition lifting
-      # the page on; here it stays up, for a human, and the report below and
-      # the Slack message say so. A migration that failed or was cancelled
-      # stays behind the page for the same reason it did in h2o.
+      # Terraform's task definitions name `perma:<tier>-latest`; moving it
+      # only after the rollout and migration succeeded means a service that
+      # ECS restarts from that placeholder gets the image this deploy proved.
+      - name: Align Terraform's placeholder with the deployed image
+        uses: harvard-lil/lil-actions/ecr-tag-image@main
+        with:
+          repository: ${{ env.ECR_REPOSITORY }}
+          source: ${{ inputs.image-digest }}
+          tag: ${{ inputs.environment }}-latest
+          replace-existing: 'true'
+
+      # Lifted whenever migrations either succeeded or never ran, which covers
+      # every failure above this point: a rollout that failed leaves the
+      # previous tasks serving (minimum healthy 100%) or the circuit breaker's
+      # rollback, on an unchanged schema. A migration that failed partway is
+      # the exception, since it can leave the schema in a state neither the
+      # old nor the new code is safe against; that case stays behind the page
+      # for a person, as does a deliberate hold.
       - name: Release traffic at the edge
         id: release
-        if: always() && steps.hold.outcome != 'skipped' && (steps.migrate.outcome == 'skipped' || (steps.migrate.outcome == 'success' && steps.roll.outcome == 'success'))
+        if: >-
+          always() && steps.window.outputs.needed == 'true' && steps.flags.outputs.hold != 'true' &&
+          (steps.migrate.outcome == 'success' || steps.migrate.outcome == 'skipped')
         uses: harvard-lil/lil-actions/cloudflare-maintenance@main
         with:
           mode: 'off'
           zone-id: ${{ vars.CLOUDFLARE_ZONE_ID }}
           hostnames: ${{ vars.MAINTENANCE_HOSTNAMES }}
-          token: ${{ secrets.cloudflare-api-token }}
+          token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
-      # Intake resumes under the same condition the scheduler restarts: the
-      # deploy landed, or nothing changed. Otherwise captures stay paused with
-      # everything else, and the report says so. The command runs on whatever
-      # web task is running now -- the new revision after a successful
-      # rollout, the old one after a rolled-back one.
+      # Intake resumes under the same condition the page is lifted: the code
+      # serving is consistent with the schema. Beat re-dispatches the pending
+      # capture jobs on its every-minute run, which is why it restarts above.
       - name: Resume capture intake
         id: resume
-        if: always() && steps.pause.outcome == 'success' && (steps.roll.outcome == 'success' || steps.migrate.outcome == 'skipped')
+        if: always() && steps.pause.outcome == 'success' && (steps.migrate.outcome == 'success' || steps.migrate.outcome == 'skipped')
         uses: harvard-lil/lil-actions/ecs-exec-command@main
         with:
           cluster: ${{ env.ECS_CLUSTER }}
           service: ${{ env.WEB_SERVICE }}
           container: ${{ env.WEB_SERVICE }}
           command: python manage.py deployment_sentinel clear
-          check-exit-code: 'true'
 
-      # The one place that says what state this run left the tier in, from
-      # what the steps above did rather than from what they were meant to do.
-      # Three things this workflow switches off and back on -- the edge route,
-      # the intake sentinel, the scheduler -- are each reported from the
-      # outcome of the step that would have restored it, and any of them still
-      # off fails the run with the command that turns it back on. The text is
-      # also what both Slack messages carry.
+      # One step, always run, that says what this run left switched off and
+      # fails the run with the commands that undo each thing. Both Slack
+      # messages carry its text.
       - name: Report what this run left behind
         id: report
         if: always()
         env:
           WINDOW: ${{ steps.window.outputs.needed }}
+          HOLD_WANTED: ${{ steps.flags.outputs.hold }}
           HOLD: ${{ steps.hold.outcome }}
           RELEASE: ${{ steps.release.outcome }}
+          PAUSE_PLANNED: ${{ steps.plan.outputs.pause }}
           PAUSE: ${{ steps.pause.outcome }}
           RESUME: ${{ steps.resume.outcome }}
-          DRAIN: ${{ steps.drain.outcome }}
-          DRAIN_IDLE: ${{ steps.drain.outputs.idle }}
-          MIGRATIONS: ${{ steps.window.outputs.migrations }}
+          IDLE: ${{ steps.idle.outcome }}
+          IDLE_RESULT: ${{ steps.idle.outputs.idle }}
           MIGRATE: ${{ steps.migrate.outcome }}
-          MIGRATE_TASK: ${{ steps.migrate.outputs.task-arn }}
           ROLL: ${{ steps.roll.outcome }}
           ROLL_SUMMARY: ${{ steps.roll.outputs.summary }}
+          BEAT_STOPPED: ${{ steps.stop-beat.outcome }}
           BEAT_PREVIOUS: ${{ steps.stop-beat.outputs.previous-desired-count }}
           START_BEAT: ${{ steps.start-beat.outcome }}
+          WAIT_BEAT: ${{ steps.wait-beat.outcome }}
           SITE_URL: ${{ vars.SITE_URL }}
+          FLAG_SOURCES: ${{ steps.flags.outputs.sources }}
+          CELERY: ${{ steps.plan.outputs.celery }}
         run: |
           set -uo pipefail
           left=0
@@ -704,16 +591,22 @@ jobs:
               if [ "$WINDOW" = "true" ]; then
                 lines+=("Maintenance page: never shown; the run stopped before holding traffic")
               else
-                lines+=("Maintenance page: never shown (no migrations to apply)")
+                lines+=("Maintenance page: never shown (no window needed)")
+              fi
+              ;;
+            success)
+              if [ "$RELEASE" = "success" ]; then
+                lines+=("Maintenance page: shown for the deploy, now lifted")
+              elif [ "$HOLD_WANTED" = "true" ]; then
+                lines+=("Maintenance page: STILL UP at ${SITE_URL}, held deliberately for the cutover")
+              else
+                left=1
+                lines+=("Maintenance page: STILL UP at ${SITE_URL} (release: ${RELEASE})")
               fi
               ;;
             *)
-              if [ "$RELEASE" = "success" ]; then
-                lines+=("Maintenance page: shown for the migration, now lifted")
-              else
-                left=1
-                lines+=("Maintenance page: STILL UP at ${SITE_URL} (hold: ${HOLD}, release: ${RELEASE})")
-              fi
+              left=1
+              lines+=("Maintenance page: hold ${HOLD}; check the route before assuming either state")
               ;;
           esac
 
@@ -726,32 +619,32 @@ jobs:
                 lines+=("Capture intake: STILL PAUSED (resume: ${RESUME})")
               fi
               ;;
-            skipped) lines+=("Capture intake: never paused") ;;
+            skipped)
+              if [ "$PAUSE_PLANNED" = "true" ]; then
+                lines+=("Capture intake: never paused; the run stopped before the pause")
+              else
+                lines+=("Capture intake: never paused (compatible deploy)")
+              fi
+              ;;
             *) lines+=("Capture intake: pause ${PAUSE}; captures were not stopped") ;;
           esac
 
-          case "$DRAIN" in
+          case "$IDLE" in
             success)
-              if [ "$DRAIN_IDLE" = "true" ]; then
-                lines+=("Queues: purged, workers idle before the rollout")
+              if [ "$IDLE_RESULT" = "true" ]; then
+                lines+=("Workers: idle before the rollout")
               else
-                lines+=("Queues: purged, but workers were still busy when the rollout replaced them")
+                lines+=("Workers: still busy when the rollout replaced them")
               fi
               ;;
-            skipped) lines+=("Queues: not drained") ;;
-            *) lines+=("Queues: drain ${DRAIN}") ;;
+            skipped) lines+=("Workers: rolled with a warm shutdown, no wait") ;;
+            *) lines+=("Workers: idle wait ${IDLE}") ;;
           esac
 
           case "$MIGRATE" in
-            success) lines+=("Migrations: applied by task ${MIGRATE_TASK##*/}") ;;
-            skipped)
-              if [ "$MIGRATIONS" = "none" ]; then
-                lines+=("Migrations: none to apply")
-              else
-                lines+=("Migrations: never ran")
-              fi
-              ;;
-            *) lines+=("Migrations: ${MIGRATE} (task ${MIGRATE_TASK##*/}); check the database before doing anything else") ;;
+            success) lines+=("Migrations: applied (or none pending)") ;;
+            skipped) lines+=("Migrations: never ran") ;;
+            *) lines+=("Migrations: ${MIGRATE}; check the database before doing anything else") ;;
           esac
 
           case "$ROLL" in
@@ -760,18 +653,19 @@ jobs:
             *) lines+=("Services: rollout ${ROLL}") ;;
           esac
           if [ -n "$ROLL_SUMMARY" ]; then
-            while IFS= read -r line; do
-              lines+=("  ${line}")
-            done <<< "$ROLL_SUMMARY"
+            lines+=("  ${ROLL_SUMMARY}")
           fi
 
-          if [ -z "$BEAT_PREVIOUS" ]; then
-            lines+=("Scheduler: never stopped")
-          elif [ "$START_BEAT" = "success" ]; then
+          if [ "$BEAT_STOPPED" = "skipped" ]; then
+            lines+=("Scheduler: rolled with the services, never stopped")
+          elif [ "$BEAT_STOPPED" != "success" ]; then
+            lines+=("Scheduler: stop ${BEAT_STOPPED}; check its desired count")
+            left=1
+          elif [ "$START_BEAT" = "success" ] && { [ "$WAIT_BEAT" = "success" ] || [ "$WAIT_BEAT" = "skipped" ]; }; then
             lines+=("Scheduler: stopped for the deploy, restarted at desired count ${BEAT_PREVIOUS}")
           else
             left=1
-            lines+=("Scheduler: STILL STOPPED (was at desired count ${BEAT_PREVIOUS})")
+            lines+=("Scheduler: STILL STOPPED (was at desired count ${BEAT_PREVIOUS}; start: ${START_BEAT}, wait: ${WAIT_BEAT})")
           fi
 
           {
@@ -779,6 +673,17 @@ jobs:
             printf '%s\n' "${lines[@]}"
             echo "LIL_EOF"
             echo "left-behind=${left}"
+            # The Slack messages' body, built here so the multi-line text is
+            # JSON-encoded by toJSON in one place rather than assembled in a
+            # payload template.
+            echo "notice<<LIL_EOF"
+            echo "*State:*"
+            printf '%s\n' "${lines[@]}"
+            echo "*Deploy flags:* ${FLAG_SOURCES:-unresolved}"
+            echo "*Celery tasks:* ${CELERY:-undecided}"
+            echo "*Run:* <https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}|${GITHUB_RUN_ID}>"
+            echo "*Site:* <${SITE_URL}|${SITE_URL}>"
+            echo "LIL_EOF"
           } >> "$GITHUB_OUTPUT"
 
           printf '%s\n' "${lines[@]}"
@@ -787,13 +692,13 @@ jobs:
             exit 0
           fi
 
-          echo "::error::This deploy left ${TIER} ${PRODUCT} in a state that needs a person:"
+          echo "::error::This deploy left ${TIER} perma in a state that needs a person:"
           for line in "${lines[@]}"; do
             case "$line" in
               *STILL*) echo "::error::${line}" ;;
             esac
           done
-          echo "::error::To lift the page once the site is known good:  just maintenance ${PRODUCT} ${TIER} off"
+          echo "::error::To lift the page once the site is known good:  just maintenance perma ${TIER} off"
           echo "::error::To resume captures:  aws ecs execute-command --cluster ${ECS_CLUSTER} --task <a ${WEB_SERVICE} task> --container ${WEB_SERVICE} --interactive --command 'python manage.py deployment_sentinel clear'"
           echo "::error::To restart the scheduler:  aws ecs update-service --cluster ${ECS_CLUSTER} --service ${BEAT_SERVICE} --desired-count ${BEAT_PREVIOUS:-1}"
           echo "::error::Re-running this workflow will not do these for you; it will stop at the same step."
@@ -806,80 +711,69 @@ jobs:
         uses: harvard-lil/lil-actions/cloudflare-purge@main
         with:
           zone: ${{ vars.CLOUDFLARE_ZONE_ID }}
-          token: ${{ secrets.cloudflare-api-token }}
+          token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Report the intentional hold
+        if: success() && steps.flags.outputs.hold == 'true'
+        run: echo "::notice::Deployment verified. Traffic remains held for the cutover; release it with a dispatch that forces a window without holding, or by detaching the route."
 
       # The success notification below does not run on failure, so this is
       # the only thing that reports a failed deploy. The status text is the
-      # report's, which was built from what actually happened rather than
-      # from what was meant to.
+      # report's, built from what actually happened.
       - name: Notify Slack on failure
         if: failure()
         uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
         with:
-            webhook: ${{ secrets.slack-webhook-url }}
-            webhook-type: incoming-webhook
-            payload: |
-              {
-                "blocks": [
-                    {
-                      "type": "section",
-                      "text": {
-                          "type": "mrkdwn",
-                          "text": "*${{ inputs.environment-label }} Perma deploy FAILED*"
-                      }
-                    },
-                    {
-                      "type": "section",
-                      "text": {
-                          "type": "mrkdwn",
-                          "text": ${{ toJSON(format('```{0}```', steps.report.outputs.status)) }}
-                      }
-                    },
-                    {
-                      "type": "section",
-                      "text": {
-                          "type": "mrkdwn",
-                          "text": "*Run:*\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.run_id }}>"
-                      }
-                    }
-                ]
-              }
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*${{ inputs.environment-label }} Perma deploy FAILED*"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ${{ toJSON(steps.report.outputs.notice) }}
+                  }
+                }
+              ]
+            }
 
       - name: Notify Slack
         uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
         with:
-            webhook: ${{ secrets.slack-webhook-url }}
-            webhook-type: incoming-webhook
-            payload: |
-              {
-                "blocks": [
-                    {
-                      "type": "section",
-                      "text": {
-                          "type": "mrkdwn",
-                          "text": "*${{ inputs.environment-label }} Perma deployed successfully!*"
-                      }
-                    },
-                    {
-                    "type": "section",
-                      "text": {
-                          "type": "mrkdwn",
-                          "text": "*Repo:*\n<https://github.com/${{ github.repository }}|`${{ github.repository }}`>\n*Branch:*\n<https://github.com/${{ github.repository }}/tree/${{ github.ref_name }}|`${{ github.ref_name }}`>\n*Built from:*\n<https://github.com/${{ github.repository }}/commit/${{ inputs.source-sha }}|`${{ inputs.source-sha }}`>"
-                      }
-                    },
-                    {
-                      "type": "section",
-                      "text": {
-                          "type": "mrkdwn",
-                          "text": ${{ toJSON(format('```{0}```', steps.report.outputs.status)) }}
-                      }
-                    },
-                    {
-                    "type": "section",
-                      "text": {
-                          "type": "mrkdwn",
-                          "text": "*View the site:* <${{ vars.SITE_URL }}|${{ vars.SITE_URL }}>"
-                      }
-                    }
-                ]
-              }
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*${{ inputs.environment-label }} Perma deployed successfully!*"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Repo:*\n<https://github.com/${{ github.repository }}|`${{ github.repository }}`>\n*Branch:*\n<https://github.com/${{ github.repository }}/tree/${{ github.ref_name }}|`${{ github.ref_name }}`>\n*Commit:*\n<https://github.com/${{ github.repository }}/commit/${{ inputs.source-sha }}|`${{ inputs.source-sha }}`>"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ${{ toJSON(steps.report.outputs.notice) }}
+                  }
+                }
+              ]
+            }
