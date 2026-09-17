@@ -1,12 +1,24 @@
 version: 2
-registries:
-  lil-registry:
-    type: docker-registry
-    url: https://registry.lil.tools
+
 updates:
-  - package-ecosystem: "docker"
+  # Every third-party action in .github/workflows is pinned to a commit SHA,
+  # which is what stops a compromised tag from arriving silently -- and also
+  # what makes a pin invisible once set, since a SHA does not look stale.
+  # Something has to raise them, hence this.
+  #
+  # Only `.github/workflows/` is scanned; the github-actions ecosystem does
+  # not recurse into composite `action.yml` files, which is why lil-actions
+  # lists each of its composite directories explicitly. This repository
+  # defines no composite actions.
+  - package-ecosystem: github-actions
     directory: "/"
-    registries:
-      - lil-registry
     schedule:
-      interval: "daily"
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      actions-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch

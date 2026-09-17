@@ -1,0 +1,184 @@
+name: Staging - Deploy to AWS
+
+# Perma's staging branch has always been `stage`, not h2o's `staging`, and it
+# is not renamed here. The GitHub environment it deploys through is still
+# named `staging`, as the contract for this pipeline requires, with a branch
+# policy limiting it to `stage`.
+
+on:
+  push:
+    branches: [stage]
+  pull_request:
+    branches: [stage]
+
+permissions:
+    id-token: write     # assume the deploy role via OIDC
+    contents: read
+    pull-requests: read # read deploy labels off the merged pull request
+
+jobs:
+  # Only allow merges from develop
+  check-source-branch:
+    name: Check Source Branch
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Verify source branch is develop
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          if [ "$HEAD_REF" != "develop" ]; then
+            echo "::error::Pull requests to stage must come from the develop branch"
+            exit 1
+          fi
+          echo "Source branch verification passed"
+
+  # Neither deploy tier lints or tests. check-source-branch limits this branch
+  # to merges from develop, so the tree here is one develop has already run
+  # the suite against, and the resolve step below will not deploy an image
+  # that develop did not publish.
+  prepare:
+    name: Prepare the staging artifact
+    runs-on: ubuntu-latest
+    environment: staging
+    if: github.event_name == 'push'
+
+    outputs:
+      image-digest: ${{ steps.resolve.outputs.image-digest }}
+      source-sha: ${{ steps.resolve.outputs.source-sha }}
+
+    env:
+      ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+      # The tier's moving tag. Every deploy replaces it with a digest, and
+      # nothing reads it to decide what to ship.
+      IMAGE_TAG: staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0   # need merge parents to resolve the develop commit we promote
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to AWS ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
+
+      # Promote, do not rebuild. lint_test.yml built this image on develop,
+      # ran the suite against it, and pushed it tagged with the develop commit
+      # SHA. Deploying that exact artifact is what makes "tested" and
+      # "shipped" the same bytes. Fails loudly rather than quietly building
+      # something new.
+      - name: Resolve the tested image
+        id: resolve
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          set -euo pipefail
+          # Which commit on develop produced the image we should deploy? That
+          # depends on how the merge was made, and the repo permits all three
+          # methods, so try the candidates rather than assuming one:
+          #   HEAD^2  -- merge commit; the develop tip that was merged in
+          #   HEAD    -- fast-forward, squash, or direct push
+          digest=""
+          SOURCE_SHA=""
+          for candidate in $(git rev-parse HEAD^2 2>/dev/null) $(git rev-parse HEAD); do
+            echo "Looking for an image built from $candidate"
+            # Resolve to a digest, not a tag: tags can be moved, digests cannot.
+            found="$(aws ecr describe-images \
+              --repository-name "$ECR_REPOSITORY" \
+              --image-ids "imageTag=$candidate" \
+              --query 'imageDetails[0].imageDigest' \
+              --output text 2>/dev/null || true)"
+            if [ -n "$found" ] && [ "$found" != "None" ]; then
+              digest="$found"
+              SOURCE_SHA="$candidate"
+              break
+            fi
+          done
+
+          if [ -z "$digest" ]; then
+            echo "::error::No image found for any candidate commit in $ECR_REPOSITORY."
+            echo "::error::That means this commit was never built and tested on develop."
+            echo "Recent tags in $ECR_REPOSITORY:"
+            aws ecr describe-images --repository-name "$ECR_REPOSITORY" \
+              --query 'reverse(sort_by(imageDetails,&imagePushedAt))[:10].imageTags' \
+              --output text || true
+            exit 1
+          fi
+
+          {
+            echo "source-sha=$SOURCE_SHA"
+            echo "image-digest=$digest"
+            echo "image-uri=${REGISTRY}/${ECR_REPOSITORY}@${digest}"
+          } >> "$GITHUB_OUTPUT"
+
+      # Mark the promoted artifact before deploying it. ECR retention keeps
+      # deployed images far longer than the build candidates that churn past
+      # them every merge to develop -- without this tag, the image the
+      # services run is just another candidate and ages out on the same
+      # schedule. The repository holds both tiers' images, so the tag carries
+      # the tier.
+      - name: Mark the promoted image as deployed
+        uses: harvard-lil/lil-actions/ecr-tag-image@main
+        with:
+          repository: ${{ env.ECR_REPOSITORY }}
+          source: ${{ steps.resolve.outputs.image-digest }}
+          tag: staging-deployed-${{ steps.resolve.outputs.source-sha }}
+
+      # Keep the moving :staging tag pointing at what we deploy, so a
+      # Terraform apply (whose task definitions reference it) cannot quietly
+      # revert a service to an older image. The two tiers share a repository
+      # but not this tag.
+      - name: Point :staging at the promoted image
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_URI: ${{ steps.resolve.outputs.image-uri }}
+        run: |
+          set -euxo pipefail
+          docker buildx imagetools create \
+            --tag "${REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}" \
+            "$IMAGE_URI"
+
+  # The shared sequence. Everything above identifies which artifact to deploy
+  # and marks it for this tier; everything below is identical for both tiers
+  # and lives in one file so a staging run exercises production's code.
+  deploy:
+    needs: prepare
+    # Named rather than left to the default success(): a job with no condition
+    # of its own is skipped when anything in its needs graph is skipped,
+    # regardless of whether the jobs it depends on succeeded.
+    if: always() && needs.prepare.result == 'success'
+    uses: ./.github/workflows/deploy_sequence.yml
+    with:
+      environment: staging
+      environment-label: Staging
+      image-digest: ${{ needs.prepare.outputs.image-digest }}
+      source-sha: ${{ needs.prepare.outputs.source-sha }}
+    secrets:
+      cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # A job whose condition does not hold is skipped, and a skipped job leaves
+  # the run green. This job is what makes a deploy that did not happen show up
+  # as a failed run rather than a successful build.
+  confirm-deploy:
+    name: Confirm the deploy ran
+    needs: [prepare, deploy]
+    if: always() && needs.prepare.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require a completed deploy
+        env:
+          RESULT: ${{ needs.deploy.result }}
+        run: |
+          if [ "$RESULT" != "success" ]; then
+            echo "::error::prepare succeeded but deploy was '$RESULT'; nothing was deployed."
+            exit 1
+          fi
+          echo "deploy completed"
