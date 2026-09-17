@@ -149,16 +149,16 @@ jobs:
 
       # The shared inspectors run `python -c` against the image with no
       # network and a read-only root. settings_build imports settings_prod
-      # without APP_CONFIG, which is why it exists; DJANGO_SETTINGS_MODULE is
-      # set by the image.
+      # without APP_CONFIG, which is why it exists. The image sets no
+      # DJANGO_SETTINGS_MODULE (it would override pytest's settings_testing),
+      # so the migration inspector is told the module below; the Celery
+      # inspector goes through manage.py, which sets it itself.
       - name: Inspect migrations in the built image
         if: github.event_name == 'pull_request' || steps.publication.outputs.state == 'absent'
         uses: harvard-lil/lil-actions/django-migration-manifest@main
         with:
           image: perma-prod:${{ github.sha }}
           output: image-artifacts/migrations.json
-          # The image sets no DJANGO_SETTINGS_MODULE (it would override pytest's
-          # settings_testing), so the inspector is told the module explicitly.
           settings-module: perma.settings
           environment: '{"PERMA_SETTINGS_MODULE":"settings_build"}'
 
