@@ -1,6 +1,6 @@
 # Settings for collectstatic during the image build and for the inspectors
 # shared CI tooling runs against the built image (lil-actions'
-# django-migration-manifest, and `manage.py celery_task_manifest`). All of
+# django-migration-manifest and celery-task-manifest). All of
 # them derive their output from INSTALLED_APPS and the Celery configuration;
 # nothing else here is consulted. The inspectors run with no network and a
 # read-only root, so nothing imported here may open a file for writing or
