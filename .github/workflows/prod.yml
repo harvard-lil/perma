@@ -20,10 +20,11 @@ on:
   push:
     branches: [prod]
 
+# Nothing by default. Only the jobs that run on a push to the tier branch,
+# under its locked environment, are granted id-token (below); a pull request
+# never gets one.
 permissions:
-  id-token: write     # assume the deploy role via OIDC
   contents: read
-  pull-requests: read # read deploy labels off the merged pull request
 
 concurrency:
   group: perma-prod-${{ github.event_name == 'pull_request' && github.event.pull_request.number || 'deploy' }}
@@ -59,19 +60,23 @@ jobs:
   # staging service was rolled from one digest, so the web service speaks for
   # all of them.
   #
-  # A pull request into prod runs these checks under the staging environment,
-  # whose role can already read the staging service; a push or dispatch runs
-  # them under prod, whose role must be allowed to describe the staging
+  # A pull request into prod gets no AWS credentials at all: its head is
+  # staging, and the staging deploy's check on that commit, which the pull
+  # request displays, shows whether that exact commit deployed. These checks
+  # run on a push or a dispatch on prod, under the prod environment (locked
+  # to the prod branch), whose role must be allowed to describe the staging
   # cluster's web service and task definition as well as its own.
   prepare:
     name: Prepare the production artifact
-    needs: check-source-branch
     if: >-
-      always() && github.repository == 'harvard-lil/perma' &&
-      ((github.event_name == 'pull_request' && needs.check-source-branch.result == 'success') ||
-       ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/prod'))
+      github.repository == 'harvard-lil/perma' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/prod'
     runs-on: ubuntu-latest
-    environment: ${{ github.event_name == 'pull_request' && 'staging' || 'prod' }}
+    environment: prod
+    permissions:
+      id-token: write   # assume the prod deploy role via OIDC
+      contents: read
 
     outputs:
       image-digest: ${{ steps.resolve.outputs.image-digest }}
@@ -91,12 +96,6 @@ jobs:
         with:
           role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
           aws-region: us-east-1
-          inline-session-policy: >-
-            {"Version":"2012-10-17","Statement":[{"Effect":"Allow",
-            "Action":["ecr:DescribeRepositories","ecr:DescribeImages","ecr:BatchGetImage","ecr:GetAuthorizationToken",
-            "ecr:GetDownloadUrlForLayer","ecr:BatchCheckLayerAvailability",
-            "ecs:DescribeServices","ecs:DescribeTaskDefinition","ecs:DescribeTasks","ecs:ListTasks"],
-            "Resource":"*"}]}
 
       - name: Login to AWS ECR
         id: login-ecr
@@ -146,7 +145,7 @@ jobs:
   # staging run exercises production's code.
   deploy:
     needs: prepare
-    if: always() && github.event_name != 'pull_request' && needs.prepare.result == 'success'
+    if: always() && needs.prepare.result == 'success'
     permissions:
       id-token: write
       contents: read
@@ -174,7 +173,7 @@ jobs:
   confirm-deploy:
     name: Confirm the deploy ran
     needs: [prepare, deploy]
-    if: always() && github.event_name != 'pull_request' && needs.prepare.result == 'success'
+    if: always() && needs.prepare.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Require a completed deploy

@@ -246,6 +246,11 @@ jobs:
           service: ${{ env.WEB_SERVICE }}
           container: ${{ env.WEB_SERVICE }}
           manifest: image-artifacts/migrations.json
+          # The inspector runs as `python -c` in the web container, which
+          # does not go through manage.py, and the image leaves
+          # DJANGO_SETTINGS_MODULE unset (see the Dockerfile). Without this
+          # the check fails and every deploy takes a maintenance window.
+          settings-module: perma.settings
           force: ${{ steps.flags.outputs.force }}
           skip: ${{ steps.flags.outputs.skip }}
 
