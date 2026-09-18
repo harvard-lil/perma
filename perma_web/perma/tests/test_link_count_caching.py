@@ -116,3 +116,133 @@ def test_link_count_for_registrars(registrar_user, link_factory):
 
     registrar_user.registrar.refresh_from_db()
     assert link_count == registrar_user.registrar.link_count
+
+
+def test_creating_sponsored_link_increments_sponsored_link_count(sponsored_user, link_factory):
+    """ Moving a new link into a sponsored folder must increase that registrar's sponsored_link_count """
+    sponsorship = sponsored_user.sponsorships.first()
+    registrar = sponsorship.registrar
+    sponsored_folder = sponsorship.folders.first()
+
+    registrar.refresh_from_db()
+    assert registrar.sponsored_link_count == 0
+    assert registrar.link_count == 0
+
+    link = link_factory(created_by=sponsored_user, submitted_url="http://example.com/sponsored")
+    link.move_to_folder_for_user(sponsored_folder, sponsored_user)
+
+    registrar.refresh_from_db()
+    sponsored_user.refresh_from_db()
+    assert registrar.sponsored_link_count == 1
+    assert registrar.link_count == 0
+    assert sponsored_user.link_count == 1
+
+
+def test_deleting_sponsored_link_decrements_sponsored_link_count(sponsored_user, link_factory):
+    """ Soft-deleting a sponsored link must decrement sponsored_link_count, not registrar.link_count """
+    sponsorship = sponsored_user.sponsorships.first()
+    registrar = sponsorship.registrar
+    sponsored_folder = sponsorship.folders.first()
+
+    link = link_factory(created_by=sponsored_user, submitted_url="http://example.com/sponsored")
+    link.move_to_folder_for_user(sponsored_folder, sponsored_user)
+    registrar.refresh_from_db()
+    assert registrar.sponsored_link_count == 1
+
+    link.safe_delete()
+    link.save()
+
+    registrar.refresh_from_db()
+    sponsored_user.refresh_from_db()
+    assert registrar.sponsored_link_count == 0
+    assert registrar.link_count == 0
+    assert sponsored_user.link_count == 0
+
+
+def test_moving_link_into_sponsored_folder_increments_sponsored_link_count(sponsored_user, link_factory):
+    """ Moving link from personal to sponsored folder must increase sponsored_link_count and leave org registrar.link_count alone """
+    sponsorship = sponsored_user.sponsorships.first()
+    registrar = sponsorship.registrar
+    sponsored_folder = sponsorship.folders.first()
+
+    link = link_factory(created_by=sponsored_user, submitted_url="http://example.com/personal")
+    registrar.refresh_from_db()
+    assert registrar.sponsored_link_count == 0
+
+    link.move_to_folder_for_user(sponsored_folder, sponsored_user)
+
+    registrar.refresh_from_db()
+    assert registrar.sponsored_link_count == 1
+    assert registrar.link_count == 0
+
+
+def test_moving_folder_into_sponsored_updates_sponsored_link_count(sponsored_user, folder_factory, link_factory):
+    """ Moving a personal folder into a sponsored folder must increment registrar's sponsored_link_count """
+    sponsorship = sponsored_user.sponsorships.first()
+    registrar = sponsorship.registrar
+    sponsored_folder = sponsorship.folders.first()
+    subfolder = folder_factory(parent=sponsored_user.root_folder, name="to-sponsor")
+    link_factory(created_by=sponsored_user, submitted_url="http://example.com/a").move_to_folder_for_user(subfolder, sponsored_user)
+    link_factory(created_by=sponsored_user, submitted_url="http://example.com/b").move_to_folder_for_user(subfolder, sponsored_user)
+
+    registrar.refresh_from_db()
+    assert registrar.sponsored_link_count == 0
+
+    subfolder.parent = sponsored_folder
+    subfolder.save()
+
+    registrar.refresh_from_db()
+    assert registrar.sponsored_link_count == 2
+    assert registrar.link_count == 0
+
+
+def test_moving_folder_out_of_sponsored_updates_sponsored_link_count(sponsored_user, folder_factory, link_factory):
+    """ Moving a sponsored subfolder to personal must decrement registrar's sponsored_link_count """
+    sponsorship = sponsored_user.sponsorships.first()
+    registrar = sponsorship.registrar
+    sponsored_folder = sponsorship.folders.first()
+    subfolder = folder_factory(parent=sponsored_folder, name="to-unsponsor")
+    link_factory(created_by=sponsored_user, submitted_url="http://example.com/a").move_to_folder_for_user(subfolder, sponsored_user)
+    link_factory(created_by=sponsored_user, submitted_url="http://example.com/b").move_to_folder_for_user(subfolder, sponsored_user)
+
+    registrar.refresh_from_db()
+    assert registrar.sponsored_link_count == 2
+
+    subfolder.parent = sponsored_user.root_folder
+    subfolder.save()
+
+    registrar.refresh_from_db()
+    assert registrar.sponsored_link_count == 0
+    assert registrar.link_count == 0
+
+
+def test_moving_folder_between_sponsored_registrars_transfers_sponsored_link_count(sponsored_user, sponsorship_factory, folder_factory, link_factory):
+    """ Moving a folder between sponsoring registrars must update each registrar's sponsored_link_count """
+    source_sponsorship = sponsored_user.sponsorships.first()
+    source_registrar = source_sponsorship.registrar
+    source_folder = source_sponsorship.folders.first()
+
+    dest_sponsorship = sponsorship_factory(user=sponsored_user)
+    dest_registrar = dest_sponsorship.registrar
+    dest_folder = dest_sponsorship.folders.first()
+
+    subfolder = folder_factory(parent=source_folder, name="to-transfer")
+    link_factory(created_by=sponsored_user, submitted_url="http://example.com/a").move_to_folder_for_user(subfolder, sponsored_user)
+    link_factory(created_by=sponsored_user, submitted_url="http://example.com/b").move_to_folder_for_user(subfolder, sponsored_user)
+
+    source_registrar.refresh_from_db()
+    dest_registrar.refresh_from_db()
+    assert source_registrar != dest_registrar
+    assert source_registrar.sponsored_link_count == 2
+    assert dest_registrar.sponsored_link_count == 0
+
+    subfolder.parent = dest_folder
+    subfolder.save()
+
+    source_registrar.refresh_from_db()
+    dest_registrar.refresh_from_db()
+    assert source_registrar.sponsored_link_count == 0
+    assert dest_registrar.sponsored_link_count == 2
+    assert source_registrar.link_count == 0
+    assert dest_registrar.link_count == 0
+
