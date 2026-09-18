@@ -218,9 +218,16 @@ jobs:
       # `up`, because a bind mount of a file that does not exist yet creates a
       # directory in its place. The script's `docker compose restart` calls
       # are no-ops here: nothing is running yet.
+      # mkcert writes keys readable only by the runner's user, and a bind mount
+      # keeps that. The suite runs as the image's non-root `perma` user, so the
+      # live server could not read perma-test.key and every Playwright test
+      # failed in setup. These are throwaway keys for *.test names, trusted
+      # only by this runner's own mkcert CA.
       - name: Generate test certificates
         if: github.event_name == 'pull_request' || steps.publication.outputs.state == 'absent'
-        run: bash make_cert.sh
+        run: |
+          bash make_cert.sh
+          chmod a+r perma_web/perma-test.key
 
       # Two compose invocations, as the previous workflow made them. The
       # first is Perma's own stack from COMPOSE_FILE (the CI override, no
