@@ -2,7 +2,7 @@
 #
 #   base    Python + node runtime and Perma's dependency set. No app code.
 #   assets  The compiled webpack bundles, built from source in a node image.
-#   prod    The deployable image: base + app code + bundles + uwsgi, non-root.
+#   prod    The deployable image: base + app code + bundles + gunicorn, non-root.
 #           Every ECS role (web, beat, each worker) runs this image;
 #           the container command chooses the role.
 #   test    prod + the test toolchain. What CI runs the suite against.
@@ -114,20 +114,12 @@ COPY perma_web/static ./static
 RUN npm run build
 
 # =====================================================================
-# prod -- the deployable artifact. uwsgi, non-root user, app code baked in.
+# prod -- the deployable artifact. gunicorn, non-root user, app code baked in.
 # =====================================================================
 FROM base AS prod
 
-# uwsgi is not in pyproject.toml (the Salt hosts take it from apt), so it is
-# installed into the venv here, pinned. Build toolchain purged afterwards;
-# the runtime needs only libpcre.
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        build-essential \
-        libpcre3 \
-        libpcre3-dev \
-    && CPUCOUNT=1 uv pip install --no-cache uwsgi==2.0.31 \
-    && apt-get purge -y --auto-remove build-essential libpcre3-dev \
-    && rm -rf /var/lib/apt/lists/*
+# gunicorn is in the locked dependency set `base` installed. (The Salt hosts
+# run uWSGI from apt; uWSGI is end-of-life and the image does not carry it.)
 
 # Non-root user. HOME is real (-m) because the test stage, FROM here, needs
 # an NSS certificate database under it.
@@ -139,7 +131,6 @@ RUN useradd -m -r perma && chown -R perma /perma
 # `base`; the COPY below adds only the tracked files beside it.
 COPY --chown=perma:perma perma_web/ ./
 COPY --chown=perma:perma services/ /perma/services/
-COPY --chown=perma:perma uwsgi.ini /perma/uwsgi.ini
 
 # Add the bundles just built. The tracked copies the Salt hosts deploy from
 # never reach this stage: .dockerignore excludes perma_web/static/bundles and
@@ -189,9 +180,9 @@ RUN PERMA_SETTINGS_MODULE=settings_build python manage.py collectstatic --noinpu
 EXPOSE 8000
 
 # The web role. Workers and beat override this with the commands listed in
-# the ECS task definitions; migrations run by ECS Exec into the web task. --die-on-term is set in the
-# ini: without it uwsgi treats SIGTERM as "reload" and ECS has to kill it.
-CMD ["uwsgi", "--ini", "/perma/uwsgi.ini"]
+# the ECS task definitions; migrations run by ECS Exec into the web task.
+# Settings are in perma_web/gunicorn_config.py, beside manage.py.
+CMD ["gunicorn", "--config", "gunicorn_config.py", "perma.wsgi:application"]
 
 # =====================================================================
 # dev -- local development. The test toolchain on top of `base`, with no app
@@ -211,7 +202,7 @@ RUN /tmp/install-test-toolchain.sh && rm /tmp/install-test-toolchain.sh
 
 # =====================================================================
 # test -- what CI runs the suite against. FROM prod, so it carries prod's
-# uwsgi layer, prod's non-root user and prod's baked-in code, plus the same
+# gunicorn, prod's non-root user and prod's baked-in code, plus the same
 # toolchain `dev` gets. Tests therefore exercise the artifact that ships
 # rather than a sibling of it.
 #
@@ -230,10 +221,9 @@ USER root
 
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
-# The dev dependency group, into the same venv prod uses. --inexact keeps
-# uwsgi, which prod installed outside the lockfile; without it uv removes it
-# and the test image no longer holds everything the shipped one does.
-RUN uv sync --frozen --inexact && chown -R perma /opt/venv
+# The dev dependency group, into the same venv prod uses. Everything prod
+# carries is in the lockfile, so an exact sync removes nothing it ships.
+RUN uv sync --frozen && chown -R perma /opt/venv
 
 COPY docker/install-test-toolchain.sh /tmp/install-test-toolchain.sh
 RUN /tmp/install-test-toolchain.sh && rm /tmp/install-test-toolchain.sh

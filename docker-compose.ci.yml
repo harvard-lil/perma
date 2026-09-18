@@ -5,8 +5,8 @@
 # iteration, but it means CI would be testing the source tree rather than the
 # built image -- the bind mount shadows whatever the image contains.
 #
-# This file instead builds the `test` target, which is FROM prod: prod's uwsgi
-# layer, prod's non-root `perma` user, prod's baked-in code, plus the test
+# This file instead builds the `test` target, which is FROM prod: prod's
+# dependencies including gunicorn, prod's non-root `perma` user, prod's baked-in code, plus the test
 # toolchain. The working-tree bind mounts are removed so nothing shadows it.
 #
 # Used only by the CI workflow:

@@ -180,7 +180,7 @@ del _logger
 CONTACT_REGISTRARS = True
 
 # Proxy chain, see settings_common. Behind the cloudflared sidecar the only
-# peer uwsgi ever sees is localhost; the client IP is the last entry Cloudflare
+# peer gunicorn ever sees is localhost; the client IP is the last entry Cloudflare
 # appended to X-Forwarded-For. The Cloudflare edge IPs are not in the chain,
 # unlike on the Salt hosts, where the edge connects to nginx over TCP.
 if "TRUSTED_PROXIES" in config:
