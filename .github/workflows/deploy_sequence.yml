@@ -211,15 +211,19 @@ jobs:
              {"type":"${{ env.STATIC_TYPE }}","path":"static-assets.tar.gz"}]
 
       # Above the rollout, because a task that starts before its files are in
-      # the bucket serves pages referencing paths that 404. Nothing in Perma's
-      # collected tree is content-hashed, so no hashed-subdir: one short
-      # lifetime for everything, and the edge cache is purged at the end of
-      # the run.
+      # the bucket serves pages referencing paths that 404. Nothing is ever
+      # deleted, so a page rendered by the outgoing version keeps finding its
+      # own files. Every file under bundles/ is content-hashed in the image
+      # build (webpack.config.js, WEBPACK_CONTENT_HASH), so it is published as
+      # immutable; the rest of the tree (images, PDFs, vendored files, named
+      # by hand in templates) keeps its names and gets a short lifetime, and
+      # the edge cache is purged at the end of the run.
       - name: Publish the image's static files
         uses: harvard-lil/lil-actions/static-assets-publish@main
         with:
           bucket: ${{ vars.STATIC_BUCKET }}
           archive: static-assets.tar.gz
+          hashed-subdir: bundles
 
       # Labels on the merged pull request, dispatch inputs (only on a
       # dispatch) and a standing HOLD_MAINTENANCE variable, resolved into

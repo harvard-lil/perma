@@ -111,7 +111,9 @@ COPY perma_web/webpack.config.js ./
 # in static/frontend. static/bundles is written by the build below.
 COPY perma_web/static ./static
 
-RUN npm run build
+# Content-hashed bundle names; see webpack.config.js. The deploy publishes
+# static/bundles to the static bucket as immutable.
+RUN WEBPACK_CONTENT_HASH=1 npm run build
 
 # =====================================================================
 # prod -- the deployable artifact. gunicorn, non-root user, app code baked in.
