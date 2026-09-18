@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 from dataclasses import dataclass
 from random import choice
@@ -28,6 +29,11 @@ expect.set_options(timeout=15_000)
 
 # Allow setup of live server test cases; see https://github.com/microsoft/playwright-python/issues/439
 os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
+
+
+@pytest.fixture(scope="session")
+def browser_context_args(browser_context_args):
+    return {**browser_context_args, "locale": "en-US"}
 
 
 # patch django-liveserver-ssl to be compatible with changes made to the LiveTestServer in Django 4.2
@@ -172,7 +178,10 @@ def pytest_runtest_teardown(item: pytest.Item, nextitem: pytest.Item):
             aws_secret_access_key=settings.STORAGES[storage_option]["OPTIONS"]["secret_key"],
             verify=False
         ).Bucket(settings.STORAGES[storage_option]["OPTIONS"]["bucket_name"])
-        storage.objects.delete()
+        # One at a time, not a bulk delete: boto3 1.36+ sends CRC32 rather than
+        # Content-Md5 on DeleteObjects, which the Compose MinIO rejects.
+        for stored_object in storage.objects.all():
+            stored_object.delete()
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -245,6 +254,51 @@ def log_in_user(urls):
     return f
 
 
+@pytest.fixture
+def staff_user() -> User:
+    return User("test_admin_user@example.com", "pass")
+
+
+@pytest.fixture
+def ui_urls(transactional_db, live_server_ssl):
+    """
+    Reverse any view name against the live SSL server: ui_urls('admin_stats').
+
+    Deliberately lighter than `urls`, which builds a WARC-backed link to expose
+    `perma_link_with_warc`. UI-contract tests need pages, not archive payloads,
+    and paying for a stored WARC on every one of them is minutes of wall clock.
+    """
+    base_url = f"https://perma.test:{live_server_ssl.port}"
+
+    def reverse_ui_url(view_name, *args, **kwargs):
+        return base_url + reverse(view_name, args=args, kwargs=kwargs)
+
+    reverse_ui_url.base_url = base_url
+    return reverse_ui_url
+
+
+@pytest.fixture
+def log_in(ui_urls):
+    """Log a user in without pulling in the WARC-backed `urls` fixture."""
+    def f(page, user):
+        page.goto(ui_urls('user_management_limited_login'))
+        username = page.locator('#id_username')
+        username.focus()
+        username.type(user.username)
+        password = page.locator('#id_password')
+        password.focus()
+        password.type(user.password)
+        page.locator("button.btn.login").click()
+        # The logout form renders only on the authenticated branch of
+        # upper_right_menu.html, so its presence proves the login took. Matched
+        # by DOM attachment rather than by role or visibility: below the tablet
+        # breakpoint the whole menu collapses out of the accessibility tree, and
+        # a role- or visibility-based wait would fail purely because the caller
+        # is testing a narrow viewport.
+        expect(page.locator("#upper_right_menu form")).to_be_attached()
+    return f
+
+
 ###              ###
 ### New Fixtures ###
 ###              ###
@@ -257,7 +311,6 @@ from datetime import timezone as tz
 from decimal import Decimal
 
 import factory
-import humps
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from factory.django import DjangoModelFactory, Password
@@ -290,7 +343,11 @@ def register_factory(cls):
     This is basically the same as the @register decorator provided by the pytest_factoryboy package,
     but because it's simpler it seems to work better with RelatedFactory and SubFactory.
     """
-    snake_case_name = humps.decamelize(cls.__name__)
+    snake_case_name = re.sub(
+        r"([a-z0-9])([A-Z])",
+        r"\1_\2",
+        re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", cls.__name__),
+    ).lower()
 
     @pytest.fixture
     def factory_fixture(db):
@@ -313,6 +370,7 @@ def register_factory(cls):
 class RegistrarFactory(DjangoModelFactory):
     class Meta:
         model = Registrar
+        skip_postgeneration_save = True
 
     name = factory.Faker('company')
     email = factory.Faker('company_email')
@@ -423,6 +481,9 @@ class SponsorshipFactory(DjangoModelFactory):
 @register_factory
 class SponsoredUserFactory(LinkUserFactory):
 
+    class Meta:
+        skip_postgeneration_save = True
+
     sponsorships = factory.RelatedFactoryList(
         SponsorshipFactory,
         size=1,
@@ -460,9 +521,8 @@ class CaptureJobFactory(DjangoModelFactory):
     link_can_play_back = None
     link = factory.Maybe(
         'create_link',
-        yes_declaration=factory.RelatedFactory(
+        yes_declaration=factory.SubFactory(
             'conftest.LinkFactory',
-            factory_related_name='capture_job',
             created_by=factory.SelfAttribute('..created_by'),
             submitted_url=factory.SelfAttribute('..submitted_url'),
             cached_can_play_back=factory.SelfAttribute('..link_can_play_back'),
@@ -474,8 +534,6 @@ class CaptureJobFactory(DjangoModelFactory):
         ),
         no_declaration=None
     )
-    # Required to update CaptureJob.link_id from None, after the Link is generated
-    _ = factory.PostGenerationMethodCall("save")
 
 
 @register_factory

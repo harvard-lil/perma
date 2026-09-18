@@ -2,13 +2,13 @@
 
 {% block dashboardContent %}
   <h2 class="body-ah">Links sponsored by {% if user_management_perms.can_link_registrar_in_heading %}<a href="{% url 'user_management_manage_registrar' %}?q={{registrar.name.split|join:'+'|lower}}#registrar-{{ registrar.id }}">{{ registrar }}</a>{% else %}{{ registrar}}{% endif %} for <a href="{% url 'user_management_manage_sponsored_user' %}?q={{target_user.email|urlencode}}#user-{{ target_user.id }}">{{ target_user }}</a></h2>
-    <div class="col-xs-12 col-links">
+    <div class="col-12 col-links">
       <div class="container item-rows"></div>
         {% for link in links %}
           <div class="item-container{% if link.is_private %} _isPrivate{% endif %}{% if link.capture_job.status ==  'pending' or link.capture_job.status ==  'in_progress'%} _isPending{% elif not link.can_play_back %} _isFailed{% endif %}">
             <div class="row item-row row-no-bleed _isDraggable" data-link_id="{{ guid }}">
               <div class="row">
-                <div class="col col-sm-6 col-md-60 item-title-col">
+                <div class="col-12 col-sm-6 col-md-60 item-title-col">
                   {% if link.capture_job.status == 'pending' or link.capture_job.status == 'in_progress' %}
                     <div class="failed_header">Capture In Progress</div>
                   {% elif not link.can_play_back %}
@@ -29,14 +29,14 @@
                     </a>
                   </div>
                 </div>
-                <div class="col col-sm-6 col-md-40 align-right item-permalink">
+                <div class="col-12 col-sm-6 col-md-40 align-right item-permalink">
                  {% with request.get_host|add:"/"|add:link.guid as local_url %}
                   <a class="perma no-drag" href="//{{ local_url }}" target="_blank">{{ local_url }}</a>
                  {% endwith %}
                 </div>
               </div>
               <div class="row item-secondary">
-                <div class="col col-sm-5 pull-right sm-align-right">
+                <div class="col-12 col-sm-5 float-end sm-align-right">
                   <span class="item-date"><span class="label">Created </span>{{link.creation_timestamp|date:"F j, Y"}}</span>
                 </div>
               </div>
@@ -45,7 +45,7 @@
         {% empty %}
           <div class="row item-row row-no-bleed">
             <div class="row">
-              <div class="col col-xs-12">
+              <div class="col-12">
                 <div class="item-title">
                   <p class="item-notification">No links.</p>
                 </div>

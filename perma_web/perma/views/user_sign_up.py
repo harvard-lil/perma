@@ -8,7 +8,7 @@ from django.http import HttpRequest, HttpResponseBadRequest, HttpResponseRedirec
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils.html import format_html
-from ratelimit.decorators import ratelimit
+from django_ratelimit.decorators import ratelimit
 
 from perma.email import (
     send_admin_email,

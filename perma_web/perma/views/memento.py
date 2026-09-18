@@ -1,7 +1,7 @@
 from datetime import timezone as tz
 from io import StringIO
 from link_header import Link as Rel, LinkHeader
-from ratelimit.decorators import ratelimit
+from django_ratelimit.decorators import ratelimit
 from timegate.utils import closest
 from warcio.timeutils import datetime_to_http_date
 from werkzeug.http import parse_date

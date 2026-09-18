@@ -28,7 +28,7 @@ from django.utils.html import format_html
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic import UpdateView
-from ratelimit.decorators import ratelimit
+from django_ratelimit.decorators import ratelimit
 
 from perma.email import (
     get_activation_email_context,

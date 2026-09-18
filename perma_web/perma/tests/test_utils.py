@@ -18,6 +18,7 @@ from perma.utils import (
     get_client_ip,
     prep_for_perma_payments,
     is_valid_timestamp,
+    parse_user_agent,
     process_perma_payments_transmission,
     retrieve_fields,
     stringify_data,
@@ -31,6 +32,21 @@ from .utils import SentinelException
 def test_get_client_ip():
     request = RequestFactory().get('/some/route', REMOTE_ADDR="1.2.3.4")
     assert get_client_ip(request) == "1.2.3.4"
+
+
+@pytest.mark.parametrize(
+    ("user_agent", "expected_family"),
+    [
+        (
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) "
+            "AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1",
+            "Mobile Safari",
+        ),
+        ("not a browser", "Other"),
+    ],
+)
+def test_parse_user_agent_preserves_legacy_family(user_agent, expected_family):
+    assert parse_user_agent(user_agent)["family"] == expected_family
 
 
 #
@@ -194,4 +210,3 @@ def test_stringify_types_lost(data):
 def test_perma_payments_encrypt_and_decrypt(b):
     ci = encrypt_for_perma_payments(b)
     assert decrypt_from_perma_payments(ci) == b
-

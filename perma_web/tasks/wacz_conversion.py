@@ -3,14 +3,13 @@
 #
 
 import csv
-from datetime import datetime
+from datetime import datetime, timezone
 from invoke import task
 import json
 import time
 
 from django.conf import settings
 from django.core.files.storage import storages
-from django.utils import timezone
 
 from perma.celery_tasks import convert_warc_to_wacz, populate_wacz_size
 from perma.models import Link

@@ -6,7 +6,7 @@
 {% block dashboardContent %}
   <h2 class="body-ah">{{ pretty_group_name_plural|title }}</h2>
 
-  <a class="action-heading" data-toggle="collapse" href="#add-member" aria-expanded="false" aria-controls="#add-member"><i class="icon-plus-sign" aria-hidden="true"></i> add<span class="_verbose"> {{ pretty_group_name|lower }}</span></a>
+  <a class="action-heading" data-bs-toggle="collapse" href="#add-member" aria-expanded="false" aria-controls="#add-member"><i class="icon-plus-sign" aria-hidden="true"></i> add<span class="_verbose"> {{ pretty_group_name|lower }}</span></a>
 
   {% if group_name == 'organization_user' and bulk_org_user_creation_feature_flag %}
     <p class="bulk-users">or <a href="{% url 'user_management_organization_user_add_multiple_users' %}">add multiple users</a></p>
@@ -17,11 +17,11 @@
     {% endfor %}
   {% endif %}
 
-  <div id="add-member" class="collapse {% if form.errors %}in{% endif %}">
+  <div id="add-member" class="collapse {% if form.errors %}show{% endif %}">
     <form method="get" action="{% url add_user_url %}" class="form-inline" role="form">
       <fieldset>
         <div class="form-group fg-100">
-          <label for="add" class="sr-only">new {{ pretty_group_name|lower }} email</label>
+          <label for="add" class="visually-hidden">new {{ pretty_group_name|lower }} email</label>
           <input id="add" type="text" name="email" value="{{ search_query|default:"" }}" placeholder="{{ search_placeholder|default:"Email" }}"/>
         </div>
         <button type="submit" class="btn btn-default btn-inline">Add {{ pretty_group_name|lower }}</button>
@@ -30,8 +30,8 @@
   </div><!-- add member -->
 
   <div class="row row-no-bleed admin-data">
-    <h3 class="sr-only">Stats</h3>
-    <div class="col {% if user_management_perms.show_four_column_stats %}col-xs-3{% else %}col-xs-4{% endif %} col col-no-gutter admin-data-point">
+    <h3 class="visually-hidden">Stats</h3>
+    <div class="{% if user_management_perms.show_four_column_stats %}col-3{% else %}col-4{% endif %} col-no-gutter admin-data-point">
       <div class="count-label">Users</div>
       <div class="count-number">
         {{ users.paginator.count|intcomma }}
@@ -39,26 +39,26 @@
     </div>
 
     {% if user_management_perms.show_deactivated_count %}
-      <div class="col col-xs-3 col-no-gutter admin-data-point">
+      <div class="col-3 col-no-gutter admin-data-point">
         <div class="count-label">Deactivated Users</div>
         <div class="count-number">{{ deactivated_users }}</div>
       </div>
     {% endif %}
 
-    <div class="col {% if user_management_perms.show_four_column_stats %}col-xs-3{% else %}col-xs-4{% endif %} col col-no-gutter admin-data-point">
+    <div class="{% if user_management_perms.show_four_column_stats %}col-3{% else %}col-4{% endif %} col-no-gutter admin-data-point">
       <div class="count-label">Unactivated Users</div>
       <div class="count-number">{{ unactivated_users }}</div>
     </div>
 
-    <div class="col {% if user_management_perms.show_four_column_stats %}col-xs-3{% else %}col-xs-4{% endif %} col col-no-gutter admin-data-point">
+    <div class="{% if user_management_perms.show_four_column_stats %}col-3{% else %}col-4{% endif %} col-no-gutter admin-data-point">
       <div class="count-label">Links</div>
       <div class="count-number">{{ total_created_links_count|default:0|intcomma }}</div>
     </div>
   </div><!-- admin data -->
 
   <div class="row">
-    <div class="col col-xs-12">
-      <h3 class="sr-only">Search Users</h3>
+    <div class="col-12">
+      <h3 class="visually-hidden">Search Users</h3>
       {% include "user_management/includes/search_form.html" with search_placeholder="Search Users" %}
     </div>
   </div><!-- search -->
@@ -68,7 +68,7 @@
       <div class="col-sm-12">
         <div class="remove-search-filters">
 
-          <h3 class="filters-title"><span class="sr-only">Current</span> Filters:</h3>
+          <h3 class="filters-title"><span class="visually-hidden">Current</span> Filters:</h3>
 
           {% if registrar_filter %}<span class="filter-label">Registrar</span> <strong>{{registrar_filter}}</strong> {% endif %}
           {% if org_filter %}<span class="filter-label">Organization</span> <strong>{{org_filter}}</strong> {% endif %}
@@ -83,8 +83,8 @@
   {% endif %}
 
   <div class="row row-no-bleed">
-    <div class="col admin-found col-no-gutter">
-      <h3 class="sr-only">User List</h3>
+    <div class="col-12 admin-found col-no-gutter">
+      <h3 class="visually-hidden">User List</h3>
       <div id="results" class="sort-filter-count"><strong>Found:</strong> {{ users.paginator.count }} user{{ users.paginator.count|pluralize }}</div>
       <div class="sort-filter-bar">
         <strong>Filter &amp; Sort:</strong>
@@ -94,7 +94,7 @@
           <div class="dropdown"><button class="btn-transparent"><a href="{% url 'user_management_manage_organization_user_export_user_list' %}?{% current_query_string format='csv' %}" id="export-organization-user-csv" class="icon-download-alt" title="Export CSV"></a></button></div>
         {% endif %}
         <div class="dropdown">
-          <button class="btn-transparent" aria-haspopup="true" aria-expanded="false" data-toggle="dropdown">Sort <span class="caret"></span></button>
+          <button class="btn-transparent" aria-haspopup="true" aria-expanded="false" data-bs-toggle="dropdown">Sort <span class="caret"></span></button>
           <ul class="dropdown-menu">
             <li>
               <a {% if sort == 'last_name' %}class="selected" aria-current="true" {% endif %}href="?{% current_query_string page='' sort="last_name" %}"><i aria-hidden="true" class="icon-ok"></i> Last name A - Z</a>
@@ -127,7 +127,7 @@
 
         {% if user_management_perms.show_upgrade_interest_filter %}
           <div class="dropdown">
-            <button class="btn-transparent" aria-haspopup="true" aria-expanded="false" data-toggle="dropdown">Upgrade interest <span class="caret"></span></button>
+            <button class="btn-transparent" aria-haspopup="true" aria-expanded="false" data-bs-toggle="dropdown">Upgrade interest <span class="caret"></span></button>
             <ul class="dropdown-menu">
               <li>
                 <a {% if upgrade == 'court' %}class="selected" aria-current="true" {% endif %}href="?{% current_query_string page='' upgrade="court" %}"><i aria-hidden="true" class="icon-ok"></i> Court</a>
@@ -146,7 +146,7 @@
         {% endif %}
 
         <div class="dropdown">
-          <button class="btn-transparent" aria-haspopup="true" aria-expanded="false" data-toggle="dropdown">Status <span class="caret"></span></button>
+          <button class="btn-transparent" aria-haspopup="true" aria-expanded="false" data-bs-toggle="dropdown">Status <span class="caret"></span></button>
           <ul class="dropdown-menu">
             <li>
               <a {% if status == 'active' %}class="selected" aria-current="true" {% endif %}href="?{% current_query_string page='' status="active" %}"><i aria-hidden="true" class="icon-ok"></i> Active</a>
@@ -165,7 +165,7 @@
         {% if user_management_perms.show_affiliation_filters %}
           {% if group_name == 'organization_user' %}
             <div class="dropdown">
-              <button class="btn-transparent" aria-haspopup="true" aria-expanded="false" data-toggle="dropdown">Organization <span class="caret"></span></button>
+              <button class="btn-transparent" aria-haspopup="true" aria-expanded="false" data-bs-toggle="dropdown">Organization <span class="caret"></span></button>
               <ul class="dropdown-menu">
                 {% if orgs %}
                   {% for org in orgs %}
@@ -186,7 +186,7 @@
             </div>
           {% elif group_name == 'sponsored_user' %}
             <div class="dropdown">
-              <button class="btn-transparent" aria-haspopup="true" aria-expanded="false" data-toggle="dropdown">Sponsorship Status <span class="caret"></span></button>
+              <button class="btn-transparent" aria-haspopup="true" aria-expanded="false" data-bs-toggle="dropdown">Sponsorship Status <span class="caret"></span></button>
               <ul class="dropdown-menu">
                 <li>
                   <a {% if sponsorship_status == 'active' %}class="selected" aria-current="true" {% endif %}href="?{% current_query_string page='' sponsorship_status='active' %}"><i aria-hidden="true" class="icon-ok"></i> Active</a>
@@ -201,7 +201,7 @@
 
         {% if user_management_perms.show_registrar_filter %}
           <div class="dropdown">
-            <button class="btn-transparent" aria-haspopup="true" aria-expanded="false" data-toggle="dropdown">Registrar <span class="caret"></span></button>
+            <button class="btn-transparent" aria-haspopup="true" aria-expanded="false" data-bs-toggle="dropdown">Registrar <span class="caret"></span></button>
             <ul class="dropdown-menu">
                 {% if registrars %}
                   {% for registrar in registrars %}
@@ -229,7 +229,7 @@
     <ol class="result-list">
     {% for listed_user in users %}
       <li class="item-container {% if not listed_user.is_active %}muted{% endif %}">
-        <div class="col col-sm-8 col-no-gutter">
+        <div class="col-12 col-sm-8 col-no-gutter">
           <h4 class="item-title" id="user-{{ listed_user.id }}">
             {% if not listed_user.first_name and not listed_user.last_name %}
               {{ listed_user.raw_email }}
@@ -245,7 +245,7 @@
 
           {% if group_name == 'organization_user' and listed_user|visible_organizations:request.user %}
             <div class="item-affil">
-              <span class="sr-only">Member of:</span>
+              <span class="visually-hidden">Member of:</span>
               {% for organization in listed_user|visible_organizations:request.user %}
                  <a href="{% url 'user_management_manage_organization' %}?q={{organization.name.split|join:'+'|lower}}#org-{{ organization.id }}">{{organization.name.strip}}</a>
                 {% include "user_management/includes/comma.html" %}
@@ -258,7 +258,7 @@
           {% endif %}
 
           {% if user_management_perms.show_listed_user_registrar %}
-            <div class="item-affil"><span class="sr-only">Member of:</span> <a href="{% url 'user_management_manage_registrar' %}?q={{listed_user.registrar.name.split|join:'+'|lower}}#registrar-{{ listed_user.registrar.id }}">{{ listed_user.registrar.name }}</a></div>
+            <div class="item-affil"><span class="visually-hidden">Member of:</span> <a href="{% url 'user_management_manage_registrar' %}?q={{listed_user.registrar.name.split|join:'+'|lower}}#registrar-{{ listed_user.registrar.id }}">{{ listed_user.registrar.name }}</a></div>
           {% endif %}
 
           {% if group_name == 'sponsored_user'%}
@@ -282,7 +282,7 @@
 
           {% if group_name == 'organization_user' %}
             <div class="row row-half-bleed item-count-groups">
-              <div class="col col-xs-12 col-md-4 col-half-gutter">
+              <div class="col-12 col-md-4 col-half-gutter">
                 <div class="item-count-group">
                   <strong class="list-count-number">{{ listed_user.link_count }}</strong>
                   <span class="item-count-label">links</span>
@@ -292,7 +292,7 @@
           {% endif %}
         </div>
 
-        <div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
+        <div class="col-12 col-sm-4 col-no-gutter sm-align-right admin-actions">
           <div>
             <div class="item-activity">
               created {{ listed_user.date_joined|date:'F j, Y' }}
@@ -309,40 +309,40 @@
                   {% if group_name == 'sponsored_user' %}
                     {% include "user_management/includes/edit_sponsorship.html" %}
                   {% elif group_name == 'organization_user' %}
-                    <a class="action action-delete" href="{% url single_user_url listed_user.id %}">edit/remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                    <a class="action action-delete" href="{% url single_user_url listed_user.id %}">edit/remove <span class="visually-hidden">{{ listed_user.get_full_name}}</span></a>
                   {% elif group_name != 'admin_user' %}
-                    <a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove/delete <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                    <a class="action action-delete" href="{% url single_user_url listed_user.id %}">remove/delete <span class="visually-hidden">{{ listed_user.get_full_name}}</span></a>
                   {% else %}
-                    <a class="action action-delete" href="{% url 'user_management_manage_single_admin_user_remove' listed_user.id %}">remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                    <a class="action action-delete" href="{% url 'user_management_manage_single_admin_user_remove' listed_user.id %}">remove <span class="visually-hidden">{{ listed_user.get_full_name}}</span></a>
                   {% endif %}
                 {% elif user_management_perms.can_edit_remove_as_registrar %}
                   {% if group_name == 'organization_user' %}
-                    <a class="action action-delete" href="{% url single_user_url listed_user.id %}">edit/remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                    <a class="action action-delete" href="{% url single_user_url listed_user.id %}">edit/remove <span class="visually-hidden">{{ listed_user.get_full_name}}</span></a>
                   {% elif group_name == 'registrar_user' %}
-                    <a class="action action-delete" href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                    <a class="action action-delete" href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove <span class="visually-hidden">{{ listed_user.get_full_name}}</span></a>
                   {% elif group_name == 'sponsored_user' %}
                     {% include "user_management/includes/edit_sponsorship.html" %}
                   {% endif %}
                 {% else %}
-                  <a class="action action-delete" href="{% url single_user_url listed_user.id %}">edit/remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                  <a class="action action-delete" href="{% url single_user_url listed_user.id %}">edit/remove <span class="visually-hidden">{{ listed_user.get_full_name}}</span></a>
                 {% endif %}
               {% elif listed_user.is_confirmed %}
                 <span class="text-warning">deactivated account</span>
                 {% if user_management_perms.can_reactivate %}
-                  <a class="action" href="{% url reactivate_user_url listed_user.id %}">reactivate <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                  <a class="action" href="{% url reactivate_user_url listed_user.id %}">reactivate <span class="visually-hidden">{{ listed_user.get_full_name}}</span></a>
                 {% endif %}
               {% else %}
                 {% if user_management_perms.can_manage_unconfirmed_as_staff %}
                   {% if group_name == 'sponsored_user' %}
                     {% include "user_management/includes/edit_sponsorship.html" %}
                   {% else %}
-                    <a class="action action-delete" href="{% url delete_user_url listed_user.id %}">delete <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                    <a class="action action-delete" href="{% url delete_user_url listed_user.id %}">delete <span class="visually-hidden">{{ listed_user.get_full_name}}</span></a>
                   {% endif %}
                 {% else %}
                   {% if group_name == 'organization_user' %}
-                    <a class="action action-delete" href="{% url 'user_management_manage_single_organization_user' listed_user.id %}">remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                    <a class="action action-delete" href="{% url 'user_management_manage_single_organization_user' listed_user.id %}">remove <span class="visually-hidden">{{ listed_user.get_full_name}}</span></a>
                   {% elif group_name == 'registrar_user' %}
-                    <a class="action action-delete" href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove <span class="sr-only">{{ listed_user.get_full_name}}</span></a>
+                    <a class="action action-delete" href="{% url 'user_management_manage_single_registrar_user_remove' listed_user.id %}">remove <span class="visually-hidden">{{ listed_user.get_full_name}}</span></a>
                   {% elif group_name == 'sponsored_user' %}
                     {% include "user_management/includes/edit_sponsorship.html" %}
                   {% endif %}
@@ -350,10 +350,10 @@
               {% endif %}
             </div>
             {% if user_management_perms.can_link_user_admin %}
-              <div class="item-status"><a class="action" href="{% url "admin:perma_linkuser_change" listed_user.id %}">edit <div class="sr-wrapper"><span class="sr-only">{{ listed_user.get_full_name }} </span></div>in admin console</span></a></div>
+              <div class="item-status"><a class="action" href="{% url "admin:perma_linkuser_change" listed_user.id %}">edit <div class="sr-wrapper"><span class="visually-hidden">{{ listed_user.get_full_name }} </span></div>in admin console</span></a></div>
             {% endif %}
             {% if not listed_user.is_confirmed %}
-              <div class="item-status"><a class="action" href="{% url 'user_management_resend_activation' listed_user.id %}">resend activation email <span class="sr-only"> to {{ listed_user.get_full_name}}</span></a></div>
+              <div class="item-status"><a class="action" href="{% url 'user_management_resend_activation' listed_user.id %}">resend activation email <span class="visually-hidden"> to {{ listed_user.get_full_name}}</span></a></div>
             {% endif %}
             {% if user_management_perms.can_view_sponsored_user_links %}
               <div class="item-status"><a class="action" href="{% url 'user_management_manage_single_sponsored_user_links' listed_user.id request.user.registrar.id %}">view links</a></div>

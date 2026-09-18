@@ -1,4 +1,4 @@
-from functools import wraps
+from functools import partial, wraps
 import socket
 import os
 import errno
@@ -6,8 +6,7 @@ import tempfile
 import shutil
 from http.server import HTTPServer
 from http.server import SimpleHTTPRequestHandler
-import multiprocessing
-from multiprocessing import Process
+from threading import Thread
 from contextlib import contextmanager
 import urllib.parse
 import json
@@ -456,7 +455,7 @@ class ApiResourceTransactionTestCase(ApiResourceTestCaseMixin, TransactionTestCa
 
     @classmethod
     def tearDownClass(cls):
-        if getattr(cls, "_server_process", None):
+        if getattr(cls, "_server_thread", None):
             cls.kill_server()
 
     @classmethod
@@ -473,13 +472,9 @@ class ApiResourceTransactionTestCase(ApiResourceTestCaseMixin, TransactionTestCa
         """
         assert socket.gethostbyname(cls.server_domain) in ('0.0.0.0', '127.0.0.1'), "Please add `127.0.0.1 " + cls.server_domain + "` to your hosts file before running this test."
 
-        # Run in temp dir.
-        # We have to (implicitly) cwd to this so SimpleHTTPRequestHandler serves the files for us.
-        cwd = os.getcwd()
         cls._server_tmp = tempfile.mkdtemp()
-        os.chdir(cls._server_tmp)
 
-        # Copy over files to current temp dir, stripping paths.
+        # Copy over files to the server root, stripping source paths.
         for source_file in cls.serve_files:
 
             # handle single strings
@@ -490,33 +485,31 @@ class ApiResourceTransactionTestCase(ApiResourceTestCaseMixin, TransactionTestCa
             else:
                 source_file, target_url = source_file
 
-            copy_file_or_dir(os.path.join(settings.PROJECT_ROOT, TEST_ASSETS_DIR, source_file), target_url)
+            copy_file_or_dir(
+                os.path.join(settings.PROJECT_ROOT, TEST_ASSETS_DIR, source_file),
+                os.path.join(cls._server_tmp, target_url),
+            )
 
         # start server
         for i in range(100):
             try:
-                cls._httpd = TestHTTPServer(('0.0.0.0', cls.server_port), TestHTTPRequestHandler)
+                handler = partial(TestHTTPRequestHandler, directory=cls._server_tmp)
+                cls._httpd = TestHTTPServer(('0.0.0.0', cls.server_port), handler)
                 break
             except socket.error:
                 cls.server_port += 1
         else:
             raise Exception("Cannot find an open port to host TestHTTPServer.")
-        cls._httpd._BaseServer__is_shut_down = multiprocessing.Event()
-        cls._server_process = Process(target=cls._httpd.serve_forever)
-        cls._server_process.start()
+        cls._server_thread = Thread(target=cls._httpd.serve_forever, daemon=True)
+        cls._server_thread.start()
 
-        # once the server is started, we can return to our working dir
-        # and the server thread will continue to server from the tmp dir
-        os.chdir(cwd)
-
-        return cls._server_process
+        return cls._server_thread
 
     @classmethod
     def kill_server(cls):
-        # If you don't close the server before terminating
-        # the thread the port isn't freed up.
+        cls._httpd.shutdown()
         cls._httpd.server_close()
-        cls._server_process.terminate()
+        cls._server_thread.join()
         shutil.rmtree(cls._server_tmp)
 
     @contextmanager
@@ -524,7 +517,7 @@ class ApiResourceTransactionTestCase(ApiResourceTestCaseMixin, TransactionTestCa
         """
             Serve file relative to TEST_ASSETS_DIR.
         """
-        if not getattr(self.__class__, "_server_process", None):
+        if not getattr(self.__class__, "_server_thread", None):
             self.__class__.start_server()
         dst = os.path.join(self._server_tmp, os.path.basename(src))
         if os.path.exists(dst):
