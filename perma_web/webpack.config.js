@@ -3,6 +3,15 @@ var webpack = require('webpack');
 var autoprefixer = require('autoprefixer');
 var BundleTracker = require('webpack-bundle-tracker');
 var MiniCssExtractPlugin = require('mini-css-extract-plugin');
+
+// Content-hashed bundle names for the container image, where every file under
+// static/bundles is published to the static bucket as immutable and kept
+// forever, so a page rendered by one version still finds its own bundles
+// while another version is serving. The image build sets
+// WEBPACK_CONTENT_HASH=1 (Dockerfile, assets stage). Everything else -- local
+// development and the bundles committed for the Salt hosts -- keeps plain
+// names. Django finds either through webpack-stats.json.
+var contentHash = process.env.WEBPACK_CONTENT_HASH === '1';
 const { VueLoaderPlugin } = require('vue-loader')
 
 module.exports = {
@@ -33,7 +42,8 @@ module.exports = {
 
   output: {
     path: path.resolve('./static/bundles/'),
-    filename: "[name].js",  // "[name]-[hash].js",  // let hashes be handled by django
+    filename: contentHash ? "[name]-[contenthash].js" : "[name].js",
+    chunkFilename: contentHash ? "[id]-[contenthash].js" : "[id].js",
   },
 
   plugins: [
@@ -61,7 +71,10 @@ module.exports = {
     //   minChunks: Infinity,
     // }),
 
-    new MiniCssExtractPlugin(),
+    new MiniCssExtractPlugin({
+      filename: contentHash ? "[name]-[contenthash].css" : "[name].css",
+      chunkFilename: contentHash ? "[id]-[contenthash].css" : "[id].css",
+    }),
     new VueLoaderPlugin()
   ],
 
