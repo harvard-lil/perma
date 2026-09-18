@@ -168,6 +168,9 @@ jobs:
         with:
           image: perma-prod:${{ github.sha }}
           output: image-artifacts/celery-tasks.json
+          # The same app the workers name with `celery -A perma`; perma/celery.py
+          # defaults DJANGO_SETTINGS_MODULE, so no settings-module is needed.
+          app: perma
           environment: '{"PERMA_SETTINGS_MODULE":"settings_build"}'
 
       # The runtime settings module reads one APP_CONFIG JSON value; the
