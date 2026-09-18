@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 from contextlib import contextmanager, redirect_stdout
 import csv
 from datetime import datetime, timedelta
@@ -24,6 +24,7 @@ import zipfile
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.storage import storages
 from django.core.paginator import EmptyPage, Page, Paginator
@@ -62,6 +63,68 @@ logger = logging.getLogger(__name__)
 warn = logger.warn
 
 T = TypeVar('T')
+
+
+# Deployment sentinel
+#
+# During a deploy, capture intake is paused: the API's link-creation view and
+# run_next_capture stop enqueueing run_next_capture when the sentinel is
+# present, so the queues can be drained before the workers are replaced. Two
+# signals are honoured, and either one means "pending":
+#
+# - a flag in the shared Django cache, set and cleared by
+#   `manage.py deployment_sentinel` (the ECS deploy: web and workers are
+#   separate containers that share only Redis);
+# - the file settings.DEPLOYMENT_SENTINEL (the Salt deploy touches
+#   /tmp/perma-deployment-pending on every host). Kept as a fallback so the
+#   Salt hosts keep working while the two deployments coexist.
+#
+# The flag has no TTL: the deploy clears it explicitly, and a deploy that
+# fails leaves it set on purpose until an operator runs `clear`.
+
+DEPLOYMENT_SENTINEL_CACHE_KEY = "deployment-sentinel"
+
+DeploymentSentinelState = namedtuple("DeploymentSentinelState", "file_present cache_flag cache_readable")
+
+
+def deployment_sentinel_state():
+    """
+        Read both sentinel signals without deciding anything.
+
+        The cache is consulted with has_key rather than get: under
+        django-redis with IGNORE_EXCEPTIONS, get() returns the default on a
+        connection failure (indistinguishable from "absent"), while has_key()
+        returns None instead of a bool. cache_readable is False in that case.
+        With IGNORE_EXCEPTIONS off, a failing backend raises out of here.
+    """
+    file_present = os.path.exists(settings.DEPLOYMENT_SENTINEL)
+    present = cache.has_key(DEPLOYMENT_SENTINEL_CACHE_KEY)
+    if present is None:
+        return DeploymentSentinelState(file_present, None, False)
+    return DeploymentSentinelState(file_present, present, True)
+
+
+def deployment_pending():
+    """
+        True when capture intake should not enqueue new work.
+
+        A cache read failure is ambiguous. Where the cache is the deploy's
+        only signal (settings_ecs sets DEPLOYMENT_SENTINEL_CACHE_REQUIRED),
+        it counts as pending, since the deploy sequence relies on set() being
+        seen and a missed pause is the worse outcome; a Redis outage then
+        also pauses intake, which is logged. Where the file is the primary
+        signal (Salt hosts, dev), it counts as not pending, as it does today.
+    """
+    state = deployment_sentinel_state()
+    if state.file_present:
+        return True
+    if not state.cache_readable:
+        if settings.DEPLOYMENT_SENTINEL_CACHE_REQUIRED:
+            logger.error("Deployment sentinel: cache read failed; treating deployment as pending.")
+            return True
+        logger.warning("Deployment sentinel: cache read failed; treating deployment as not pending.")
+        return False
+    return bool(state.cache_flag)
 
 
 def protocol():

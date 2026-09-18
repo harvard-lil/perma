@@ -1,12 +1,65 @@
-**
-!perma_web/Dockerfile
-!perma_web/pyproject.toml
-!perma_web/uv.lock
-!perma_web/requirements.txt
-!perma_web/package.json
-!perma_web/npm-shrinkwrap.json
-!perma_web/perma-warcprox-ca.pem
-!perma_web/lil-archive-keyring.gpg
-!playwright/requirements.txt
-!services/js-wacz/package.json
-!services/js-wacz/package-lock.json
+# What the image build may read. The prod stage COPYs perma_web/ and services/
+# wholesale, so this list is what keeps local state out of the shipped image.
+
+.git
+.github
+.idea
+.vscode
+.DS_Store
+jack-local
+
+# Local Python state
+**/__pycache__
+**/*.pyc
+venv
+.venv
+perma_web/.pytest_cache
+perma_web/.hypothesis
+perma_web/.coverage
+perma_web/failed_test_files
+perma_web/lib
+
+# A developer's settings.py must never be baked in: the image selects its
+# settings at runtime through PERMA_SETTINGS_MODULE.
+perma_web/perma/settings/settings.py
+.env
+
+# Build output. The assets stage produces the bundles and webpack-stats.json;
+# the prod stage produces static-collected. The bundles and webpack-stats.json
+# are still tracked in git for the Salt hosts, which deploy from a checkout
+# and run only collectstatic; excluding them here keeps a developer's or CI's
+# stale copy out of the image, which always compiles its own. Remove them from
+# git once Salt no longer deploys Perma.
+node_modules
+perma_web/static/bundles
+perma_web/webpack-stats.json
+perma_web/static-collected
+perma_web/static/css/style-responsive.css
+perma_web/static/css/style-responsive-archive.css
+perma_web/.sass-cache
+
+# Local TLS material for the dev server and the test suite; CI supplies it to
+# the test container separately (see docker-compose.ci.yml).
+perma_web/*.pem
+perma_web/*.crt
+perma_web/*.key
+perma_web/*.conf
+services/docker/s3/ssl
+services/docker/wacz-exhibitor/ssl
+
+# Runtime directories the compose file bind-mounts; only their READMEs are
+# tracked, and only the directories need to exist in the image.
+services/django/generated_assets/*
+!services/django/generated_assets/README
+services/django/static_assets/*
+!services/django/static_assets/README
+services/django/generated_archives/*
+!services/django/generated_archives/README
+services/logs/*
+!services/logs/README
+
+# Not inputs to the image
+docker-compose*.yml
+Brewfile
+Brewfile.lock.json
+*.md

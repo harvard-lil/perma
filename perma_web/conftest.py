@@ -14,6 +14,24 @@ from playwright.sync_api import Page, expect
 import pytest
 from pytest_django.plugin import blocking_manager_key
 
+import frontend_assets
+
+
+@pytest.fixture(scope="session", autouse=True)
+def current_frontend_assets():
+    """Compile the frontend bundles before any test renders a page.
+
+    Templates call {% render_bundle %}, so every test that renders a page --
+    not just the Playwright ones -- reads webpack-stats.json. Without this a
+    fresh checkout fails with a bare FileNotFoundError, and a checkout whose
+    frontend has moved on silently tests the previous build.
+
+    No-ops when the bundles already match their sources, which is the common
+    case, so this costs nothing on a normal run. The test image sets
+    PERMA_SKIP_ASSET_CHECK, since its bundles were baked in by the build.
+    """
+    frontend_assets.ensure_current()
+
 # patch Playwright's screenshot method so that we get full-page screenshots
 # when functional tests fail, which is not presently configurable in pytest-playwright
 # https://github.com/microsoft/playwright-pytest/blob/456f8286f09f132d2e21f6bf71f27465e71ba17a/pytest_playwright/pytest_playwright.py#L249

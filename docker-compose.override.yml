@@ -1,22 +1,8 @@
-# overrides for local development, not used in CI
+# Overrides for local development, not used in CI.
+#
+# The web service's build configuration lives in docker-compose.yml so that CI
+# and developers build the same way. What is left here is genuinely dev-only.
 services:
-  web:
-    build:
-      context: .
-      dockerfile: perma_web/Dockerfile
-      x-bake:
-        tags:
-          - registry.lil.tools/harvardlil/perma-web:144-51d2441d655dffd7f28c12c6deae6a44
-        platforms:
-          - linux/amd64
-          - linux/arm64
-      x-hash-paths:
-        - perma_web/pyproject.toml
-        - perma_web/uv.lock
-        - perma_web/npm-shrinkwrap.json
-        - perma_web/package.json
-        - perma_web/lil-archive-keyring.gpg
-
   wacz-exhibitor:
     build:
       context: ./services/docker/wacz-exhibitor
@@ -35,14 +21,14 @@ services:
   # Scoop REST API
   #
   scoop-redis:
-    image: registry.lil.tools/library/redis:7.0
+    image: redis:7.0
     volumes:
       - scoop_redis_data:/data:delegated
     networks:
       - scoop_rest_api_internal
 
   scoop-db:
-    image: registry.lil.tools/library/postgres:16.3
+    image: postgres:16.3
     environment:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: scoop_api

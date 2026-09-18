@@ -7,11 +7,11 @@ services:
   # with "LOCATION": "redis://perma-redis:6379/0"
   # (Don't clobber the Celery backend, which is at /1)
   perma-redis:
-    image: registry.lil.tools/library/redis:4.0.6
+    image: redis:4.0.6
     volumes:
       - redis_data:/data:delegated
   db:
-    image: registry.lil.tools/library/postgres:16.6
+    image: postgres:16.6
     environment:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: perma
@@ -22,7 +22,17 @@ services:
       - default
       - superset
   web:
-    image: registry.lil.tools/harvardlil/perma-web:144-51d2441d655dffd7f28c12c6deae6a44
+    # Built locally, not pulled. pull_policy: build means a plain
+    # `docker compose up` rebuilds when a build input changes and is a no-op
+    # when nothing has -- so there is no image tag to bump and no way to end
+    # up running a stale image after pulling someone else's dependency change.
+    # docker's layer cache is the staleness check. CI overrides the target in
+    # docker-compose.ci.yml.
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: dev
+    pull_policy: build
     tty: true
     command: bash
     # TO AUTOMATICALLY START PERMA:
@@ -32,13 +42,10 @@ services:
     volumes:
       # NAMED VOLUMES
       - scoop_access_key:/tmp/scoop_access_key:ro
-      # Use a named, persistent volume so that the node_modules directory,
-      # which is created during the image's build process, and which our
-      # code presently expects to be nested inside the perma_web directory,
-      # isn't wiped out when mounting our code in ./perma_web code to
-      # the container. We can consider restructuring the project instead.
-      - node_modules:/perma/perma_web/node_modules
       # BIND MOUNTS
+      # node_modules and the compiled bundles live in the bind-mounted tree
+      # (gitignored); perma_web/frontend_assets.py installs and builds them
+      # when they are missing or stale.
       - ./perma_web:/perma/perma_web
       - ./services/celery:/perma/services/celery
       - ./services/cloudflare:/perma/services/cloudflare
@@ -138,7 +145,6 @@ services:
 
 volumes:
   filecheck_clamav_data:
-  node_modules:
   postgres_data_16:
   redis_data:
   scoop_redis_data:

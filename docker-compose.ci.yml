@@ -1,0 +1,55 @@
+# CI override: run the test suite against the artifact that actually ships.
+#
+# docker-compose.yml plus docker-compose.override.yml give a developer the `dev`
+# image with the working tree bind-mounted at /perma. That is right for local
+# iteration, but it means CI would be testing the source tree rather than the
+# built image -- the bind mount shadows whatever the image contains.
+#
+# This file instead builds the `test` target, which is FROM prod: prod's
+# dependencies including gunicorn, prod's non-root `perma` user, prod's baked-in code, plus the test
+# toolchain. The working-tree bind mounts are removed so nothing shadows it.
+#
+# Used only by the CI workflow:
+#   docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d
+# Note that docker-compose.override.yml is deliberately NOT included; compose
+# only applies it automatically when no -f flags are given. The Scoop API
+# services it defines are started by the workflow from that file separately,
+# as today. Filecheck needs nothing here: docker-compose.yml builds it from
+# its GitHub `main` (pull_policy: build), which applies in CI as well.
+services:
+  web:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: test
+    image: perma-test:ci
+    # CI builds prod and test together in one graph before this runs, so that
+    # the suite exercises the layers that ship. Rebuilding here would defeat
+    # that; `never` uses what was already built and fails loudly if it is
+    # missing, rather than quietly producing a second image.
+    pull_policy: never
+    # The image inherits PERMA_SETTINGS_MODULE=settings_ecs from the prod
+    # stage, and those settings require APP_CONFIG -- a production secret CI
+    # has no business holding. pytest names its own settings module
+    # (perma.settings.deployments.settings_testing, in pyproject.toml), so
+    # only commands run outside pytest -- `invoke dev.init-db`, manage.py --
+    # see this. Override it here rather than weakening the image: the artifact
+    # stays byte-identical to what ships, and only the runtime config differs.
+    environment:
+      - PERMA_SETTINGS_MODULE=settings_dev
+      - DJANGO_LIVE_TEST_SERVER_ADDRESS=0.0.0.0
+    # Drop the bind mounts inherited from docker-compose.yml, then put back
+    # only what is not code: the Scoop access key the dev Scoop API writes,
+    # and the mkcert certificates the Playwright tests need (conftest.py
+    # installs perma_web/rootCA.pem, perma_web/perma-test.crt and
+    # /tmp/s3_ssl/public.crt into an NSS database, and the live server
+    # serves perma-test.crt/.key). The cert files must exist on the runner
+    # before `up`, i.e. `bash make_cert.sh` runs first; a bind mount of a
+    # missing file creates a directory in its place.
+    volumes: !override
+      - scoop_access_key:/tmp/scoop_access_key:ro
+      - ./perma_web/rootCA.pem:/perma/perma_web/rootCA.pem:ro
+      - ./perma_web/perma-test.crt:/perma/perma_web/perma-test.crt:ro
+      - ./perma_web/perma-test.key:/perma/perma_web/perma-test.key:ro
+      - ./services/docker/s3/ssl:/tmp/s3_ssl:ro
+      - ./services/docker/wacz-exhibitor/ssl:/tmp/wacz-exhibitor_ssl:ro
