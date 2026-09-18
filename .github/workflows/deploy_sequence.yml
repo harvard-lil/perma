@@ -1,0 +1,630 @@
+name: ECS deploy sequence
+
+# Everything both tiers do identically once the artifact to deploy has been
+# identified: register a pinned revision for each of the six services, publish
+# the static files the artifact carries, decide whether the deploy needs a
+# maintenance window or a queue pause, roll the services, migrate, and report.
+#
+# Sharing it means a staging deploy exercises the same code a production
+# deploy will run. What differs by tier stays in the caller: how the artifact
+# is identified. Names below derive from the tier: cluster `<tier>-perma`,
+# services and task families `<tier>-perma-<role>`, each with a container of
+# the same name.
+#
+# Two decisions shape a run:
+#
+#   window  -- ecs-django-maintenance: the incoming migration manifest differs
+#              from the running one, the database has pending migrations, or a
+#              flag forces it. Traffic is held at the edge around the rollout
+#              and the migration.
+#   pause   -- a window, or a Celery task manifest that differs from the
+#              running image's: messages the outgoing code queued might name
+#              tasks, arguments or queues the incoming code does not have. The
+#              capture-intake sentinel is set, beat is stopped, and the workers
+#              are given time to finish before they are replaced.
+#
+# A deploy that needs neither rolls every service with ECS's warm shutdown and
+# nothing paused. The broker is never purged on either path: Perma's capture
+# queue is the database, and queued messages are work for the incoming code.
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: >
+          GitHub environment this tier deploys to (`staging` or `prod`). It
+          carries the tier's variables and secrets, and its branch policy is
+          what stops another branch reaching them, so naming it here is what
+          selects the tier. Every AWS name derives from it.
+        required: true
+        type: string
+      environment-label:
+        description: 'Name for this tier in notifications, e.g. Staging'
+        required: true
+        type: string
+      image-digest:
+        description: >
+          Digest of the image to deploy, already present in the `perma` ECR
+          repository. A digest and not a full URI: a URI contains the account
+          ID, which is masked, and GitHub drops a job output it believes holds
+          a secret rather than passing it on.
+        required: true
+        type: string
+      source-sha:
+        description: 'Commit the artifact was built from'
+        required: true
+        type: string
+      # The deploy flags a workflow_dispatch can set. A called workflow sees
+      # the caller's event but not its inputs, so the tier passes them
+      # through; deploy-flags below reads them only when that event is a
+      # dispatch, and reads the labels on the merged pull request whatever
+      # the event.
+      force-maintenance:
+        description: 'Open a maintenance window whether or not migrations call for one'
+        type: boolean
+        default: false
+      skip-maintenance:
+        description: 'Assert the migrations are compatible with serving traffic and take no window'
+        type: boolean
+        default: false
+      hold-maintenance:
+        description: 'Keep traffic held after a successful deploy; implies force-maintenance'
+        type: boolean
+        default: false
+
+    secrets:
+      # A called workflow's secrets context is only what the caller passes it.
+      # Both names are declared here and passed by the caller under the same
+      # name, the contract verified for payments' environment-scoped token.
+      CLOUDFLARE_API_TOKEN:
+        required: true
+      SLACK_WEBHOOK_URL:
+        required: true
+
+permissions:
+  id-token: write     # assume the deploy role via OIDC
+  contents: read
+  pull-requests: read # read deploy labels off the merged pull request
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment-label }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    timeout-minutes: 90
+
+    env:
+      TIER: ${{ inputs.environment }}
+      ECR_REPOSITORY: perma
+      ECS_CLUSTER: ${{ inputs.environment }}-perma
+      WEB_SERVICE: ${{ inputs.environment }}-perma-web
+      BEAT_SERVICE: ${{ inputs.environment }}-perma-beat
+      CAPTURE_SERVICE: ${{ inputs.environment }}-perma-capture
+      BACKGROUND_SERVICE: ${{ inputs.environment }}-perma-background
+      IA_SERVICE: ${{ inputs.environment }}-perma-ia
+      WACZ_SERVICE: ${{ inputs.environment }}-perma-wacz-conversion
+      MIGRATIONS_TYPE: application/vnd.harvard-lil.django.migrations.v1+json
+      CELERY_TYPE: application/vnd.harvard-lil.perma.celery-tasks.v1+json
+      STATIC_TYPE: application/vnd.harvard-lil.perma.staticassets.v1.tar+gzip
+
+    steps:
+      # App-specific steps are marked below; everything else is the shared
+      # sequence lil-actions provides.
+      - name: Check the deploy inputs
+        uses: harvard-lil/lil-actions/deploy-preflight@main
+        with:
+          image-digest: ${{ inputs.image-digest }}
+          source-sha: ${{ inputs.source-sha }}
+          tier: ${{ inputs.environment }}
+          required-secrets: >-
+            {"CLOUDFLARE_API_TOKEN":"${{ secrets.CLOUDFLARE_API_TOKEN }}",
+             "SLACK_WEBHOOK_URL":"${{ secrets.SLACK_WEBHOOK_URL }}"}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
+          aws-region: us-east-1
+
+      # The registry is derived here rather than passed in, for the same
+      # reason the inputs above are pieces rather than URIs.
+      - name: Login to AWS ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
+
+      # Mark the promoted artifact before deploying it. ECR retention keeps
+      # deployed images far longer than the build candidates that churn past
+      # them every merge to main; without this tag the image the services
+      # run is just another candidate and ages out on the same schedule.
+      - name: Protect the promoted image from retention
+        uses: harvard-lil/lil-actions/ecr-tag-image@main
+        with:
+          repository: ${{ env.ECR_REPOSITORY }}
+          source: ${{ inputs.image-digest }}
+          tag: ${{ inputs.environment }}-deployed-${{ inputs.source-sha }}
+
+      # Perma-specific: one revision per family, six families, all pinned to
+      # the same digest and registered before anything moves so that a
+      # registration failure stops the deploy with nothing changed. Each
+      # family's newest revision is the base, so structural changes Terraform
+      # registered since the last deploy reach the service here.
+      - name: Register the web revision
+        id: web
+        uses: harvard-lil/lil-actions/ecs-register-task-def@main
+        with:
+          task-definition-family: ${{ env.WEB_SERVICE }}
+          container-name: ${{ env.WEB_SERVICE }}
+          image-uri: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}@${{ inputs.image-digest }}
+
+      - name: Register the capture worker revision
+        id: capture
+        uses: harvard-lil/lil-actions/ecs-register-task-def@main
+        with:
+          task-definition-family: ${{ env.CAPTURE_SERVICE }}
+          container-name: ${{ env.CAPTURE_SERVICE }}
+          image-uri: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}@${{ inputs.image-digest }}
+
+      - name: Register the background worker revision
+        id: background
+        uses: harvard-lil/lil-actions/ecs-register-task-def@main
+        with:
+          task-definition-family: ${{ env.BACKGROUND_SERVICE }}
+          container-name: ${{ env.BACKGROUND_SERVICE }}
+          image-uri: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}@${{ inputs.image-digest }}
+
+      - name: Register the Internet Archive worker revision
+        id: ia
+        uses: harvard-lil/lil-actions/ecs-register-task-def@main
+        with:
+          task-definition-family: ${{ env.IA_SERVICE }}
+          container-name: ${{ env.IA_SERVICE }}
+          image-uri: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}@${{ inputs.image-digest }}
+
+      - name: Register the WACZ conversion worker revision
+        id: wacz
+        uses: harvard-lil/lil-actions/ecs-register-task-def@main
+        with:
+          task-definition-family: ${{ env.WACZ_SERVICE }}
+          container-name: ${{ env.WACZ_SERVICE }}
+          image-uri: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}@${{ inputs.image-digest }}
+
+      - name: Register the scheduler revision
+        id: beat
+        uses: harvard-lil/lil-actions/ecs-register-task-def@main
+        with:
+          task-definition-family: ${{ env.BEAT_SERVICE }}
+          container-name: ${{ env.BEAT_SERVICE }}
+          image-uri: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}@${{ inputs.image-digest }}
+
+      # What the image contains, read from its referrers rather than by
+      # pulling or starting it: the migration list, the Celery task manifest,
+      # and the collected static files. A missing referrer stops the deploy
+      # here; the promotion checks already required all three.
+      - name: Fetch the published manifests and static files
+        uses: harvard-lil/lil-actions/ecr-artifacts@main
+        with:
+          mode: fetch
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}@${{ inputs.image-digest }}
+          artifacts: >-
+            [{"type":"${{ env.MIGRATIONS_TYPE }}","path":"image-artifacts/migrations.json"},
+             {"type":"${{ env.CELERY_TYPE }}","path":"image-artifacts/celery-tasks.json"},
+             {"type":"${{ env.STATIC_TYPE }}","path":"static-assets.tar.gz"}]
+
+      # Above the rollout, because a task that starts before its files are in
+      # the bucket serves pages referencing paths that 404. Nothing in Perma's
+      # collected tree is content-hashed, so no hashed-subdir: one short
+      # lifetime for everything, and the edge cache is purged at the end of
+      # the run.
+      - name: Publish the image's static files
+        uses: harvard-lil/lil-actions/static-assets-publish@main
+        with:
+          bucket: ${{ vars.STATIC_BUCKET }}
+          archive: static-assets.tar.gz
+
+      # Labels on the merged pull request, dispatch inputs (only on a
+      # dispatch) and a standing HOLD_MAINTENANCE variable, resolved into
+      # force, skip and hold with a record of where each came from. Hold
+      # implies force; force wins over skip.
+      - name: Resolve the deploy flags
+        id: flags
+        uses: harvard-lil/lil-actions/deploy-flags@main
+        with:
+          event-name: ${{ github.event_name }}
+          inputs: ${{ toJSON(inputs) }}
+          hold-variable: ${{ vars.HOLD_MAINTENANCE }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      # Compares the fetched manifest with the running web task's migration
+      # graph, then asks the database for pending migrations. Unknown state
+      # takes the window. `skip` suppresses the window, never the migration.
+      - name: Does this deploy need a maintenance window?
+        id: window
+        uses: harvard-lil/lil-actions/ecs-django-maintenance@main
+        with:
+          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ env.WEB_SERVICE }}
+          container: ${{ env.WEB_SERVICE }}
+          manifest: image-artifacts/migrations.json
+          force: ${{ steps.flags.outputs.force }}
+          skip: ${{ steps.flags.outputs.skip }}
+
+      # Perma-specific, through to the idle wait: the Celery comparison and
+      # the pause it decides.
+      #
+      # The running code's Celery manifest is the referrer of the digest the
+      # web service runs, read with three registry requests. Reading the
+      # artifact CI attached to that digest is the same fact as executing the
+      # command in the running container, since the service pins the digest
+      # and the manifest is a function of the image; it costs no ECS Exec
+      # session and works while the web task is busy. The three steps are
+      # allowed to fail: a service not running a digest-pinned image (the
+      # first deploy from Terraform's placeholder tag), an image published
+      # before this referrer existed, or an unstable service all mean the
+      # running tasks are unknown, and unknown takes the pause.
+      - name: Resolve the image the web service is running
+        id: running
+        continue-on-error: true
+        uses: harvard-lil/lil-actions/ecs-resolve-service-image@main
+        with:
+          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ env.WEB_SERVICE }}
+          container-name: ${{ env.WEB_SERVICE }}
+          ecr-repository: ${{ env.ECR_REPOSITORY }}
+
+      - name: Fetch the running image's Celery manifest
+        id: running-manifest
+        if: steps.running.outcome == 'success'
+        continue-on-error: true
+        uses: harvard-lil/lil-actions/ecr-artifacts@main
+        with:
+          mode: fetch
+          image: ${{ steps.running.outputs.image-uri }}
+          artifacts: '[{"type":"${{ env.CELERY_TYPE }}","path":"running/celery-tasks.json"}]'
+
+      - name: Compare the Celery manifests
+        id: celery
+        if: steps.running-manifest.outcome == 'success'
+        continue-on-error: true
+        uses: harvard-lil/lil-actions/celery-manifest-compare@main
+        with:
+          base: running/celery-tasks.json
+          incoming: image-artifacts/celery-tasks.json
+
+      # The pause decision, in one place so every later condition reads one
+      # output. Same image digest as the running one (a re-run) compares equal
+      # and pauses only if the window does.
+      - name: Decide whether to pause intake and drain the workers
+        id: plan
+        env:
+          WINDOW: ${{ steps.window.outputs.needed }}
+          RUNNING: ${{ steps.running.outcome }}
+          RUNNING_SHA: ${{ steps.running.outputs.source-sha }}
+          FETCH: ${{ steps.running-manifest.outcome }}
+          COMPARE: ${{ steps.celery.outcome }}
+          CHANGED: ${{ steps.celery.outputs.changed }}
+          SUMMARY: ${{ steps.celery.outputs.summary }}
+        run: |
+          set -euo pipefail
+          if [ "$COMPARE" = "success" ] && [ "$CHANGED" = "false" ]; then
+            celery="unchanged since ${RUNNING_SHA:0:7}"
+          elif [ "$COMPARE" = "success" ]; then
+            celery="changed since ${RUNNING_SHA:0:7}: ${SUMMARY}"
+          elif [ "$RUNNING" != "success" ]; then
+            celery="unknown: the running web image could not be resolved to a published digest"
+          elif [ "$FETCH" != "success" ]; then
+            celery="unknown: the running image ${RUNNING_SHA:0:7} has no readable Celery manifest"
+          else
+            celery="unknown: the manifests could not be compared"
+          fi
+          if [ "$WINDOW" = "true" ] || [ "$COMPARE" != "success" ] || [ "$CHANGED" != "false" ]; then
+            pause=true
+          else
+            pause=false
+          fi
+          echo "Maintenance window: ${WINDOW}"
+          echo "Celery tasks: ${celery}"
+          echo "Pause intake and drain: ${pause}"
+          {
+            echo "pause=${pause}"
+            echo "celery=${celery}"
+          } >> "$GITHUB_OUTPUT"
+
+      # The sentinel Salt touched on every host is a flag the application
+      # keeps in its shared cache, set and cleared by this management
+      # command; run_next_capture and the link-creation view consult it before
+      # dispatching the next capture. Set from the web task because every task
+      # of the image shares the cache, and the web service is the one that is
+      # certainly running. The action verifies the command's exit status, so a
+      # missing command or an unwritable cache stops the deploy here.
+      - name: Pause capture intake
+        id: pause
+        if: steps.plan.outputs.pause == 'true'
+        uses: harvard-lil/lil-actions/ecs-exec-command@main
+        with:
+          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ env.WEB_SERVICE }}
+          container: ${{ env.WEB_SERVICE }}
+          command: python manage.py deployment_sentinel set
+
+      # Exactly one scheduler, ever. Stopping it here, rather than letting it
+      # roll with the other services, keeps it from enqueuing work the workers
+      # are being asked to finish, and guarantees the old and new beat never
+      # overlap: the new one starts, below, only after the old one is gone.
+      - name: Stop the scheduler
+        id: stop-beat
+        if: steps.plan.outputs.pause == 'true'
+        uses: harvard-lil/lil-actions/ecs-scale-service@main
+        with:
+          mode: stop
+          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ env.BEAT_SERVICE }}
+
+      # Intake is paused and the scheduler is stopped, so nothing new is being
+      # queued; this gives the workers a bounded time to finish what they
+      # hold. Reported rather than enforced, as Salt's drain was: a worker
+      # still busy after the timeout is replaced busy by the rollout below,
+      # under ECS's stop timeout, and the report says so. Nothing is purged.
+      - name: Wait for the workers to go idle
+        id: idle
+        if: steps.plan.outputs.pause == 'true'
+        uses: harvard-lil/lil-actions/celery-wait-idle@main
+        with:
+          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ env.WEB_SERVICE }}
+          container: ${{ env.WEB_SERVICE }}
+          app: perma
+          timeout-seconds: '120'
+
+      # Held at Cloudflare's edge, so the page still answers if the origin is
+      # unreachable. The action confirms the route by reading it back and
+      # fails if it is not there, so the rollout and migration below do not
+      # start against traffic that is still flowing.
+      - name: Hold traffic at the edge
+        id: hold
+        if: steps.window.outputs.needed == 'true'
+        uses: harvard-lil/lil-actions/cloudflare-maintenance@main
+        with:
+          mode: 'on'
+          zone-id: ${{ vars.CLOUDFLARE_ZONE_ID }}
+          script: ${{ vars.MAINTENANCE_SCRIPT }}
+          hostnames: ${{ vars.MAINTENANCE_HOSTNAMES }}
+          token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      # Perma-specific: every service moves to its registered revision and
+      # the rollouts are watched together, so a worker that fails to
+      # stabilise is named alongside the ones that succeeded. The scheduler
+      # is in the list: on a compatible deploy it rolls here like any other
+      # service (0%/100% in its service definition, so the old task stops
+      # before the new one starts); on a paused deploy it is at desired count
+      # 0, so its revision is recorded and it is reported as skipped, then
+      # started below.
+      - name: Roll the services to the registered revisions
+        id: roll
+        uses: harvard-lil/lil-actions/ecs-roll-services@main
+        with:
+          cluster: ${{ env.ECS_CLUSTER }}
+          services: >-
+            {"${{ env.WEB_SERVICE }}": "${{ steps.web.outputs.task-definition-arn }}",
+             "${{ env.CAPTURE_SERVICE }}": "${{ steps.capture.outputs.task-definition-arn }}",
+             "${{ env.BACKGROUND_SERVICE }}": "${{ steps.background.outputs.task-definition-arn }}",
+             "${{ env.IA_SERVICE }}": "${{ steps.ia.outputs.task-definition-arn }}",
+             "${{ env.WACZ_SERVICE }}": "${{ steps.wacz.outputs.task-definition-arn }}",
+             "${{ env.BEAT_SERVICE }}": "${{ steps.beat.outputs.task-definition-arn }}"}
+
+      # The migration below execs into whichever web task it finds, so the
+      # exact revision is confirmed once more, with the shared action's
+      # definition of success, before it runs.
+      - name: Verify the exact web revision
+        uses: harvard-lil/lil-actions/ecs-wait-for-deployment@main
+        with:
+          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ env.WEB_SERVICE }}
+          task-definition: ${{ steps.web.outputs.task-definition-arn }}
+
+      # Checks the plan, migrates if anything is pending, and checks the plan
+      # again; the remote exit status is framed, so an SSM session that
+      # closed cleanly around a failed migrate does not pass.
+      - name: Run Django migrations in the deployed web task
+        id: migrate
+        uses: harvard-lil/lil-actions/ecs-django-migrations@main
+        with:
+          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ env.WEB_SERVICE }}
+          container: ${{ env.WEB_SERVICE }}
+          task-definition: ${{ steps.web.outputs.task-definition-arn }}
+
+      # Started at the recorded desired count, on the new revision when the
+      # rollout succeeded. If the rollout did not succeed but the migration
+      # never ran, nothing has changed underneath the old version, so the
+      # scheduler goes back on its previous revision. After a migration that
+      # the rollout then failed to follow, or a migration that failed, it
+      # stays stopped for a person. A recorded count of 0 is restored without
+      # a wait.
+      - name: Start the scheduler
+        id: start-beat
+        if: always() && steps.stop-beat.outcome == 'success' && (steps.roll.outcome == 'success' || steps.migrate.outcome == 'skipped')
+        uses: harvard-lil/lil-actions/ecs-scale-service@main
+        with:
+          mode: start
+          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ env.BEAT_SERVICE }}
+          desired-count: ${{ steps.stop-beat.outputs.desired-count }}
+          task-definition: ${{ steps.roll.outcome == 'success' && steps.beat.outputs.task-definition-arn || steps.stop-beat.outputs.task-definition }}
+          timeout-seconds: '600'
+
+      # Terraform's task definitions name `perma:<tier>-latest`; moving it
+      # only after the rollout and migration succeeded means a service that
+      # ECS restarts from that placeholder gets the image this deploy proved.
+      - name: Align Terraform's placeholder with the deployed image
+        uses: harvard-lil/lil-actions/ecr-tag-image@main
+        with:
+          repository: ${{ env.ECR_REPOSITORY }}
+          source: ${{ inputs.image-digest }}
+          tag: ${{ inputs.environment }}-latest
+          replace-existing: 'true'
+
+      # Lifted whenever migrations either succeeded or never ran, which covers
+      # every failure above this point: a rollout that failed leaves the
+      # previous tasks serving (minimum healthy 100%) or the circuit breaker's
+      # rollback, on an unchanged schema. A migration that failed partway is
+      # the exception, since it can leave the schema in a state neither the
+      # old nor the new code is safe against; that case stays behind the page
+      # for a person, as does a deliberate hold.
+      - name: Release traffic at the edge
+        id: release
+        if: always() && steps.window.outputs.needed == 'true' && steps.flags.outputs.hold != 'true' && (steps.migrate.outcome == 'success' || steps.migrate.outcome == 'skipped')
+        uses: harvard-lil/lil-actions/cloudflare-maintenance@main
+        with:
+          mode: 'off'
+          zone-id: ${{ vars.CLOUDFLARE_ZONE_ID }}
+          hostnames: ${{ vars.MAINTENANCE_HOSTNAMES }}
+          token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      # Perma-specific: intake resumes under the same condition the page is
+      # lifted: the code serving is consistent with the schema. Beat
+      # re-dispatches the pending capture jobs on its every-minute run, which
+      # is why it restarts above.
+      - name: Resume capture intake
+        id: resume
+        if: always() && steps.pause.outcome == 'success' && (steps.migrate.outcome == 'success' || steps.migrate.outcome == 'skipped')
+        uses: harvard-lil/lil-actions/ecs-exec-command@main
+        with:
+          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ env.WEB_SERVICE }}
+          container: ${{ env.WEB_SERVICE }}
+          command: python manage.py deployment_sentinel clear
+
+      # Perma-specific: the state the shared report does not know about, one
+      # line each, and whether any of it was left switched off. The report
+      # below runs after the resume rather than directly after the release so
+      # that it can say whether intake came back.
+      - name: Gather the intake, worker and scheduler state
+        id: state
+        if: always()
+        env:
+          PAUSE_PLANNED: ${{ steps.plan.outputs.pause }}
+          PAUSE: ${{ steps.pause.outcome }}
+          RESUME: ${{ steps.resume.outcome }}
+          IDLE: ${{ steps.idle.outcome }}
+          IDLE_RESULT: ${{ steps.idle.outputs.idle }}
+          ROLL: ${{ steps.roll.outcome }}
+          ROLL_SUMMARY: ${{ steps.roll.outputs.summary }}
+          BEAT_STOPPED: ${{ steps.stop-beat.outcome }}
+          BEAT_PREVIOUS: ${{ steps.stop-beat.outputs.desired-count }}
+          START_BEAT: ${{ steps.start-beat.outcome }}
+          CELERY: ${{ steps.plan.outputs.celery }}
+        run: |
+          set -euo pipefail
+          left=false
+          lines=()
+
+          case "$PAUSE" in
+            success)
+              if [ "$RESUME" = "success" ]; then
+                lines+=("Capture intake: paused for the deploy, now resumed")
+              else
+                left=true
+                lines+=("Capture intake: STILL PAUSED (resume: ${RESUME})")
+              fi
+              ;;
+            skipped)
+              if [ "$PAUSE_PLANNED" = "true" ]; then
+                lines+=("Capture intake: never paused; the run stopped before the pause")
+              else
+                lines+=("Capture intake: never paused (compatible deploy)")
+              fi
+              ;;
+            *) lines+=("Capture intake: pause ${PAUSE}; captures were not stopped") ;;
+          esac
+
+          case "$IDLE" in
+            success)
+              if [ "$IDLE_RESULT" = "true" ]; then
+                lines+=("Workers: idle before the rollout")
+              else
+                lines+=("Workers: still busy when the rollout replaced them")
+              fi
+              ;;
+            skipped) lines+=("Workers: rolled with a warm shutdown, no wait") ;;
+            *) lines+=("Workers: idle wait ${IDLE}") ;;
+          esac
+
+          case "$ROLL" in
+            success) lines+=("Services: every service is on the new revision") ;;
+            skipped) lines+=("Services: not rolled; the previous version is still running") ;;
+            *) lines+=("Services: rollout ${ROLL}") ;;
+          esac
+          if [ -n "$ROLL_SUMMARY" ]; then
+            lines+=("  ${ROLL_SUMMARY}")
+          fi
+
+          if [ "$BEAT_STOPPED" = "skipped" ]; then
+            lines+=("Scheduler: rolled with the services, never stopped")
+          elif [ "$BEAT_STOPPED" != "success" ]; then
+            left=true
+            lines+=("Scheduler: STILL at an unknown desired count (stop: ${BEAT_STOPPED})")
+          elif [ "$START_BEAT" = "success" ]; then
+            lines+=("Scheduler: stopped for the deploy, restarted at desired count ${BEAT_PREVIOUS}")
+          else
+            left=true
+            lines+=("Scheduler: STILL STOPPED or not stable (was at desired count ${BEAT_PREVIOUS}; start: ${START_BEAT})")
+          fi
+
+          lines+=("Celery tasks: ${CELERY:-undecided}")
+
+          {
+            echo "lines<<LIL_EOF"
+            printf '%s\n' "${lines[@]}"
+            echo "LIL_EOF"
+            echo "left-behind=${left}"
+          } >> "$GITHUB_OUTPUT"
+          printf '%s\n' "${lines[@]}"
+
+      # Fails the run when the page, the intake or the scheduler was left
+      # switched off unintentionally; a deliberate hold is a notice. The
+      # Slack message at the end carries its summary either way.
+      - name: Report what this run left behind
+        id: outcome
+        if: always()
+        uses: harvard-lil/lil-actions/deploy-outcome@main
+        with:
+          window: ${{ steps.window.outputs.needed }}
+          hold: ${{ steps.flags.outputs.hold }}
+          migrate-outcome: ${{ steps.migrate.outcome }}
+          release-outcome: ${{ steps.release.outcome }}
+          site-url: ${{ vars.SITE_URL }}
+          sources: ${{ steps.flags.outputs.sources }}
+          extra-lines: ${{ steps.state.outputs.lines }}
+          extra-left-behind: ${{ steps.state.outputs.left-behind }}
+
+      # Perma-specific: the commands that undo each thing the report named.
+      - name: Say how to recover
+        if: always() && steps.outcome.outputs.left-behind == 'true'
+        env:
+          BEAT_PREVIOUS: ${{ steps.stop-beat.outputs.desired-count }}
+        run: |
+          echo "::error::To lift the page once the site is known good:  just maintenance perma ${TIER} off"
+          echo "::error::To resume captures:  aws ecs execute-command --cluster ${ECS_CLUSTER} --task <a ${WEB_SERVICE} task> --container ${WEB_SERVICE} --interactive --command 'python manage.py deployment_sentinel clear'"
+          echo "::error::To restart the scheduler:  aws ecs update-service --cluster ${ECS_CLUSTER} --service ${BEAT_SERVICE} --desired-count ${BEAT_PREVIOUS:-1}"
+
+      # Static files were published above with a short cache lifetime, and
+      # pages the old tasks served are cached at the edge; both are cleared
+      # here, with the new tasks serving and the schema migrated.
+      - name: Purge Cloudflare cache
+        uses: harvard-lil/lil-actions/cloudflare-purge@main
+        with:
+          zone: ${{ vars.CLOUDFLARE_ZONE_ID }}
+          token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Notify Slack
+        if: always()
+        uses: harvard-lil/lil-actions/deploy-notify@main
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          status: ${{ job.status }}
+          product: Perma
+          tier-label: ${{ inputs.environment-label }}
+          site-url: ${{ vars.SITE_URL }}
+          summary: ${{ steps.outcome.outputs.summary }}
+          commit: ${{ inputs.source-sha }}

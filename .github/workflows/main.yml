@@ -1,0 +1,42 @@
+name: Lint and Test
+
+# `main` is the integration branch of the ECS line: a push here builds the
+# image once, runs the suite against it, and publishes it to ECR under the
+# commit SHA for the staging deploy to promote. Perma's Salt line keeps its
+# own `develop` -> `stage` -> `salt-prod` branches and its own tests.yml and
+# lints.yml, which are not part of this workflow set; `develop` merges forward
+# into `main`.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: perma-build-${{ github.event_name }}-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  # Pull requests only ever test: a read-only token and the one secret the
+  # suite uses. The build role is a repository variable, so there is nothing
+  # else to withhold from a branch build.
+  test:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/lint_test.yml
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  # A new commit on main runs the same suite and then publishes. A retry
+  # first verifies the immutable image and its required referrers; a complete
+  # publication is reused without rebuilding or retesting it.
+  test-and-publish:
+    if: github.event_name == 'push'
+    permissions:
+      id-token: write   # assume the build AWS role
+      contents: read    # nothing commits back to main
+    uses: ./.github/workflows/lint_test.yml
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
