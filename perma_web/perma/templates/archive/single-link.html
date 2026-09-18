@@ -1,5 +1,5 @@
 {% extends "archive/base-archive-responsive.html" %}
-{% load local_datetime archive_description %}
+{% load local_datetime archive_description absolute_url %}
 {% load render_bundle from webpack_loader %}
 
 {% block header_scripts %}
@@ -19,13 +19,13 @@
   <meta property="og:url" content="{{ protocol }}{{ link_url }}">
   <meta property="og:title" content="{{ link.submitted_title }}">
   <meta property="og:description" content="{{ link.submitted_description | archive_description:''  }}">
-  <meta property="og:image" content="{{ protocol }}{{ request.get_host }}{{ STATIC_URL }}img/sharing/blue_logo.png">
+  <meta property="og:image" content="{% with link_base=protocol|add:request.get_host %}{{ STATIC_URL|add:'img/sharing/blue_logo.png'|absolute_url:link_base }}{% endwith %}">
 
   <meta name="twitter:card" content="summary">
   <meta name="twitter:url" content="{{ protocol }}{{ link_url }}">
   <meta name="twitter:title" content="{{ link.submitted_title }}">
   <meta name="twitter:description" content="{{ link.submitted_description | archive_description:''  }}">
-  <meta name="twitter:image" content="{{ protocol }}{{ request.get_host }}{{ STATIC_URL }}img/sharing/blue_logo.png">
+  <meta name="twitter:image" content="{% with link_base=protocol|add:request.get_host %}{{ STATIC_URL|add:'img/sharing/blue_logo.png'|absolute_url:link_base }}{% endwith %}">
 {% endblock %}
 
 {% block header %}
