@@ -1,0 +1,188 @@
+name: Production - Deploy to AWS
+
+on:
+  workflow_dispatch:
+    inputs:
+      hold-maintenance:
+        description: Keep traffic held after a successful deploy (the tunnel cutover); implies force-maintenance
+        type: boolean
+        default: false
+      force-maintenance:
+        description: Open a maintenance window whether or not migrations call for one
+        type: boolean
+        default: false
+      skip-maintenance:
+        description: Assert the migrations are compatible with serving traffic and take no window
+        type: boolean
+        default: false
+  pull_request:
+    branches: [prod]
+  push:
+    branches: [prod]
+
+permissions:
+  id-token: write     # assume the deploy role via OIDC
+  contents: read
+  pull-requests: read # read deploy labels off the merged pull request
+
+concurrency:
+  group: perma-prod-${{ github.event_name == 'pull_request' && github.event.pull_request.number || 'deploy' }}
+  cancel-in-progress: false
+
+jobs:
+  # Only allow merges from staging, from this repository.
+  check-source-branch:
+    name: Check Source Branch
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Verify source branch is staging
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ "$HEAD_REPOSITORY" != "$REPOSITORY" ]; then
+            echo "::error::Pull requests to prod cannot come from forks."
+            exit 1
+          fi
+          if [ "$HEAD_REF" != "staging" ]; then
+            echo "::error::Pull requests to prod must come from the staging branch."
+            exit 1
+          fi
+          echo "Source branch verification passed"
+
+  # Production never builds. It ships the exact image the staging web service
+  # is running, read out of that service's task definition: on prod, HEAD^2 is
+  # the staging merge commit, which no image carries, so the SHA chain does not
+  # survive two merges, and staging pins a digest there in any case. Every
+  # staging service was rolled from one digest, so the web service speaks for
+  # all of them.
+  #
+  # A pull request into prod runs these checks under the staging environment,
+  # whose role can already read the staging service; a push or dispatch runs
+  # them under prod, whose role must be allowed to describe the staging
+  # cluster's web service and task definition as well as its own.
+  prepare:
+    name: Prepare the production artifact
+    needs: check-source-branch
+    if: >-
+      always() && github.repository == 'harvard-lil/perma' &&
+      ((github.event_name == 'pull_request' && needs.check-source-branch.result == 'success') ||
+       ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/prod'))
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'pull_request' && 'staging' || 'prod' }}
+
+    outputs:
+      image-digest: ${{ steps.resolve.outputs.image-digest }}
+      source-sha: ${{ steps.resolve.outputs.source-sha }}
+
+    env:
+      ECR_REPOSITORY: perma
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
+          aws-region: us-east-1
+          inline-session-policy: >-
+            {"Version":"2012-10-17","Statement":[{"Effect":"Allow",
+            "Action":["ecr:DescribeRepositories","ecr:DescribeImages","ecr:BatchGetImage","ecr:GetAuthorizationToken",
+            "ecr:GetDownloadUrlForLayer","ecr:BatchCheckLayerAvailability",
+            "ecs:DescribeServices","ecs:DescribeTaskDefinition","ecs:DescribeTasks","ecs:ListTasks"],
+            "Resource":"*"}]}
+
+      - name: Login to AWS ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
+
+      - name: Resolve the image staging validated
+        id: resolve
+        uses: harvard-lil/lil-actions/ecs-resolve-service-image@main
+        with:
+          cluster: staging-perma
+          service: staging-perma-web
+          container-name: staging-perma-web
+          ecr-repository: ${{ env.ECR_REPOSITORY }}
+
+      - name: Match the production branch to the staged source
+        env:
+          SOURCE_SHA: ${{ steps.resolve.outputs.source-sha }}
+        run: test "$(git rev-parse 'HEAD^{tree}')" = "$(git rev-parse "${SOURCE_SHA}^{tree}")"
+
+      - name: Require the published image and its referrers
+        id: publication
+        uses: harvard-lil/lil-actions/ecr-publication-state@main
+        with:
+          repository: ${{ env.ECR_REPOSITORY }}
+          registry: ${{ steps.login-ecr.outputs.registry }}
+          tag: ${{ steps.resolve.outputs.source-sha }}
+          required-artifact-types: >-
+            ["application/vnd.harvard-lil.django.migrations.v1+json",
+             "application/vnd.harvard-lil.perma.celery-tasks.v1+json",
+             "application/vnd.harvard-lil.perma.staticassets.v1.tar+gzip"]
+
+      - name: Verify complete publication of the selected digest
+        env:
+          PUBLICATION_STATE: ${{ steps.publication.outputs.state }}
+          PUBLISHED_DIGEST: ${{ steps.publication.outputs.digest }}
+          SELECTED_DIGEST: ${{ steps.resolve.outputs.image-digest }}
+          MISSING: ${{ steps.publication.outputs.missing-artifact-types }}
+        run: |
+          if [ "$PUBLICATION_STATE" != complete ]; then
+            echo "::error::Publication is '$PUBLICATION_STATE'; missing referrer types: $MISSING"
+            exit 1
+          fi
+          test "$PUBLISHED_DIGEST" = "$SELECTED_DIGEST"
+
+  # The shared sequence. Everything above identifies which artifact to deploy;
+  # everything below is identical for both tiers and lives in one file so a
+  # staging run exercises production's code.
+  deploy:
+    needs: prepare
+    if: always() && github.event_name != 'pull_request' && needs.prepare.result == 'success'
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: read
+    uses: ./.github/workflows/deploy_sequence.yml
+    with:
+      environment: prod
+      environment-label: Prod
+      image-digest: ${{ needs.prepare.outputs.image-digest }}
+      source-sha: ${{ needs.prepare.outputs.source-sha }}
+      # Guarded on the event so a push passes false rather than an empty value
+      # to a boolean input; the sequence's deploy-flags step applies the same
+      # guard before it reads them.
+      force-maintenance: ${{ github.event_name == 'workflow_dispatch' && inputs.force-maintenance }}
+      skip-maintenance: ${{ github.event_name == 'workflow_dispatch' && inputs.skip-maintenance }}
+      hold-maintenance: ${{ github.event_name == 'workflow_dispatch' && inputs.hold-maintenance }}
+    secrets:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # A job whose condition does not hold is skipped, and a skipped job leaves
+  # the run green. This job is what makes a deploy that did not happen show up
+  # as a failed run rather than a successful build. Pull requests are meant to
+  # stop after prepare, so they are not held to it.
+  confirm-deploy:
+    name: Confirm the deploy ran
+    needs: [prepare, deploy]
+    if: always() && github.event_name != 'pull_request' && needs.prepare.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require a completed deploy
+        env:
+          RESULT: ${{ needs.deploy.result }}
+        run: |
+          if [ "$RESULT" != "success" ]; then
+            echo "::error::prepare succeeded but deploy was '$RESULT'; nothing was deployed."
+            exit 1
+          fi
+          echo "deploy completed"
