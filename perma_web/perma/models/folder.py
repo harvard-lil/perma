@@ -147,6 +147,23 @@ class Folder(TreeNode):
                 )[:1]
             )
 
+        def update_registrar_sponsored_link_counts(links, old_sponsored_by_id, new_sponsored_by_id):
+            """ update Registrar.sponsored_link_count after folder movements change sponsorship """
+            from .registrar import Registrar
+
+            if old_sponsored_by_id == new_sponsored_by_id:
+                return
+
+            num_of_links = links.count()
+            if not num_of_links:
+                return
+
+            if old_sponsored_by_id:
+                Registrar.objects.filter(pk=old_sponsored_by_id).update(sponsored_link_count=F('sponsored_link_count') - num_of_links)
+
+            if new_sponsored_by_id:
+                Registrar.objects.filter(pk=new_sponsored_by_id).update(sponsored_link_count=F('sponsored_link_count') + num_of_links)
+
         def update_parents_cached_has_children(parent_id=None, previous_parent_id=None):
             if parent_id:
                 Folder.objects.filter(
@@ -227,12 +244,16 @@ class Folder(TreeNode):
                 super().save(*args, **kwargs)
 
                 # copy shared fields from parent to this folder and all its descendants
+                shared_fields = get_shared_fields_from_parent(parent)
+                old_sponsored_by_id = self.sponsored_by_id
+                new_sponsored_by_id = shared_fields['sponsored_by_id']
                 subtree = Folder.objects.filter(id__in=subtree_ids)
-                subtree.update(**get_shared_fields_from_parent(parent))
+                subtree.update(**shared_fields)
 
                 from .link import Link
                 # update the de-normalized reference to owning org on any links in this folder's subtree
                 links = Link.objects.filter(folders__in=subtree_ids)
+                update_registrar_sponsored_link_counts(links, old_sponsored_by_id, new_sponsored_by_id)
                 links.update(organization_id=parent.organization_id)
 
                 # if any bonus links got transferred to an org or to a sponsored folder, give users their bonus credit back
