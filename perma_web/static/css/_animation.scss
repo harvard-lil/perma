@@ -1,5 +1,12 @@
 // Animation
 
+@use "sass:color";
+@use "vars-global" as *;
+
+// color.adjust, not the color.scale that Sass's own deprecation message
+// suggests: adjust is exactly equivalent to the lighten() it replaces, while
+// scale computes a different colour and would change these border values.
+
 @-webkit-keyframes success-bg {
   0% {background-color: $color-highlight;}
   20% {background-color: $color-highlight;}
@@ -12,14 +19,14 @@
 }
 @-webkit-keyframes breathe-blue {
   0% {border-color: $color-blue;}
-  30% {border-color: lighten($color-blue, 40%);}
-  45% {border-color: lighten($color-blue, 40%);}
+  30% {border-color: color.adjust($color-blue, $lightness: 40%);}
+  45% {border-color: color.adjust($color-blue, $lightness: 40%);}
   100% {border-color: $color-blue;}
 }
 @keyframes breathe-blue {
   0% {border-color: $color-blue;}
-  30% {border-color: lighten($color-blue, 40%);}
-  45% {border-color: lighten($color-blue, 40%);}
+  30% {border-color: color.adjust($color-blue, $lightness: 40%);}
+  45% {border-color: color.adjust($color-blue, $lightness: 40%);}
   100% {border-color: $color-blue;}
 }
 @-webkit-keyframes fade-blue {

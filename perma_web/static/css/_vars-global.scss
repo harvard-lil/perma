@@ -15,15 +15,15 @@ $page-margin: $grid * 2;
 //	width (breakpoints)
 //	$width-value
 
-$width-mobile: $grid * 40; 		// 320px;
-$width-xmobile: $grid * 48; 	// 376px;
-$width-tablet: 768px; 		// 640px;
-$width-desktop: 990px; 	// 1048px;
-$width-wide: 1200px; 		// 1168px;
-$width-max: $width-wide; 		// 1168px;
+$width-mobile: $grid * 40; 	// 320px
+$width-xmobile: $grid * 48; 	// 384px
+$width-tablet: 768px;
+$width-desktop: 990px;
+$width-wide: 1200px;
+$width-max: $width-wide; 	// 1200px
 
 $width-column: $width-mobile;
-$width-sidebar: $grid * 22; 	// 172px;
+$width-sidebar: $grid * 22; 	// 176px
 
 $width-max-measure: 55em;
 

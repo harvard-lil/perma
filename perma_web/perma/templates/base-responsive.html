@@ -43,17 +43,21 @@
       <a href="#main-skip-target" class="skip-link">Skip to main content</a>
       <a href="#footer-skip-target" class="skip-link">Skip to footer</a>
       <header class="_default">
-        <nav class="navbar navbar-default navbar-static-top" aria-labelledby="upper_right_menu_name">
+        {% comment %}
+          navbar-expand-sm reproduces Bootstrap 3's $grid-float-breakpoint: our
+          Bootstrap 5 build restores Bootstrap 3's tiers, so `sm` is 768px.
+        {% endcomment %}
+        <nav class="navbar navbar-expand-sm navbar-default" aria-labelledby="upper_right_menu_name">
           <div class="container cont-fixed">
             <div class="navbar-header">
-              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#upper_right_menu" aria-expanded="false">
-                <span class="sr-only">Toggle navigation</span>
+              <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#upper_right_menu" aria-expanded="false">
+                <span class="visually-hidden">Toggle navigation</span>
                 <span class="icon-bar" aria-hidden="true"></span>
                 <span class="icon-bar" aria-hidden="true"></span>
                 <span class="icon-bar" aria-hidden="true"></span>
               </button>
               <div class="navbar-brand logo">
-                <a href="{{ base_url }}{% url 'landing' %}">Perma.cc<span class="sr-only">Home</span><img alt="infinity symbol logo" class="infinity-logo" src="{{ STATIC_URL }}img/perma-logo-orange.svg"></a>
+                <a href="{{ base_url }}{% url 'landing' %}">Perma.cc<span class="visually-hidden">Home</span><img alt="infinity symbol logo" class="infinity-logo" src="{{ STATIC_URL }}img/perma-logo-orange.svg"></a>
               </div>
             </div>
             {% include 'includes/upper_right_menu.html' %}
@@ -72,7 +76,7 @@
             if you want to provide a template-specific skip target.
             Then, place exactly the same p tag as below in your desired location.
           {% endcomment %}
-          <p id="main-skip-target" tabindex="-1" class="sr-only">Main Content</p>
+          <p id="main-skip-target" tabindex="-1" class="visually-hidden">Main Content</p>
         {% endblock defaultSkipTarget %}
 
         {% block mainContent %}{% endblock mainContent %}
@@ -86,8 +90,8 @@
         <footer>
           <div class="container cont-fixed">
             <div class="row">
-              <div class="col col-lg-6">
-                <p id="footer-skip-target" tabindex="-1" class="sr-only">Footer</p>
+              <div class="col-12 col-lg-6">
+                <p id="footer-skip-target" tabindex="-1" class="visually-hidden">Footer</p>
                 <nav aria-label="Learn More">
                   <ul id="footer-nav">
                     <li class="footer-nav-item"><a href="{{ base_url }}{% url 'about' %}">About</a></li>
@@ -99,7 +103,7 @@
                   </ul>
                 </nav>
               </div>
-              <div class="col col-lg-6">
+              <div class="col-12 col-lg-6">
                 <nav aria-label="Terms and Conditions">
                   <ul id="boilerplate">
                     <li class="boilerplate-item"><a href="{{ base_url }}{% url 'terms_of_service' %}">Terms of Service</a></li>
