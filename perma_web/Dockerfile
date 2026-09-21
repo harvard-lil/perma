@@ -1,10 +1,15 @@
+# Node is copied from the official image rather than bootstrapped through the
+# mutable NodeSource setup script. Keep the Debian suite matched to the Python
+# base below so the glibc the binary was linked against is the one it runs on.
+FROM node:24.20.0-trixie-slim@sha256:50c3b2f6988dfc307b86e5301d69611af31f4789bdf232863b07d3b02fe55ae0 AS node
+
 # Extract Playwright version from uv.lock prior to building main image
-FROM registry.lil.tools/library/python:3.11-bookworm AS extract-playwright-version
+FROM python:3.14-slim-trixie@sha256:cae66f2ef0ec51a9891263eeee7f987dacf0a9879e8aa9353d5606e0530619a5 AS extract-playwright-version
 COPY perma_web/uv.lock /tmp/uv.lock
 RUN grep -A 1 '^name = "playwright"$' /tmp/uv.lock | grep version | cut -d'"' -f2 > /tmp/.playwright-version
 
 # Main image
-FROM registry.lil.tools/library/python:3.11-bookworm
+FROM python:3.14-slim-trixie@sha256:cae66f2ef0ec51a9891263eeee7f987dacf0a9879e8aa9353d5606e0530619a5
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     PYTHONUNBUFFERED=1 \
@@ -17,9 +22,8 @@ ENV LANG=C.UTF-8 \
 RUN mkdir -p /perma/perma_web
 WORKDIR /perma/perma_web
 
-# For fonts-roboto and ttf-mscorefonts-installer
-RUN echo "deb http://deb.debian.org/debian bookworm main contrib" > /etc/apt/sources.list \
-    && echo "deb https://deb.debian.org/debian-security bookworm-security main contrib" >> /etc/apt/sources.list \
+# ttf-mscorefonts-installer is distributed through Debian contrib.
+RUN sed -i 's/^Components: main$/Components: main contrib/' /etc/apt/sources.list.d/debian.sources \
     && echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections
 
 # Get build dependencies and packages required by the app
@@ -28,6 +32,7 @@ RUN apt-get update \
         wget \
         curl \
         bzip2 \
+        build-essential \
         gnupg \
         python3-pip \
         python3-dev \
@@ -45,10 +50,15 @@ RUN apt-get update \
         libxslt-dev
 
 # node.js
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs=20.13.0-1nodesource1
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+COPY --from=node /usr/local/include/node /usr/local/include/node
+COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx \
+    && ln -s ../lib/node_modules/corepack/dist/corepack.js /usr/local/bin/corepack
 
 # uv package manager
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.12.7@sha256:95f2aa1fe59274951cfe9b0cbc7972e879ff1004bc8945d130a32eb0dbd85945 /uv /uvx /bin/
 
 # Copy Playwright version extracted in first stage
 COPY --from=extract-playwright-version /tmp/.playwright-version /tmp/.playwright-version
@@ -87,14 +97,14 @@ RUN mkdir -p $HOME/.pki/nssdb \
 # Frontend requirements
 COPY perma_web/package.json /perma/perma_web
 COPY perma_web/npm-shrinkwrap.json /perma/perma_web
-RUN npm install \
+RUN npm ci \
     && rm package.json \
     && rm npm-shrinkwrap.json
 
 # Worker requirements
 COPY services/js-wacz/package.json /perma/services/js-wacz/package.json
 COPY services/js-wacz/package-lock.json /perma/services/js-wacz/package-lock.json
-RUN npm install --prefix /perma/services/js-wacz/ \
+RUN npm ci --prefix /perma/services/js-wacz/ \
     && rm /perma/services/js-wacz/package.json \
     && rm /perma/services/js-wacz/package-lock.json
 
@@ -103,3 +113,4 @@ COPY perma_web/pyproject.toml perma_web/uv.lock /perma/perma_web/
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 RUN uv sync --frozen
 ENV PATH="/opt/venv/bin:$PATH"
+ENV PYTHONPATH="/perma/perma_web"

@@ -3,7 +3,7 @@
 </p>
 
 <div class="row">
-  <div class="col-xs-12">
+  <div class="col-12">
     <h3 class="body-ch">Current plan (through {{ subscription.paid_through | date:"F jS, Y" }})</h3>
     <dl class="dl-horizontal">
       {% include 'includes/subscription-definition.html' with sub=subscription paid_through=False paid=True %}

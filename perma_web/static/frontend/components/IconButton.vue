@@ -38,6 +38,6 @@ const isChevron = props.icon === "chevron-down" || props.icon === "chevron-up";
       <path v-if="props.icon === 'chevron-down'" d="M6.88136 7L14 1.58065L12.5763 0L6.88136 4.26591L1.42373 0L0 1.58065L6.88136 7Z" fill="#2E76EE"/>
       <path v-if="props.icon === 'chevron-up'" d="M6.88136 0L14 5.41935L12.5763 7L6.88136 2.73409L1.42373 7L0 5.41935L6.88136 0Z" fill="#2E76EE"/>
     </svg>
-    <span class="sr-only">{{ props.name }}</span>
+    <span class="visually-hidden">{{ props.name }}</span>
   </button>
 </template>

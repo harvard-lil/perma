@@ -28,17 +28,17 @@ const props = defineProps({
         <div v-for="job in props.batchCaptureJobs.details">
           <div class="item-container" :class="{ '_isFailed': !validStates.includes(job.status) }">
             <div class="row">
-              <div v-if="!validStates.includes(job.status)" class="link-desc col col-sm-6 col-md-60">
+              <div v-if="!validStates.includes(job.status)" class="link-desc col-12 col-sm-6 col-md-60">
                 <div class="failed_header">{{ job.message }}</div>
                 <div class="item-title">We're unable to create your Perma Link.</div>
                 <div class="item-date">submitted: {{ job.submitted_url }}</div>
               </div>
-              <div v-else class="link-desc col col-sm-6 col-md-60">
+              <div v-else class="link-desc col-12 col-sm-6 col-md-60">
                 <div v-if="job.user_deleted" class="failed_header">Deleted</div>
                 <div class="item-title">{{ job.title }}</div>
                 <div class="item-subtitle">{{ job.submitted_url }}</div>
               </div>
-              <div class="link-progress col col-sm-6 col-md-40 align-right item-permalink">
+              <div class="link-progress col-12 col-sm-6 col-md-40 align-right item-permalink">
                 <span v-if="job.status === 'pending'">Queued.</span>
                 <ProgressBar v-if="job.status === 'in_progress'" :progress="`${job.progress}%`" />
                 <span v-if="job.status === 'completed'">

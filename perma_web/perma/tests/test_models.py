@@ -5,7 +5,7 @@ from django.conf import settings
 from django.test import override_settings
 from django.utils import timezone
 
-from unittest.mock import patch, sentinel
+from unittest.mock import Mock, patch, sentinel
 
 from perma.exceptions import PermaPaymentsCommunicationException, InvalidTransmissionException
 from perma.models import (
@@ -17,6 +17,11 @@ from perma.utils import pp_date_from_post, tz_datetime, first_day_of_next_month,
 
 from conftest import GENESIS
 import pytest
+
+
+class TimezoneStub:
+    def __init__(self):
+        self.now = Mock()
 
 
 #
@@ -249,7 +254,7 @@ def test_one_time_link_limit_new(user_with_links):
     assert user_with_links.links_remaining_in_period('once', 5) ==  0
 
 
-@patch('perma.models.user.timezone', autospec=True)
+@patch('perma.models.user.timezone', new_callable=TimezoneStub)
 def test_one_time_link_limit_with_midmonth_subscription1(mocked_timezone, user_with_links_this_month_before_the_15th):
     fifteenth_of_month = timezone.now().replace(day=15)
     mocked_timezone.now.return_value = fifteenth_of_month
@@ -265,7 +270,7 @@ def test_one_time_link_limit_with_midmonth_subscription1(mocked_timezone, user_w
     assert mocked_timezone.now.call_count == 2
 
 
-@patch('perma.models.user.timezone', autospec=True)
+@patch('perma.models.user.timezone', new_callable=TimezoneStub)
 def test_one_time_link_limit_with_midmonth_subscription2(mocked_timezone, user_with_links_this_month_before_the_15th):
     fifteenth_of_month = timezone.now().replace(day=15)
     fifth_of_month = timezone.now().replace(day=5)
@@ -288,7 +293,7 @@ def test_monthly_link_limit(user_with_links):
     assert user_with_links.links_remaining_in_period('monthly', 2) == 0
 
 
-@patch('perma.models.user.timezone', autospec=True)
+@patch('perma.models.user.timezone', new_callable=TimezoneStub)
 def test_monthly_link_limit_with_midmonth_subscription1(mocked_timezone, user_with_links_this_month_before_the_15th):
     fifteenth_of_month = timezone.now().replace(day=15)
     mocked_timezone.now.return_value = fifteenth_of_month
@@ -303,7 +308,7 @@ def test_monthly_link_limit_with_midmonth_subscription1(mocked_timezone, user_wi
     assert mocked_timezone.now.call_count == 2
 
 
-@patch('perma.models.user.timezone', autospec=True)
+@patch('perma.models.user.timezone', new_callable=TimezoneStub)
 def test_monthly_link_limit_with_midmonth_subscription2(mocked_timezone, user_with_links_this_month_before_the_15th):
     fifteenth_of_month = timezone.now().replace(day=15)
     fifth_of_month = timezone.now().replace(day=5)
@@ -1650,4 +1655,3 @@ def test_move_subfolder_with_bonus_links_to_org_folder(complex_user_with_bonus_l
     # the link should no longer be a bonus link
     bonus_link.refresh_from_db()
     assert not bonus_link.bonus_link
-

@@ -22,7 +22,9 @@ This document contains tips and tricks for working with Perma.
 - [Code style and techniques](#code-style-and-techniques)
   - [User roles and permissions tests](#user-roles-and-permissions-tests)
   - [Sending email](#sending-email)
+  - [Error reporting and personal data](#error-reporting-and-personal-data)
   - [Asset pipeline](#asset-pipeline)
+  - [Front-end styles, Bootstrap, and browser support](#front-end-styles-bootstrap-and-browser-support)
   - [Managing static files and user-generated files](#managing-static-files-and-user-generated-files)
   - [Hosting fonts locally](#hosting-fonts-locally)
 - [Schema and data migrations](#schema-and-data-migrations)
@@ -196,6 +198,16 @@ d invoke lock --args "--upgrade-package package_name"
 
 ### Update the Node dependencies
 
+The image supplies Node 24 LTS and the npm it ships with, copied from a
+digest-pinned official Node image rather than installed from a setup script.
+`package.json` declares matching `engines` and `packageManager`, and
+`perma_web/.npmrc` sets `engine-strict=true`, so an install on an unsupported
+Node or npm fails instead of silently proceeding.
+
+`npm-shrinkwrap.json` is the lockfile. Image builds install from it with
+`npm ci`; use `npm ci` yourself whenever you want a build to match the lockfile
+exactly rather than resolve fresh versions.
+
 Install new packages: `d npm install --save-dev package_name`
 Uninstall packages: `d npm uninstall package_name`
 
@@ -204,6 +216,27 @@ Update a single package:
 - Run: `d npm update package_name`
 
 Update all dependencies: `d npm update`
+
+After changing dependencies, rebuild the image (`docker compose build web`) so
+its baked `node_modules` matches, and recreate the `node_modules` volume if the
+container needs to pick the change up.
+
+#### The js-wacz worker has its own manifest
+
+`services/js-wacz/` is a second, independent npm project holding only
+`@harvard-lil/js-wacz`, which `perma/celery_tasks.py` shells out to for WARC
+to WACZ conversion. It is **not** part of `perma_web`'s dependency tree and is
+not covered by `npm-shrinkwrap.json`.
+
+Upgrading it always requires an image rebuild. `services/` is not bind-mounted
+into the `web` container, and `perma_web/Dockerfile` deletes both manifests
+right after running `npm ci --prefix /perma/services/js-wacz/`, so the container
+holds only the installed `node_modules` and editing the manifest alone changes
+nothing you can run. Bump the version, then `docker compose build web`.
+
+Note also that `docker-compose.override.yml`'s `x-hash-paths` — the file list
+whose hashes drive the web image tag — does not include these manifests, so a
+worker-only dependency change does not by itself cause CI to rebuild the image.
 
 ### Migrate the database
 
@@ -268,6 +301,41 @@ We recommend addressing the email to user.raw_email rather than user.email (whic
 
 On the development server, emails are dumped to the standard out courtesy of EMAIL_BACKEND in settings_dev.py.
 
+### Error reporting and personal data
+
+Perma runs two Sentry SDKs — the Python SDK for Django and Celery, initialized
+in `perma/settings/utils/post_processing.py`, and `@sentry/browser` for the
+front end, initialized at the top of `static/js/global.js`. **Neither is
+configured to send personally identifying data, and that is deliberate. Prefer
+privacy over diagnostic richness when the two conflict.**
+
+On the Python side this is explicit: `sentry_sdk.init()` is passed
+`send_default_pii=settings['SENTRY_SEND_DEFAULT_PII']`, and
+`SENTRY_SEND_DEFAULT_PII` defaults to `False` in `settings_common.py`. With it
+off, Sentry does not attach the authenticated user or the request's client IP
+to an event.
+
+On the browser side the equivalent option, `sendDefaultPii`, is **deliberately
+not set at all**. Two consequences are worth knowing before you change that
+`Sentry.init` call:
+
+- From `@sentry/browser` v9 onward, leaving `sendDefaultPii` unset also stops
+  Sentry's *backend* from inferring the reporter's IP address from the incoming
+  request. Earlier majors inferred it by default. We are on v10, so this is in
+  effect: front-end error reports no longer carry IP addresses, where under the
+  v7 SDK they did. That is a change we want, not a regression to work around —
+  setting `sendDefaultPii: true` to restore the old inference would be a privacy
+  decision, and the project's answer to it is no.
+- `SENTRY_SEND_DEFAULT_PII` is **not** in `TEMPLATE_VISIBLE_SETTINGS`, so it
+  never reaches the browser through `js_config.html`. Wiring the front end to a
+  PII flag would mean widening that allow-list on purpose — a deliberate act,
+  not something that can happen by accident while editing front-end code.
+
+If you have a diagnostic problem that seems to need PII, raise it rather than
+flipping the flag: the usual answer is more context on the event (a release
+tag, a route name, an anonymous identifier) rather than the user's identity or
+address.
+
 ### Asset pipeline
 
 Front-end assets are processed and packaged by Webpack. Assets can be compiled with this command:
@@ -278,7 +346,194 @@ docker compose exec web npm run build
 
 This is automatically run in the background by `d invoke run`, so there is usually no need to run it manually.
 
+Vitest uses Vite only to transform test files; it does not replace Webpack or
+generate application assets.
+
+Webpack 5 handles fonts and images through asset modules, inlining anything
+under 10 KB as a `data:` URI and emitting the rest as content-hashed files.
+Bundle names and paths reach Django through `webpack-bundle-tracker`, which
+writes `webpack-stats.json` for `django-webpack-loader` to read; the build
+contract both sides depend on is covered by `spec/build/webpack-contract.spec.js`
+and `perma/tests/test_asset_pipeline.py`.
+
+Because the entry bundles use Vue's `esm-bundler` build, `webpack.config.js`
+sets `optimization.nodeEnv` explicitly. Webpack 5 no longer shims Node globals,
+so without it every page using the Vue app dies on `process is not defined`.
+
 Compiled bundles (`perma_web/static/bundles/` and `perma_web/webpack-stats.json`) are build output, but they are still committed: the Salt hosts deploy from a checkout and never build. `perma_web/frontend_assets.py` rebuilds them when their inputs change, and `d invoke run` and `d pytest` call it; `d invoke dev.build-frontend` runs it by hand. CI on the Salt branches commits the rebuilt copies as it always has, and the container image ignores all of it and compiles its own during the build. Once Salt no longer deploys Perma these files leave the repository.
+
+
+
+### Front-end styles, Bootstrap, and browser support
+
+#### Supported browsers
+
+`perma_web/browserslist` is the single declaration of what Perma supports:
+
+```
+last 3 versions
+not ie < 10
+```
+
+Two tools read it, and nothing else should hard-code a browser assumption:
+Autoprefixer (via `postcss-loader`) uses it to decide which CSS prefixes to
+emit, and `@babel/preset-env` uses it to decide which JavaScript syntax to
+transpile and which `core-js` polyfills to pull in. Widening or narrowing
+support is therefore a one-line change here, followed by a rebuild — but it
+also changes bundle size and output, so treat it as a product decision rather
+than a cleanup.
+
+This list is the yardstick for dropping legacy shims. A compatibility library
+should not be kept without an identified browser in this range that needs it;
+FastClick was removed on exactly those grounds.
+
+#### Responsive breakpoints
+
+Perma's own breakpoints live in `static/css/_vars-global.scss` and are built
+from an 8-pixel base unit (`$grid`):
+
+| Variable | Computed | Mixin |
+| --- | --- | --- |
+| `$width-mobile` | 320px | `respond-mobile` |
+| `$width-xmobile` | 384px | `respond-xmobile` |
+| `$width-tablet` | 768px | `respond-tablet` |
+| `$width-desktop` | 990px | `respond-desktop` |
+| `$width-wide` / `$width-max` | 1200px | `respond-wide` / `respond-max` |
+
+Use the `respond-*` mixins from `_mixins-global.scss` rather than writing raw
+media queries, so a breakpoint change stays a one-line edit. Note that some
+trailing comments beside these declarations are stale and disagree with the
+computed values — the arithmetic is authoritative.
+
+#### Bootstrap
+
+Perma uses **Bootstrap 5.3** (`bootstrap`, with `@popperjs/core` as its
+declared peer), compiled from source rather than consumed as a prebuilt CSS
+file. Three things about the setup are non-obvious:
+
+**Bootstrap 3's grid tiers are deliberately restored.** Bootstrap 5 ships
+`sm`/`md`/`lg` at 576/768/992px; `_bootstrap-custom.scss` overrides
+`$grid-breakpoints` and `$container-max-widths` back to 768/992/1200px so
+`.col-sm-*` keeps meaning what Perma's markup has always meant by it. Those
+overrides **must** precede `@import "~bootstrap/scss/variables"`, which
+declares the defaults with `!default`.
+
+**Only the components Perma uses are imported.** `_bootstrap-custom.scss`
+(main site) and `_bootstrap-custom-archive.scss` (archive playback pages) each
+import an explicit list of Bootstrap partials. Accordion, badge, breadcrumb,
+button-group, card, carousel, list-group, offcanvas, placeholders, popover,
+spinners, toasts and tooltip are all omitted because nothing uses them; adding
+markup that needs one means adding its `@import` too. The archive entry also
+omits `transitions`, which is intentional and pinned by a test — the archive
+pages have never animated their collapse panels.
+
+**`_bootstrap-mod.scss` carries shims for classes Bootstrap 5 dropped.**
+`.hidden`, `.caret`, `.dl-horizontal` and `.btn-default` are reproduced from
+Bootstrap 3's compiled output so that markup and inline JavaScript still
+depending on them keeps working. Each has a comment saying who depends on it.
+Prefer migrating a caller to a Bootstrap 5 equivalent over adding a new shim.
+
+Bootstrap's JavaScript is pulled in as individual ES modules in
+`static/js/global.js` (`bootstrap/js/dist/dropdown`, `collapse`, `tab`), which
+register their own `data-bs-*` data-API. Note that these dispatch **native**
+events, not jQuery ones: a listener for `shown.bs.collapse` must be registered
+with `addEventListener`, because jQuery would parse that name as event `shown`
+in namespaces `bs` and `collapse` and never fire.
+
+#### Sass
+
+Perma's own partials use the Sass module system (`@use` / `@forward`), with
+`_perma-imports.scss` as the aggregator. Two constraints are worth knowing
+before refactoring:
+
+- **`@extend` cannot cross a `@use` module boundary.** Perma `@extend`s
+  Bootstrap classes such as `.container`, so the entry stylesheets must reach
+  Bootstrap through `@import`, not `@use`. Switching them compiles cleanly and
+  silently changes the generated rules.
+- **`sassOptions.quietDeps` is still set** in `webpack.config.js`. Bootstrap
+  5.3's own SCSS is written with `@import` throughout, so without the flag the
+  build reports far more deprecations from inside `node_modules` than from
+  Perma's code. `quietDeps` silences dependency files only, so Perma-owned
+  deprecations still surface and should still be fixed. The flag can go when
+  Bootstrap moves to `@use`.
+
+Use `color.adjust($c, $lightness: $n)` to replace a deprecated `lighten()`.
+Sass's own deprecation message suggests `color.scale()`, which computes a
+different colour.
+
+#### jQuery and the remaining legacy libraries
+
+Perma is on **jQuery 4**. Nothing imports it by name: `webpack.ProvidePlugin`
+injects `$`, `jQuery`, and `window.jQuery` into every module that references
+them.
+
+**That injection must name the default export** — `jQuery: ["jquery", "default"]`,
+not `jQuery: "jquery"`. jQuery 4 added an `exports` map to its package, so
+webpack now resolves the injection to the ESM build, and a bare module name
+provides the *module namespace object* rather than jQuery itself. The symptom is
+`$.ajaxSetup is not a function` thrown from `global.js` on every page, with a
+green build and no warning. jsTree's own CommonJS `require("jquery")` resolves
+through jQuery's `bundler-require-wrapper` to the same single instance, so both
+entry points share one jQuery.
+
+**jQuery 4 also throws when imported without a DOM.** jQuery 3 exported a
+factory in that case; jQuery 4 does not, so `import "jquery"` in a Node-environment
+test fails at module load with `jQuery requires a window with a document`. That
+is why `spec/vitest.setup.js` imports it only when `document` exists — the
+Webpack build contract runs under `@vitest-environment node`.
+
+**`package.json` carries an `overrides` entry** forcing `jstree`'s `jquery`
+peer to the top-level version. jsTree 3.3.x declares `jquery: ^3.5.0`, which
+excludes jQuery 4. Without the override npm does not fail — it silently nests a
+second jQuery 3 under `node_modules/jstree`, and jsTree then registers
+`$.fn.jstree` on a different instance from the one the application holds. The
+override is safe because jsTree's source uses none of the APIs jQuery 4 removed;
+recheck that if jsTree is upgraded. After any jQuery-adjacent change, confirm
+`npm ls jquery` reports a single deduped instance.
+
+**spin.js 4 needs its stylesheet imported.** `Spinner.vue` imports
+`spin.js/spin.css` alongside the named `{ Spinner }` export, because v4 animates
+via CSS `@keyframes` shipped in that file rather than from JavaScript. Drop the
+import and the spinner still mounts and raises nothing — it just stops moving.
+`spec/build/webpack-contract.spec.js` asserts the built `dashboard.css` contains
+`@keyframes spinner-line-fade-default` for exactly this reason. For the same
+reason `Spinner.vue` expresses reduced motion as `animation: 'none'` rather than
+`speed: 0`, which merely emitted an invalid duration the browser discarded.
+
+**Removed, with no replacement needed.** `jquery-form`, `waypoints`, and
+`modernizr` were declared but imported by nothing; `resolve-url-loader` was
+removed after building with and without it produced byte-identical CSS, source
+maps, and emitted assets. It rewrites relative `url()`s to resolve against the
+partial that wrote them rather than the entry, and every Perma `.scss` lives in
+one directory, so the two resolutions agree. Restore it if SCSS ever moves into
+subdirectories.
+
+#### Accessibility and UI behavior are covered by tests
+
+The Playwright suite in `functional_tests/` pins the front-end contract by
+behavior and semantics — accessible name, role, `aria-expanded`, focus order,
+computed geometry — rather than by framework class names, so that a future
+framework upgrade has to preserve behavior instead of markup:
+
+| File | Covers |
+| --- | --- |
+| `test_ui_navigation.py` | navbar disclosure, account dropdown, skip links, landmark roles |
+| `test_ui_forms.py` | label association, readable errors, `aria-invalid` |
+| `test_ui_components.py` | tabs, collapse panels, dialogs, pagination, table semantics |
+| `test_ui_responsive.py` | breakpoint boundaries, grid stacking, no horizontal scroll |
+| `test_ui_computed_style.py` | typography, link states, box model, button colour, z-index |
+| `test_ui_archive.py` | archive details tray, view-mode toggle, playback structure |
+| `test_ui_touch.py` | tap activation under mobile emulation |
+
+When changing UI markup, expect to keep these passing unmodified. If an
+assertion has to change, that is a product-visible behavior change and should
+be treated as one.
+
+Note that `test_ui_touch.py` builds its own browser contexts with an iOS Safari
+user agent. That is not decoration: libraries that gate themselves on
+`navigator.userAgent` can be entirely inert under the default Chromium UA, so a
+touch test written without the override can pass whether or not the code under
+test is even running.
 
 ### Managing static files and user-generated files
 
@@ -405,6 +660,17 @@ Python unit tests live in `perma/tests`, `api/tests`, etc.
 Functional tests live in `functional_tests/`.
 
 JavaScript tests live in `spec/`.
+
+`npm test` runs the Vitest suite in JSDOM. Browser behavior remains covered by
+the Playwright functional suite in `functional_tests/`; Vitest does not require
+a local browser. JavaScript linting and type-checking are not currently
+configured.
+
+The `test_ui_*.py` files in `functional_tests/` are the front-end contract:
+they pin UI behavior and accessibility semantics rather than framework markup,
+so a CSS-framework upgrade has to preserve behavior. See
+[Front-end styles, Bootstrap, and browser support](#front-end-styles-bootstrap-and-browser-support)
+before changing them.
 
 See [Common tasks and commands](#common-tasks-and-commands) for commands to run the tests.
 

@@ -31,6 +31,8 @@ INPUT_PATHS = [
     "package.json",
     "npm-shrinkwrap.json",
     "webpack.config.js",
+    "browserslist",
+    ".npmrc",
 ]
 
 # Written by npm run build, via webpack-bundle-tracker in webpack.config.js.

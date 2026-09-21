@@ -40,7 +40,7 @@ application = DispatcherMiddleware(
 
 # Middleware to whitelist X-Forwarded-For proxy IP addresses
 if perma.settings.TRUSTED_PROXIES:
-    from netaddr import IPNetwork
+    from netaddr import AddrFormatError, IPNetwork
     from werkzeug.wrappers import Response
     class ForwardedForWhitelistMiddleware:
 
@@ -52,6 +52,12 @@ if perma.settings.TRUSTED_PROXIES:
             response = Response(reason, 400)
             return response(environ, start_response)
 
+        def is_trusted_proxy_ip(self, proxy_ip, whitelist):
+            try:
+                return any(proxy_ip in trusted_ip_range for trusted_ip_range in whitelist)
+            except AddrFormatError:
+                return False
+
         def __call__(self, environ, start_response):
             # Parse X-Forwarded-For header into list of IPs.
             # First IP in list is client IP, then each proxy up to the closest one.
@@ -61,7 +67,7 @@ if perma.settings.TRUSTED_PROXIES:
             proxy_ips = [x for x in [x.strip() for x in forwarded_for.split(',')] if x] + [remote_addr]
 
             # The request must be a health check coming from the load balancer --
-            if len(proxy_ips) == 1 and any(proxy_ips[0] in trusted_ip_range for trusted_ip_range in self.whitelists[0]):
+            if len(proxy_ips) == 1 and self.is_trusted_proxy_ip(proxy_ips[0], self.whitelists[0]):
                 environ['REMOTE_ADDR'] = proxy_ips[0]
                 return self.app(environ, start_response)
             # OR the list must include at least one IP per proxy in our whitelists,
@@ -72,7 +78,7 @@ if perma.settings.TRUSTED_PROXIES:
             # Each of the final IPs in the list must match the relevant whitelist.
             # If a whitelist is empty, any IP is accepted for that proxy.
             for whitelist, proxy_ip in zip(self.whitelists, proxy_ips[-len(self.whitelists):]):
-                if whitelist and not any(proxy_ip in trusted_ip_range for trusted_ip_range in whitelist):
+                if whitelist and not self.is_trusted_proxy_ip(proxy_ip, whitelist):
                     return self.bad_request(environ, start_response)
 
             # Set REMOTE_ADDR to client IP reported by proxies.
