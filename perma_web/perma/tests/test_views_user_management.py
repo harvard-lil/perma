@@ -7,14 +7,15 @@ from random import random, getrandbits
 import re
 
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timezone
 from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.conf import settings
-from django.db import IntegrityError
+from django.db import IntegrityError, connection
 from django.test import override_settings
+from django.test.utils import CaptureQueriesContext
 from django.test.client import RequestFactory
 from django.utils.html import escape
 
@@ -329,6 +330,113 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual("Found: 1 user", count)
 
         # status filter tested in test_registrar_user_list_filters
+
+    def _organization_scope_scenario(self):
+        """A historical member and a current member both have outside affiliations."""
+        deleted = Organization.objects.create(name='Historical scope', registrar=self.registrar, user_deleted=True)
+        historical = LinkUser.objects.create(email='historical-scope@example.com', is_active=True, is_confirmed=True)
+        current = LinkUser.objects.create(email='current-scope@example.com', is_active=True, is_confirmed=True)
+        visible_expiry = datetime(2030, 1, 1, tzinfo=timezone.utc)
+        outside_expiry = datetime(2031, 1, 1, tzinfo=timezone.utc)
+        historical.organizations.add(deleted, self.unrelated_organization)
+        UserOrganizationAffiliation.objects.create(user=current, organization=self.organization, expires_at=visible_expiry)
+        UserOrganizationAffiliation.objects.create(user=current, organization=self.unrelated_organization, expires_at=outside_expiry)
+        return historical, current, visible_expiry, outside_expiry
+
+    def test_organization_user_list_scopes_current_affiliations(self):
+        historical, current, _, _ = self._organization_scope_scenario()
+        for viewer in [self.registrar_user, self.organization_user]:
+            with self.subTest(viewer=viewer.pk):
+                response = self.get('user_management_manage_organization_user', user=viewer,
+                                    request_kwargs={'data': {'status': 'active'}})
+                self.assertNotContains(response, historical.email)
+                self.assertContains(response, current.email)
+                listed = next(user for user in response.context['users'] if user.pk == current.pk)
+                with self.assertNumQueries(0):
+                    self.assertEqual(listed.visible_organizations, [self.organization])
+                # Searching an outside affiliation must not reveal that association.
+                response = self.get('user_management_manage_organization_user', user=viewer,
+                                    request_kwargs={'data': {'q': self.unrelated_organization.name}})
+                self.assertNotContains(response, current.email)
+
+    def test_organization_user_exports_scope_affiliation_fields(self):
+        historical, current, visible_expiry, outside_expiry = self._organization_scope_scenario()
+        for viewer in [self.registrar_user, self.organization_user, self.admin_user]:
+            for export_format in ['csv', 'json']:
+                with self.subTest(viewer=viewer.pk, format=export_format):
+                    response = self.get('user_management_manage_organization_user_export_user_list', user=viewer,
+                                        request_kwargs={'data': {'format': export_format, 'status': 'active'}})
+                    records = json.loads(response.content) if export_format == 'json' else list(csv.DictReader(StringIO(response.content.decode())))
+                    current_records = [record for record in records if record['email'] == current.email]
+                    expected = {(self.organization.name, str(visible_expiry.year))}
+                    if viewer.is_staff:
+                        expected.add((self.unrelated_organization.name, str(outside_expiry.year)))
+                    else:
+                        self.assertFalse(any(record['email'] == historical.email for record in records))
+                    self.assertEqual({(record['organization_name'], record['affiliation_expires_at'][:4]) for record in current_records}, expected)
+                    self.assertEqual(len(current_records), len(expected))
+                    self.assertFalse(any(record['organization_name'] == 'Historical scope' for record in records))
+
+    def test_organization_user_filters_cannot_cross_scope(self):
+        self._organization_scope_scenario()
+        for view in ['user_management_manage_organization_user', 'user_management_manage_organization_user_export_user_list']:
+            for params in [{'org': self.unrelated_organization.pk}, {'registrar': self.unrelated_registrar.pk}]:
+                with self.subTest(view=view, params=params):
+                    self.get(view, user=self.registrar_user, request_kwargs={'data': params}, require_status_code=404)
+        # Staff may see both affiliations, but requested filters must match one organization.
+        self.get('user_management_manage_organization_user', user=self.admin_user,
+                 request_kwargs={'data': {'org': self.unrelated_organization.pk, 'registrar': self.registrar.pk}}, require_status_code=404)
+
+    def test_organization_user_export_respects_org_and_registrar_filters(self):
+        historical, current, _, _ = self._organization_scope_scenario()
+        for params in [{'org': self.organization.pk}, {'registrar': self.registrar.pk}]:
+            with self.subTest(params=params):
+                response = self.get('user_management_manage_organization_user_export_user_list', user=self.admin_user,
+                                    request_kwargs={'data': {**params, 'format': 'json'}})
+                records = json.loads(response.content)
+                self.assertFalse(any(record['email'] == historical.email for record in records))
+                current_records = [record for record in records if record['email'] == current.email]
+                self.assertEqual([record['organization_name'] for record in current_records], [self.organization.name])
+
+    def test_organization_user_page_prefetch_does_not_grow_queries_per_user(self):
+        user = LinkUser.objects.create(email='page-scope-0@example.com')
+        user.organizations.add(self.organization)
+        self.log_in_user(self.registrar_user)
+        params = {'data': {'q': 'page-scope'}}
+        # Warm framework caches before comparing one row to eleven rows.
+        self.get('user_management_manage_organization_user', request_kwargs=params)
+        with CaptureQueriesContext(connection) as first:
+            response = self.get('user_management_manage_organization_user', request_kwargs=params)
+        self.assertEqual(len(response.context['users']), 1)
+        for i in range(1, 11):
+            user = LinkUser.objects.create(email=f'page-scope-{i}@example.com')
+            user.organizations.add(self.organization)
+        with CaptureQueriesContext(connection) as second:
+            response = self.get('user_management_manage_organization_user', request_kwargs=params)
+        self.assertEqual(len(response.context['users']), 11)
+        self.assertEqual(len(first), len(second))
+
+    def test_organization_user_search_and_export_keep_same_affiliation(self):
+        _, current, visible_expiry, _ = self._organization_scope_scenario()
+        another = Organization.objects.create(name='Scoped Multiword Journal', registrar=self.registrar)
+        second_expiry = datetime(2032, 1, 1, tzinfo=timezone.utc)
+        UserOrganizationAffiliation.objects.create(user=current, organization=another, expires_at=second_expiry)
+        for params, expected_name, expected_expiry in [
+            ({'q': 'Scoped Multiword'}, another.name, second_expiry),
+            ({'org': self.organization.pk}, self.organization.name, visible_expiry),
+        ]:
+            with self.subTest(params=params):
+                response = self.get('user_management_manage_organization_user', user=self.registrar_user,
+                                    request_kwargs={'data': params})
+                listed = next(user for user in response.context['users'] if user.pk == current.pk)
+                self.assertEqual([org.name for org in listed.visible_organizations],
+                                 [self.organization.name, another.name] if 'q' in params else [expected_name])
+                response = self.get('user_management_manage_organization_user_export_user_list', user=self.registrar_user,
+                                    request_kwargs={'data': {**params, 'format': 'json'}})
+                records = [record for record in json.loads(response.content) if record['email'] == current.email]
+                self.assertEqual(len(records), 1)
+                self.assertEqual(records[0]['organization_name'], expected_name)
+                self.assertEqual(records[0]['affiliation_expires_at'][:4], str(expected_expiry.year))
 
     def test_org_export_user_list(self):
         expected_results = {
