@@ -720,3 +720,10 @@ VIEW_SCHEMA = False
 #     },
 # }
 CUSTOM_EMAILS_FOR_REGISTRAR = {}
+
+# History is retained primarily for audit review. Avoid date-only indexes and
+# their write cost unless a measured history-query workload requires them.
+SIMPLE_HISTORY_DATE_INDEX = False
+
+# Preserve upstream Axes migrations except the Salt-compatible column addition.
+MIGRATION_MODULES = {"axes": "perma.axes_migrations"}

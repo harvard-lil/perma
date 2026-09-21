@@ -22,21 +22,8 @@ class Migration(migrations.Migration):
             name='historicalregistrar',
             options={'get_latest_by': ('history_date', 'history_id'), 'ordering': ('-history_date', '-history_id'), 'verbose_name': 'historical registrar', 'verbose_name_plural': 'historical registrars'},
         ),
-        migrations.AlterField(
-            model_name='historicallinkuser',
-            name='history_date',
-            field=models.DateTimeField(db_index=True),
-        ),
-        migrations.AlterField(
-            model_name='historicalorganization',
-            name='history_date',
-            field=models.DateTimeField(db_index=True),
-        ),
-        migrations.AlterField(
-            model_name='historicalregistrar',
-            name='history_date',
-            field=models.DateTimeField(db_index=True),
-        ),
+        # Keep history_date unindexed: history is primarily an audit log.
+        # SIMPLE_HISTORY_DATE_INDEX=False preserves the pre-upgrade schema.
         migrations.AlterField(
             model_name='linkuser',
             name='sponsoring_registrars',
