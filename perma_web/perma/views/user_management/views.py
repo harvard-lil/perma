@@ -9,7 +9,7 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm
 from django.forms import Form
 from django.core.exceptions import PermissionDenied
-from django.db.models import Count, F, Max, Sum
+from django.db.models import Count, F, Max, Prefetch, Sum
 from django.db.models.functions import Coalesce, Greatest
 from django.db.models.query import QuerySet
 from django.http import (
@@ -391,7 +391,7 @@ def manage_organization_user(request):
 @user_passes_test_or_403(allow_staff_registrar_or_org_user)
 def manage_organization_user_export_user_list(request: HttpRequest):
     """Return a file listing users across organizations."""
-    # Get query results via list_sponsored_users
+    # Use the same authorized affiliations as the user list.
     field_names = [
         'email',
         'first_name',
@@ -403,8 +403,8 @@ def manage_organization_user_export_user_list(request: HttpRequest):
     ]
     records = list_users_in_group(request, 'organization_user', export=True)
     org_users = records.annotate(
-        organization_name=F('organizations__name'),
-        affiliation_expires_at=F('userorganizationaffiliation__expires_at'),
+        organization_name=F('visible_organization_name'),
+        affiliation_expires_at=F('visible_affiliation_expires_at'),
     ).values(*field_names)
     filename = 'perma-organization-users'
 
@@ -468,13 +468,36 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
         Show list of users with given group name.
     """
 
-    users = LinkUser.objects.distinct().prefetch_related('organizations')  # .exclude(id=request.user.id)
+    users = LinkUser.objects.distinct().prefetch_related('organizations')
+    search_fields = ['email', 'first_name', 'last_name', 'organizations__name']
+    if group_name == 'organization_user':
+        # Scope the association itself: separate M2M filters can match different
+        # organizations, including a historical membership in a deleted one.
+        visible_orgs = Organization.objects.all()
+        if not request.user.is_staff:
+            if request.user.is_registrar_user():
+                visible_orgs = visible_orgs.filter(registrar_id=request.user.registrar_id)
+            else:
+                visible_orgs = visible_orgs.filter(pk__in=request.user.organizations.all())
+        org_filter = request.GET.get('org', '')
+        if org_filter:
+            visible_orgs = visible_orgs.filter(pk=org_filter)
+        registrar_filter = request.GET.get('registrar', '')
+        if registrar_filter:
+            visible_orgs = visible_orgs.filter(registrar_id=registrar_filter)
+        users = users.filter(userorganizationaffiliation__organization__in=visible_orgs).alias(
+            # Bind search/export fields to this join before later filters can
+            # introduce another reverse-relation join.
+            visible_organization_name=F('userorganizationaffiliation__organization__name'),
+            visible_affiliation_expires_at=F('userorganizationaffiliation__expires_at'),
+        ).prefetch_related(None).prefetch_related(Prefetch('organizations', queryset=visible_orgs, to_attr='visible_organizations'))
+        search_fields[-1] = 'visible_organization_name'
 
     # handle sorting
     users, sort = apply_sort_order(request, users, valid_member_sorts)
 
     # handle search
-    users, search_query = apply_search_query(request, users, ['email', 'first_name', 'last_name', 'organizations__name'])
+    users, search_query = apply_search_query(request, users, search_fields)
 
     registrar_filter = request.GET.get('registrar', '')
 
@@ -490,13 +513,12 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
         registrars = Registrar.objects.filter(status__in=['pending', 'approved']).order_by('name')
     elif request.user.is_registrar_user():
         if group_name == 'organization_user':
-            users = users.filter(organizations__registrar=request.user.registrar)
             orgs = Organization.objects.filter(registrar_id=request.user.registrar_id).order_by('name')
         elif group_name == 'sponsored_user':
             users = users.filter(sponsoring_registrars=request.user.registrar)
         else:
             users = users.filter(registrar=request.user.registrar)
-    elif request.user.is_organization_user:
+    elif request.user.is_organization_user and group_name != 'organization_user':
         users = users.filter(organizations__in=request.user.organizations.all())
 
     # apply group filter
@@ -506,10 +528,7 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
         users = users.exclude(registrar_id=None).prefetch_related('registrar')
     elif group_name == 'sponsored_user':
         users = users.exclude(sponsoring_registrars=None).prefetch_related('sponsoring_registrars', 'sponsorships')
-    elif group_name == 'organization_user':
-        # careful handling to exclude users associated only with deleted orgs
-        users = users.filter(organizations__user_deleted=0)
-    else:
+    elif group_name != 'organization_user':
         # careful handling to include users associated only with deleted orgs
         users = users.filter(registrar_id=None, is_staff=False).exclude(organizations__user_deleted=0).filter(sponsorships=None)
 
@@ -531,18 +550,26 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
     # handle org filter
     org_filter = request.GET.get('org', '')
     if org_filter:
-        users = users.filter(organizations__id=org_filter)
-        org_filter = Organization.objects.get(pk=org_filter)
+        if group_name == 'organization_user':
+            org_filter = get_object_or_404(visible_orgs, pk=org_filter)
+        else:
+            users = users.filter(organizations__id=org_filter)
+            org_filter = Organization.objects.get(pk=org_filter)
 
     # handle registrar filter
     if registrar_filter:
-        if group_name == 'organization_user':
-            users = users.filter(organizations__registrar_id=registrar_filter)
-        elif group_name == 'sponsored_user':
+        if group_name == 'sponsored_user':
             users = users.filter(sponsoring_registrars__id=registrar_filter)
         elif group_name == 'registrar_user':
             users = users.filter(registrar_id=registrar_filter)
-        registrar_filter = Registrar.objects.get(pk=registrar_filter)
+        if group_name == 'organization_user' and not request.user.is_staff:
+            if request.user.is_registrar_user():
+                permitted_registrars = Registrar.objects.filter(pk=request.user.registrar_id)
+            else:
+                permitted_registrars = Registrar.objects.filter(organizations__in=request.user.organizations.all())
+            registrar_filter = get_object_or_404(permitted_registrars.distinct(), pk=registrar_filter)
+        else:
+            registrar_filter = Registrar.objects.get(pk=registrar_filter)
 
     # handle sponsorship status filter:
     sponsorship_status = request.GET.get('sponsorship_status', '')
