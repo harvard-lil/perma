@@ -69,13 +69,10 @@ def test_admin_stats_tabs_show_exactly_one_pane_at_a_time(page, ui_urls, staff_u
         if pane_id != "#celery_data":
             expect(locator).to_be_hidden()
 
-    # Role is "tab", not "link": Bootstrap 5's Tab plugin assigns role="tab" to
-    # each toggle at runtime, so the accessible role changes even though the
-    # template still renders a plain <a href>. That is upstream behaviour, not a
-    # markup choice -- see the Phase 4 plan's note on this being the one existing
-    # assertion the migration required changing.
+    # Bootstrap 3 leaves these toggles as links; select the visible control
+    # independently of the role Bootstrap 5 assigns at runtime.
     for name, pane_id in ADMIN_STATS_TABS:
-        page.get_by_role("tab", name=name, exact=True).click()
+        page.locator(".nav-tabs a").filter(has_text=name).click()
         expect(panes[pane_id]).to_be_visible()
         for other_id, other_locator in panes.items():
             if other_id != pane_id:
@@ -243,7 +240,7 @@ def test_admin_stats_days_table_exposes_table_semantics(page, ui_urls, staff_use
     log_in(page, staff_user)
     page.goto(ui_urls("admin_stats"))
 
-    page.get_by_role("tab", name="This Month's Links", exact=True).click()
+    page.locator(".nav-tabs a").filter(has_text="This Month's Links").click()
 
     table = page.locator("#days").get_by_role("table")
     expect(table).to_be_visible()

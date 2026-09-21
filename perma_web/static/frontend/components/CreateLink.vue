@@ -201,7 +201,7 @@ defineExpose({
           <button @click.prevent="handleSuppressToolsReminder" type="button"
                   class="close-browser-tools btn-link">
             <span aria-hidden="true">&times;</span>
-            <span class="visually-hidden">Close</span>
+            <span class="sr-only">Close</span>
           </button>
         </p>
       </form><!--/#linker-->

@@ -1,13 +1,14 @@
-@use "perma-imports" as *;
-
 /////////////////////////
 
 //	perma global imports
 
-// @import, not @use: see the note in style-responsive.scss -- @extend cannot
-// cross a @use boundary, and this entry point is kept in step with that one.
 @import "bootstrap-custom-archive";
+@import "_perma-imports.scss";
 
+
+//	Import some mixins from Compass
+
+@import "~compass-mixins/lib/compass/css3/opacity";
 
 
 $height-record-hed: 113px;
@@ -128,7 +129,7 @@ header {
       margin-right: 4px;
       bottom: -2px;
     }
-    .navbar-toggler .icon-bar {
+    .navbar-toggle .icon-bar {
       background-color: $color-black;
     }
     .ui-tray {
@@ -149,15 +150,6 @@ header {
 
 .row {
   margin: 0;
-
-  // Bootstrap 3's .row carried a clearfix; Bootstrap 5's is flex and dropped it.
-  // .primary-segment's columns float at desktop widths, so without this the row
-  // collapses to zero height and takes the whole archive header with it.
-  &:after {
-    display: table;
-    content: " ";
-    clear: both;
-  }
 }
 
 .record-message {
@@ -513,7 +505,7 @@ header .primary-segment {
   }
 }
 
-.primary-segment .record-col {
+.primary-segment .col {
   display: table;
   .content {
     display: table-cell;
@@ -524,7 +516,7 @@ header .primary-segment {
   }
 }
 
-.record-col._details {
+.col._details {
   padding: 0;
   text-align: center;
   order: 3;
@@ -540,7 +532,7 @@ header .primary-segment {
   }
 }
 
-.record-col._main {
+.col._main {
   padding-left: $grid * 2;
   order: 1;
   width: 100%;
@@ -573,7 +565,7 @@ header .primary-segment {
   }
 }
 
-.record-col._livepage {
+.col._livepage {
   padding: 0;
   order: 4;
   width: 50%;
@@ -600,7 +592,7 @@ a.about {
   font-size: 14px;
 }
 
-.record-col._user {
+.col._user {
   float: right;
   order: 2;
   width: 100%;
@@ -817,7 +809,7 @@ a.about {
   }
 }
 
-.nav > li > a.dropdown-toggle.show {
+.nav > li.open > a.dropdown-toggle {
   border-color: $color-background;
   background-color: $color-background;
   color: $color-blue;
@@ -976,8 +968,10 @@ li.dropdown {
   }
 }
 
-.dropdown .dropdown-menu.show {
-  display: block;
+.dropdown.open {
+  .dropdown-menu {
+    display: block;
+  }
 }
 
 .dropdown-header {
@@ -1034,12 +1028,12 @@ li.dropdown {
   overflow: visible;
   border: none;
   box-shadow: none;
-  &.show {
+  &.in {
     overflow: visible;
   }
 }
 
-.navbar-collapse.show .dropdown-menu {
+.navbar-collapse.in .dropdown-menu {
   display: block;
 }
 
@@ -1217,7 +1211,7 @@ p.fp {
 
 // toggle
 
-.navbar-toggler {
+.navbar-toggle {
   display: block;
   position: absolute;
   top: 8px;
@@ -1305,7 +1299,7 @@ body.modal-open {
   margin-right: 0;
 }
 
-.modal-backdrop.show {
+.modal-backdrop.in {
   opacity: 0.95;
   filter: alpha(opacity=95);
   background-color: white;

@@ -3,15 +3,12 @@
 //	Global imports
 
 @use "sass:math";
-@use "perma-imports" as *;
-@use "animation";
 
-// @import, not @use: Perma @extends Bootstrap classes such as .container,
-// and @extend cannot reach across a @use module boundary -- switching this
-// line silently changed 51 generated rules.
 @import "bootstrap-custom";
 @import "bootstrap-mod";
 
+@import "_perma-imports.scss";
+@import "_animation.scss";
 
 /////////////////////////////////////////
 
@@ -1700,7 +1697,7 @@ h3.page-section-title {
   max-height: 100vh;
 }
 
-.modal-backdrop.show {
+.modal-backdrop.in {
   opacity: 0.95;
   background-color: white;
 }
@@ -3329,16 +3326,12 @@ button#addlink,
 }
 
 .navbar-link,
-.navbar-toggler {
+.navbar-toggle {
   @include link-highlight($color-black, $color-orange);
 }
 
 .container > .navbar-header { // specificity for bootstrap
   z-index: 10;
-  // Bootstrap 3's navbar was block, so this filled the row and the toggler's
-  // `right` offset landed at the viewport edge. Bootstrap 5's navbar is flex,
-  // which shrinks it to its content and drags the toggler in over the logo.
-  flex: 1 1 auto;
 }
 
 .nav > li > a.navbar-link {
@@ -3428,9 +3421,6 @@ button#addlink,
   }
 }
 
-// Bootstrap 5 puts .show on the toggle itself, not on a parent. The .open
-// half stays for FolderSelect.vue, which manages its own open state.
-.dropdown-toggle.show,
 .open .dropdown-toggle {
   border-color: $color-background;
   background-color: $color-background;
@@ -3471,7 +3461,7 @@ li.dropdown {
       }
     }
   }
-  .navbar-collapse.show .navbar-nav {
+  .navbar-collapse.in .navbar-nav {
     display: block;
   }
   .navbar-create-button {
@@ -3539,9 +3529,6 @@ li.dropdown {
   }
 }
 
-// Deliberately still .open, not Bootstrap 5's .show: FolderSelect.vue sets this
-// class itself and never uses data-bs-toggle, so Bootstrap's JS never sees it.
-// Bootstrap's own .dropdown-menu.show rule covers the data-bs-toggle dropdowns.
 .dropdown.open {
   .dropdown-menu {
     display: block;
@@ -3585,7 +3572,7 @@ li.dropdown {
   margin: 0;
   border: none;
   max-height: none;
-  &.show {
+  &.in {
     overflow: visible;
     .dropdown-menu {
       display: block;
@@ -3639,7 +3626,7 @@ img.infinity-logo {
   }
 }
 
-.navbar-toggler {
+.navbar-toggle {
   @extend .style-button-hover;
   display: block;
   position: absolute;
@@ -4800,9 +4787,7 @@ span.action, a.action-heading {
         padding-top: $grid;
       }
     }
-    // These filter dropdowns are Bootstrap-driven, so Bootstrap 5 marks the
-    // toggle rather than this container; :has() recovers the parent.
-    .dropdown:has(> [data-bs-toggle="dropdown"].show) {
+    .dropdown.open {
       float: none;
       width: 100%;
     }

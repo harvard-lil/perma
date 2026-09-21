@@ -21,17 +21,17 @@
         "@babel/core": "^8.0.1",
         "@babel/plugin-transform-runtime": "^8.0.1",
         "@babel/preset-env": "^8.0.2",
-        "@popperjs/core": "^2.11.8",
         "@vitejs/plugin-vue": "^6.0.8",
         "@vue/compiler-sfc": "^3.5.42",
         "@vue/test-utils": "^2.5.0",
         "autoprefixer": "^10.5.4",
         "babel-loader": "^10.1.1",
         "babel-plugin-polyfill-corejs3": "^1.0.0",
-        "bootstrap": "^5.3.8",
+        "bootstrap-sass": "3.4.3",
+        "compass-mixins": "^0.12.10",
         "css-loader": "^7.1.5",
         "handlebars": "^4.7.9",
-        "jquery": "^4.0.0",
+        "jquery": "^3.7.1",
         "jsdom": "^30.0.1",
         "jstree": "^3.3.17",
         "mini-css-extract-plugin": "^2.10.2",
@@ -2734,17 +2734,6 @@
         "url": "https://opencollective.com/parcel"
       }
     },
-    "node_modules/@popperjs/core": {
-      "version": "2.11.8",
-      "resolved": "https://registry.npmjs.org/@popperjs/core/-/core-2.11.8.tgz",
-      "integrity": "sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==",
-      "dev": true,
-      "license": "MIT",
-      "funding": {
-        "type": "opencollective",
-        "url": "https://opencollective.com/popperjs"
-      }
-    },
     "node_modules/@rolldown/binding-android-arm-eabi": {
       "version": "1.2.6",
       "resolved": "https://registry.npmjs.org/@rolldown/binding-android-arm-eabi/-/binding-android-arm-eabi-1.2.6.tgz",
@@ -3957,25 +3946,12 @@
         "url": "https://github.com/sponsors/antfu"
       }
     },
-    "node_modules/bootstrap": {
-      "version": "5.3.8",
-      "resolved": "https://registry.npmjs.org/bootstrap/-/bootstrap-5.3.8.tgz",
-      "integrity": "sha512-HP1SZDqaLDPwsNiqRqi5NcP0SSXciX2s9E+RyqJIIqGo+vJeN5AJVM98CXmW/Wux0nQ5L7jeWUdplCEf0Ee+tg==",
+    "node_modules/bootstrap-sass": {
+      "version": "3.4.3",
+      "resolved": "https://registry.npmjs.org/bootstrap-sass/-/bootstrap-sass-3.4.3.tgz",
+      "integrity": "sha512-vPgFnGMp1jWZZupOND65WS6mkR8rxhJxndT/AcMbqcq1hHMdkcH4sMPhznLzzoHOHkSCrd6J9F8pWBriPCKP2Q==",
       "dev": true,
-      "funding": [
-        {
-          "type": "github",
-          "url": "https://github.com/sponsors/twbs"
-        },
-        {
-          "type": "opencollective",
-          "url": "https://opencollective.com/bootstrap"
-        }
-      ],
-      "license": "MIT",
-      "peerDependencies": {
-        "@popperjs/core": "^2.11.8"
-      }
+      "license": "MIT"
     },
     "node_modules/brace-expansion": {
       "version": "5.0.9",
@@ -4141,6 +4117,13 @@
       "version": "2.20.3",
       "resolved": "https://registry.npmjs.org/commander/-/commander-2.20.3.tgz",
       "integrity": "sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==",
+      "license": "MIT"
+    },
+    "node_modules/compass-mixins": {
+      "version": "0.12.12",
+      "resolved": "https://registry.npmjs.org/compass-mixins/-/compass-mixins-0.12.12.tgz",
+      "integrity": "sha512-wlTxz4lsIv/3o+rdyBOTZpQFFJeWPCRlYClaEXcaFe6QrAJ5qibTAgH53LyjfGQL6mmebTfjVHM0hLsxjGj+fw==",
+      "dev": true,
       "license": "MIT"
     },
     "node_modules/config-chain": {
@@ -4891,9 +4874,9 @@
       }
     },
     "node_modules/jquery": {
-      "version": "4.0.0",
-      "resolved": "https://registry.npmjs.org/jquery/-/jquery-4.0.0.tgz",
-      "integrity": "sha512-TXCHVR3Lb6TZdtw1l3RTLf8RBWVGexdxL6AC8/e0xZKEpBflBsjh9/8LXw+dkNFuOyW9B7iB3O1sP7hS0Kiacg==",
+      "version": "3.7.1",
+      "resolved": "https://registry.npmjs.org/jquery/-/jquery-3.7.1.tgz",
+      "integrity": "sha512-m4avr8yL8kmFN8psrbFFFmB/If14iN5o9nw/NgnnM+kybDJpRsAynV2BsfpTYrTRysYUdADVD7CkUUizgkpLfg==",
       "dev": true,
       "license": "MIT"
     },
