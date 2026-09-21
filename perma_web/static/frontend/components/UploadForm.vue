@@ -106,9 +106,9 @@ defineExpose({
   <Dialog :handleClick="handleClick" :handleClose="handleClose" ref="formDialogRef">
     <div class="modal-dialog modal-content modal-lg">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" @click.prevent="handleClose">
+        <button type="button" class="close" data-bs-dismiss="modal" @click.prevent="handleClose">
           <span aria-hidden="true">&times;</span>
-          <span class="sr-only" id="loading">Close</span>
+          <span class="visually-hidden" id="loading">Close</span>
         </button>
         <h3 id="batch-modal-title" class="modal-title">
           Upload a file to Perma.cc

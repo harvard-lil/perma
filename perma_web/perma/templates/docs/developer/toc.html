@@ -1,6 +1,6 @@
 <div class="col-sm-4 reading-toc" >
   <nav aria-labelledby="{{ section }}-heading">
-    <h2 id="{{ section }}-heading" class="sr-only">{{ section | title }} Section Table of Contents</h2>
+    <h2 id="{{ section }}-heading" class="visually-hidden">{{ section | title }} Section Table of Contents</h2>
     <ul>
       <li>
         <h3 class="reading-toc-chapter{% if section == 'overview' %} _active" aria-current="location" aria-expanded="true"{% else %}" aria-expanded="false"{% endif %}><a href="#developer-overview">Overview</a></h3>

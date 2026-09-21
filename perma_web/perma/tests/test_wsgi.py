@@ -51,3 +51,16 @@ class WsgiTestCase(LiveServerTestCase):
         })
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.text, '1.1.1.1')
+
+    def test_get_client_ip_right_proxy_with_ipv6_client(self):
+        response = requests.get(self.live_server_url + '/tests/client_ip', headers={
+            'X-Forwarded-For': '2001:db8::1,1.2.3.4'
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.text, '2001:db8::1')
+
+    def test_get_client_ip_rejects_malformed_proxy(self):
+        response = requests.get(self.live_server_url, headers={
+            'X-Forwarded-For': '1.1.1.1,not-an-ip'
+        })
+        self.assertEqual(response.status_code, 400)

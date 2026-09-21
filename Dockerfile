@@ -15,19 +15,20 @@
 
 # Pinned tool images, named once so every stage below agrees on them. uv is
 # copied out of its image as a static binary; node is both the `assets`
-# builder and the source of the node version `base` installs from apt.
-FROM ghcr.io/astral-sh/uv:0.8.17 AS uv
-FROM node:20.13.0-bookworm AS node
+# builder and the source of the Node runtime copied into `base`.
+FROM ghcr.io/astral-sh/uv:0.12.7@sha256:95f2aa1fe59274951cfe9b0cbc7972e879ff1004bc8945d130a32eb0dbd85945 AS uv
+FROM node:24.20.0-trixie-slim@sha256:50c3b2f6988dfc307b86e5301d69611af31f4789bdf232863b07d3b02fe55ae0 AS node
 
 # =====================================================================
 # base -- shared Python/node dependency layer. No app code. Not run directly.
 # =====================================================================
-FROM python:3.11-bookworm AS base
+FROM python:3.14-slim-trixie@sha256:cae66f2ef0ec51a9891263eeee7f987dacf0a9879e8aa9353d5606e0530619a5 AS base
 
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/perma/perma_web \
     PIP_NO_CACHE_DIR=off \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     UV_COMPILE_BYTECODE=1 \
@@ -44,6 +45,7 @@ WORKDIR /perma/perma_web
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates \
+        build-essential \
         curl \
         gnupg \
         git \
@@ -57,16 +59,12 @@ RUN apt-get update \
         libxslt-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# node.js, pinned. Needed in prod (not only test): the wacz-conversion worker
-# shells out to `npx js-wacz` from /perma/services/js-wacz. Version tracks the
-# `node` stage above and Salt's warc-wacz state.
-RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
-        | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg \
-    && echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" \
-        > /etc/apt/sources.list.d/nodesource.list \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends nodejs=20.13.0-1nodesource1 \
-    && rm -rf /var/lib/apt/lists/*
+# The wacz-conversion worker needs Node at runtime. Copy the same pinned
+# runtime used to build the frontend; both stages use Debian trixie.
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
 
 # uv, from the pinned stage above, for the locked Python install below and for
 # the test stage's dev-group install.
@@ -102,16 +100,18 @@ WORKDIR /perma/perma_web
 
 # Dependencies first, so a frontend edit does not reinstall node_modules.
 # npm-shrinkwrap.json is the lockfile; `npm ci` honours it.
-COPY perma_web/package.json perma_web/npm-shrinkwrap.json ./
+COPY perma_web/package.json perma_web/npm-shrinkwrap.json perma_web/.npmrc ./
 RUN npm ci
 
-COPY perma_web/webpack.config.js ./
+COPY perma_web/webpack.config.js perma_web/browserslist ./
 # static/ is an input as well as the output location: the SCSS resolves fonts,
 # images and vendored CSS from static/ at build time, and the Vue sources live
 # in static/frontend. static/bundles is written by the build below.
 COPY perma_web/static ./static
 
-RUN npm run build
+# Content-hashed bundle names; see webpack.config.js. The deploy publishes
+# static/bundles to the static bucket as immutable.
+RUN WEBPACK_CONTENT_HASH=1 npm run build
 
 # =====================================================================
 # prod -- the deployable artifact. gunicorn, non-root user, app code baked in.
@@ -228,7 +228,7 @@ RUN uv sync --frozen && chown -R perma /opt/venv
 COPY docker/install-test-toolchain.sh /tmp/install-test-toolchain.sh
 RUN /tmp/install-test-toolchain.sh && rm /tmp/install-test-toolchain.sh
 
-# karma (npm test) needs node_modules, which prod has no business carrying.
+# Vitest (npm test) needs node_modules, which prod has no business carrying.
 # Taken from the assets stage rather than reinstalled, so the JS tests run
 # against the very tree the bundles were built from.
 COPY --from=assets --chown=perma:perma /perma/perma_web/node_modules ./node_modules

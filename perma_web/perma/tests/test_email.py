@@ -1,6 +1,7 @@
-import pytest
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 
+import pytest
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.db.models.query import QuerySet
@@ -22,7 +23,18 @@ from perma.email import (
 from perma.models import LinkUser, Organization, Registrar
 
 
-def test_get_activation_email_context_with_request(link_user_factory):
+@pytest.fixture
+def fixed_activation_token_time(monkeypatch):
+    monkeypatch.setattr(
+        default_token_generator,
+        '_now',
+        lambda: datetime(2026, 8, 29),
+    )
+
+
+def test_get_activation_email_context_with_request(
+    link_user_factory, fixed_activation_token_time,
+):
     user = link_user_factory()
     request = RequestFactory().get('/')
     context = get_activation_email_context(user, request=request)
@@ -37,7 +49,9 @@ def test_get_activation_email_context_with_request(link_user_factory):
     assert context['activation_route'] == request.build_absolute_uri(expected_path)
 
 
-def test_get_activation_email_context_with_host(link_user_factory):
+def test_get_activation_email_context_with_host(
+    link_user_factory, fixed_activation_token_time,
+):
     user = link_user_factory()
     context = get_activation_email_context(user, host='https://perma.cc')
     assert context['activation_expires'] == settings.PASSWORD_RESET_TIMEOUT
