@@ -1,5 +1,5 @@
 {% extends "manage-layout.html" %}
-{% load current_query_string visible_organizations visible_sponsorships %}
+{% load current_query_string visible_sponsorships %}
 {% load intcomma from humanize %}
 {% block title %} | {{ pretty_group_name_plural }}{% endblock %}
 
@@ -243,10 +243,10 @@
             <p class="warning">User must activate account</p>
           {% endif %}
 
-          {% if group_name == 'organization_user' and listed_user|visible_organizations:request.user %}
+          {% if group_name == 'organization_user' and listed_user.visible_organizations %}
             <div class="item-affil">
               <span class="visually-hidden">Member of:</span>
-              {% for organization in listed_user|visible_organizations:request.user %}
+              {% for organization in listed_user.visible_organizations %}
                  <a href="{% url 'user_management_manage_organization' %}?q={{organization.name.split|join:'+'|lower}}#org-{{ organization.id }}">{{organization.name.strip}}</a>
                 {% include "user_management/includes/comma.html" %}
               {% endfor %}
