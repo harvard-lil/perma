@@ -145,7 +145,7 @@ def test_archive_nav_toggle_is_currently_unlabeled_for_logged_in_users(page, url
     page.goto(urls.perma_link_with_warc)
 
     # Matched by shape, not by Bootstrap's attribute name, which the migration renames.
-    toggle = page.locator("header button.navbar-toggler")
+    toggle = page.locator('header > button')
     expect(toggle).to_have_count(1)
     assert toggle.get_attribute("aria-expanded") is None
     assert toggle.inner_text().strip() == ""
