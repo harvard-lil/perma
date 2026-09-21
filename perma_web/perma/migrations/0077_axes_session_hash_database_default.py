@@ -7,13 +7,7 @@ class Migration(migrations.Migration):
         ('axes', '0009_add_session_hash'),
     ]
 
-    operations = [
-        # Axes 0009 drops its temporary default after adding this NOT NULL
-        # column. Older Axes versions omit it when logging successful logins,
-        # so retain a database default for temporary application rollbacks.
-        # This deliberately leaves the third-party model state unchanged.
-        migrations.RunSQL(
-            sql="ALTER TABLE axes_accesslog ALTER COLUMN session_hash SET DEFAULT '';",
-            reverse_sql="ALTER TABLE axes_accesslog ALTER COLUMN session_hash DROP DEFAULT;",
-        ),
-    ]
+    # Retain the name already applied on staging. The project-owned Axes 0009
+    # now creates the column with its persistent default in one transaction,
+    # so Salt never sees a required column without a database default.
+    operations = []
