@@ -18,6 +18,14 @@ module.exports = {
   context: __dirname,
   mode: 'none',
 
+  optimization: {
+    // Vue's esm-bundler build reads process.env.NODE_ENV at runtime. Webpack 4 shimmed
+    // Node globals automatically; Webpack 5 does not, so an undefined `process` throws
+    // in the browser. 'development' keeps the dev-warning behaviour the Webpack 4
+    // bundles already shipped -- switching to 'production' is a product change.
+    nodeEnv: 'development',
+  },
+
   entry: {
     'single-link': [
       './static/js/single-link.module.js',
@@ -44,16 +52,29 @@ module.exports = {
     path: path.resolve('./static/bundles/'),
     filename: contentHash ? "[name]-[contenthash].js" : "[name].js",
     chunkFilename: contentHash ? "[id]-[contenthash].js" : "[id].js",
+    assetModuleFilename: "[contenthash][ext]",
+
   },
 
   plugins: [
-    // write out a list of generated files, so Django can find them
-    // Allow overriding via env var for tests.
-    new BundleTracker({filename: process.env.BUNDLE_TRACKER_PATH || './webpack-stats.json'}),
+    // write out a list of generated files, so Django can find them.
+    // v3 takes the directory and the basename separately; a path passed as
+    // `filename` is ignored. Allow overriding the directory via env var for tests.
+    new BundleTracker({
+      path: process.env.BUNDLE_TRACKER_DIR || __dirname,
+      filename: 'webpack-stats.json',
+    }),
 
     new webpack.ProvidePlugin({
-      // Automatically detect jQuery and $ as free var in modules and inject the jquery library
-      jQuery: "jquery", $: "jquery", "window.jQuery": "jquery"
+      // Automatically detect jQuery and $ as free var in modules and inject the jquery library.
+      // The ['jquery', 'default'] form is required from jQuery 4 on: jQuery 4 added an `exports`
+      // map, so webpack now resolves this injection to the ESM build and a bare "jquery" would
+      // provide the module namespace object instead of jQuery itself -- $.ajaxSetup would be
+      // undefined and global.js would throw on load. jsTree's own CommonJS require still resolves
+      // through jQuery's bundler-require-wrapper to the same single instance.
+      jQuery: ["jquery", "default"],
+      $: ["jquery", "default"],
+      "window.jQuery": ["jquery", "default"]
     }),
 
 
@@ -85,15 +106,14 @@ module.exports = {
         exclude: /node_modules/,
         loader: 'babel-loader',
         options: {
+          // Babel 8 removed transform-runtime's `corejs` option and preset-env's
+          // `useBuiltIns`. `usage-pure` is their replacement and keeps the previous
+          // behaviour: polyfills resolve from core-js-pure instead of patching globals.
           plugins: [
-            [
-              "@babel/plugin-transform-runtime",
-              {
-                "corejs": 3,
-              }
-            ]
-          ],  // add polyfills for <es6 browsers
-          presets: ['@babel/preset-env']
+            '@babel/plugin-transform-runtime',
+            ['babel-plugin-polyfill-corejs3', {method: 'usage-pure', version: '3.50'}]
+          ],
+          presets: ['@babel/preset-env']  // browser targets come from ./browserslist
         }
       },
 
@@ -118,7 +138,8 @@ module.exports = {
       // image files (likely included by css)
       {
         test: /\.(jpg|jpeg|png|gif)$/,
-        loader: 'url-loader?limit=10000'
+        type: 'asset',
+        parser: { dataUrlCondition: { maxSize: 10000 } }
       },
 
       // scss
@@ -127,7 +148,11 @@ module.exports = {
         use: [
           MiniCssExtractPlugin.loader,
           "css-loader",
-          "resolve-url-loader",
+          // No resolve-url-loader: it rewrites relative url()s to resolve against the partial that
+          // wrote them rather than the entry, and Perma has no such case -- every .scss lives in
+          // this one directory, so both resolutions agree, and Bootstrap's only url()s are inline
+          // data: URIs. Removing it left all CSS, all CSS source maps, and all 25 emitted asset
+          // files byte-identical. Restore it if SCSS ever moves into subdirectories.
           {
             loader: 'postcss-loader',
             options: {
@@ -143,7 +168,18 @@ module.exports = {
             options: {
               sourceMap: true,
               sassOptions: {
-                precision: 8
+                precision: 8,
+                // Still needed, though Phase 4 removed bootstrap-sass and
+                // compass-mixins. Bootstrap 5.3's own SCSS is written with
+                // @import throughout, so dropping this surfaces 60 deprecations
+                // from inside node_modules against 20 of ours -- measured, not
+                // assumed. Perma's own colour-function deprecations are fixed,
+                // and its own partials now use the module system; the remaining
+                // @imports are the Bootstrap partials, which cannot move to
+                // @use until Bootstrap does. quietDeps silences only dependency
+                // SCSS, so our own deprecations still surface. Revisit when
+                // Bootstrap moves to @use, not before.
+                quietDeps: true
               }
               // include precision=8 for bootstrap -- see https://github.com/twbs/bootstrap-sass/issues/409
             },
@@ -154,20 +190,14 @@ module.exports = {
       // bootstrap fonts
       {
         test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        loader: 'url-loader',
-        options: {
-          limit: 10000,
-          mimetype: 'application/font-woff',
-          esModule: false,
-        }
+        type: 'asset',
+        parser: { dataUrlCondition: { maxSize: 10000 } },
+        generator: { dataUrl: { mimetype: 'application/font-woff' } }
       },
       {
         test: /\.(ttf|otf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        loader: 'url-loader',
-        options: {
-          limit: 10000,
-          esModule: false,
-        }
+        type: 'asset',
+        parser: { dataUrlCondition: { maxSize: 10000 } }
       }
     ],
   },
@@ -177,19 +207,19 @@ module.exports = {
     extensions: ['.js', '.jsx'],
 
     alias: {
-      'airbrake-js$': 'airbrake-js/lib/client.js', // Exact match
-      'airbrake-js': 'airbrake-js/lib', // and again with a fuzzy match,
-
       'jstree-css': 'jstree/dist/themes',
 
       'handlebars': 'handlebars/dist/handlebars.min.js',
 
-      'bootstrap': 'bootstrap-sass/assets/stylesheets/bootstrap',
-      'bootstrap-js': 'bootstrap-sass/assets/javascripts/bootstrap',
+      // No 'bootstrap' alias: Bootstrap 3's Sass sat at a deep path inside
+      // bootstrap-sass and needed one, but Bootstrap 5's is plain
+      // `bootstrap/scss`, so the SCSS imports name it directly. Keeping the
+      // alias would prefix-match `bootstrap/js/dist/*` too and rewrite the
+      // JS requires into `bootstrap/scss/js/dist/*`.
 
-      'papaparse': 'papaparse/papaparse.min.js',
-
-      'jquery-form': 'jquery-form/jquery.form.js',
+      // Removed with their packages in Phase 5: 'jquery-form' (declared but
+      // never imported), plus 'airbrake-js' and 'papaparse', which aliased
+      // packages that were not even declared and so resolved to nothing.
 
       'vue': 'vue/dist/vue.esm-bundler.js'
     }

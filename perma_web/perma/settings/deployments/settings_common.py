@@ -2,6 +2,8 @@
 import os, sys
 from copy import deepcopy
 
+from botocore.config import Config
+
 # PROJECT_ROOT is the absolute path to the perma_web folder
 # We determine this robustly thanks to http://stackoverflow.com/a/2632297
 this_module = sys.executable if hasattr(sys, "frozen") else __file__
@@ -39,19 +41,35 @@ USE_I18N = True
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
 
+# boto3 1.36+ sends a CRC32 checksum after the body using aws-chunked framing,
+# which omits Content-Length; the Compose MinIO (RELEASE.2022-05-03) rejects
+# that with MissingContentLength. 'when_required' restores the older framing,
+# for every deployment and not just local MinIO — drop it once nothing Perma
+# writes to predates the 2025 S3 checksums. signature_version is restated here
+# because django-storages treats an explicit client_config as complete, and
+# without it presigned URLs fall back to v2 and playback 403s. DeleteObjects
+# still sends CRC32 under this setting; see the cleanup loop in conftest.py.
 STORAGES = {
     "default": {
         "BACKEND": 'perma.storage_backends.S3MediaStorage',
         "OPTIONS": {
             "signature_version": 's3v4',
-            "default_acl": 'private'
+            "default_acl": 'private',
+            "client_config": Config(
+                signature_version='s3v4',
+                request_checksum_calculation='when_required',
+            ),
         }
     },
     "secondary": {
         "BACKEND": 'perma.storage_backends.S3MediaStorage',
         "OPTIONS": {
             "signature_version": 's3v4',
-            "default_acl": 'private'
+            "default_acl": 'private',
+            "client_config": Config(
+                signature_version='s3v4',
+                request_checksum_calculation='when_required',
+            ),
         }
     },
     "staticfiles": {
@@ -115,7 +133,7 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
-                'settings_context_processor.context_processors.settings',  # to easily use settings in templates
+                'perma.context_processors.template_visible_settings',
             ],
         },
     },
@@ -132,7 +150,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'perma.middleware.AdminAuthMiddleware',
-    'ratelimit.middleware.RatelimitMiddleware',
+    'django_ratelimit.middleware.RatelimitMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',  # record request.user for model history
     'waffle.middleware.WaffleMiddleware',
     # Uncomment the next line for simple clickjacking protection:
@@ -172,8 +190,7 @@ INSTALLED_APPS = (
     'reporting',
 
     # third party apps
-    'ratelimit',
-    'settings_context_processor',
+    'django_ratelimit',
     'simple_history',  # record model changes
     'taggit',  # model tagging
     'webpack_loader',  # track frontend assets
@@ -227,7 +244,9 @@ AXES_FAILURE_LIMIT = 6
 AXES_LOCK_OUT_AT_FAILURE = True
 AXES_COOLOFF_MINUTES = 30
 AXES_COOLOFF_TIME = 'perma.utils.cooloff_time'
-AXES_ONLY_USER_FAILURES = True  # If True, only lock based on username, and never lock based on IP if attempts exceed the limit. Otherwise utilize the existing IP and user locking logic. Default: False
+AXES_LOCKOUT_PARAMETERS = ['username']
+AXES_USERNAME_FORM_FIELD = 'username'
+AXES_HTTP_RESPONSE_CODE = 403
 AXES_RESET_ON_SUCCESS = True  # If True, a successful login will reset the number of failed logins. Default: False
 
 AUTH_PASSWORD_VALIDATORS = [

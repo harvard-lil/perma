@@ -54,11 +54,6 @@ playwright install chromium firefox
 # Readable by whatever user the stage ends up running as.
 chmod -R a+rX "$PLAYWRIGHT_BROWSERS_PATH"
 
-# karma.config.js defaults CHROMIUM_BIN to this path for the JS unit tests.
-chromium="$(find "$PLAYWRIGHT_BROWSERS_PATH" -name chrome -type f -executable | head -1)"
-test -n "$chromium"
-ln -sf "$chromium" /usr/local/bin/playwright-chromium
-
 # conftest.py runs `certutil -d sql:$HOME/.pki/nssdb -A ...`; the database has
 # to exist first. This creates it for the user running the script (root, for
 # the `dev` target); `test` creates its own for the `perma` user afterwards.

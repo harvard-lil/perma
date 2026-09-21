@@ -10,21 +10,21 @@
 <section id="landing-introduction" class="container-fluid">
   <div class="container cont-fixed">
     <div class="row">
-      <div class="col-xs-12 col-sm-7">
+      <div class="col-12 col-sm-7">
         <h1 class="section-title">Websites change. <span class="_noWrap">Perma Links don’t.</span></h1>
         <p class="primary-intro"><strong>Perma.cc</strong> helps scholars, journals, courts, and others create permanent records of the web sources <span class="_noWrap">they cite.</span></p>
         <p class="primary-intro _showDesktop">Perma.cc is simple, easy to use, and is built and supported by libraries.</p>
       </div>
-      <div class="col-xs-12 col-sm-5">
+      <div class="col-12 col-sm-5">
         <img src="{{ STATIC_URL }}img/websites-change-square_unlinked.svg"
              height="400"
              width="400"
-             class="img-responsive primary-img"
+             class="img-fluid primary-img"
              alt="An illustration of a publication containing two citations. The first citation includes a link to a website that changes over time and eventually disappears entirely (returns 404). The second citation includes a Perma Link, whose content never changes, and which persists even when the original website disappears.">
       </div>
     </div>
     <div class="row row-modules">
-      <div class="col-xs-12  _isCentered">
+      <div class="col-12  _isCentered">
         {% if request.user.is_authenticated %}
           <a href="{% url 'create_link' %}" class="btn btn-large">Create and manage your Perma Links</a>
         {% else %}
@@ -39,56 +39,56 @@
   <div class="container-hero">
     <h6 class="image-hed">Perma.cc is a simple way <span class="_noWrap">to preserve your links.</span></h6>
     <div class="row outer">
-      <div class="col-xs-12 col-md-6">
+      <div class="col-12 col-md-6">
         <div class="container cont-fixed">
           <div class="row">
-            <div class="col-xs-6">
+            <div class="col-6">
               <a href="#step-one" class="link-block hero-module">
-                <p class="caption-hero"><span class="sr-only">Step 1</span> Find<span class="_verbose"> any URL</span>.</p>
+                <p class="caption-hero"><span class="visually-hidden">Step 1</span> Find<span class="_verbose"> any URL</span>.</p>
                 <img  src="{{ STATIC_URL }}img/create-step-1.png"
                     loading="lazy" 
                     height="400"
                     width="400"
-                    class="img-responsive"
+                    class="img-fluid"
                     alt="An illustration of a website displayed in a person's browser. The URL is highlighted.">
               </a>
             </div>
-            <div class="col-xs-6">
+            <div class="col-6">
               <a href="#step-two" class="link-block hero-module">
-                <p class="caption-hero"><span class="sr-only">Step 2</span>Add<span class="_verbose"> it to Perma.cc</span>.</p>
+                <p class="caption-hero"><span class="visually-hidden">Step 2</span>Add<span class="_verbose"> it to Perma.cc</span>.</p>
                 <img  src="{{ STATIC_URL }}img/create-step-2.png"
                     loading="lazy" 
                     height="400"
                     width="400"
-                    class="img-responsive"
+                    class="img-fluid"
                     alt="An illustration of the Perma.cc create page: a simple form. The URL from step 1 appears in the input field, and there is a button labeled 'Create Perma Link'">
               </a>
             </div>
           </div>
         </div>
       </div>
-      <div class="col-xs-12 col-md-6">
+      <div class="col-12 col-md-6">
         <div class="container cont-fixed">
           <div class="row">
-            <div class="col-xs-6">
+            <div class="col-6">
               <a href="#step-three" class="link-block hero-module">
-                <p class="caption-hero"><span class="sr-only">Step 3</span>Create<span class="_verbose"> a Perma Link</span>.</p>
+                <p class="caption-hero"><span class="visually-hidden">Step 3</span>Create<span class="_verbose"> a Perma Link</span>.</p>
                 <img  src="{{ STATIC_URL }}img/create-step-3.png"
                       loading="lazy" 
                       height="400"
                       width="400"
-                      class="img-responsive"
+                      class="img-fluid"
                       alt="An illustration of a Perma Link's record page. A perfect copy of the original website is displayed, along with a header providing details about the link and various tools.">
               </a>
             </div>
-            <div class="col-xs-6">
+            <div class="col-6">
               <a href="#step-four" class="link-block hero-module">
-                <p class="caption-hero"><span class="sr-only">Step 4</span>Cite<span class="_verbose"> safely</span>.</p>
+                <p class="caption-hero"><span class="visually-hidden">Step 4</span>Cite<span class="_verbose"> safely</span>.</p>
                 <img  src="{{ STATIC_URL }}img/create-step-4.png"
                       loading="lazy" 
                       height="400"
                       width="400"
-                      class="img-responsive"
+                      class="img-fluid"
                       alt="An illustration of a publication with citations. The Perma Link is included in the citation along with the webpage's URL.">
               </a>
             </div>
@@ -104,11 +104,11 @@
     <h2 class="section-title">One good reason to use Perma.cc? <span class="_noWrap">How about 404?</span></h2>
     <p class="section-subtitle">Websites change, go away, and get taken down. When linked citations lead to broken, blank, altered, or even malicious pages, that’s called link rot.</p>
     <div class="row">
-      <div class="col-xs-12 col-sm-6">
+      <div class="col-12 col-sm-6">
         <h3 class="section-ah">Link rot affects everyone who cites links</h3>
         <p class="section-body">Over 50% of cited links in Supreme Court opinions no longer point to the intended page. Roughly 70% of cited links in academic legal journals and 20% of all science, technology and medicine articles suffer from link rot.</p>
       </div>
-      <div class="col-xs-12 col-sm-6">
+      <div class="col-12 col-sm-6">
         <h3 class="section-ah">Articles and studies</h3>
         <ul class="section-list">
           <li class="section-list-item"><a href="http://harvardlawreview.org/2014/03/perma-scoping-and-addressing-the-problem-of-link-and-reference-rot-in-legal-citations/" class="outside"><strong>Perma: Scoping and Addressing the Problem of Link and Reference Rot in Legal Citations</strong></a> <a class="cc" href="http://perma.cc/S9DV-WB4Z">(Perma.cc archive)</a> <cite>The Harvard Law Review</cite>, 2014</li>
@@ -121,47 +121,47 @@
   <div class="container-fluid section-break">
     <div class="container cont-fixed">
       <div class="row">
-        <div class="col-xs-12 section-hed">
+        <div class="col-12 section-hed">
           <h3 class="section-ah">
             Link rot destroys the integrity <span class="_noWrap">of your citations</span>
           </h3>
         </div>
       </div>
       <div class="row row-modules">
-        <div class="col-xs-12 col-sm-6">
+        <div class="col-12 col-sm-6">
           <div class="row">
-            <div class="figure col-xs-6">
-              <img src="{{ STATIC_URL }}img/link-rot-0.svg" loading="lazy" height="400" width="400" class="img-responsive" aria-hidden="true" alt="">
+            <div class="figure col-6">
+              <img src="{{ STATIC_URL }}img/link-rot-0.svg" loading="lazy" height="400" width="400" class="img-fluid" aria-hidden="true" alt="">
               <p class="caption"><strong>Links start healthy.</strong> New citations have been vetted and verified.</p>
             </div>
-            <div class="figure col-xs-6">
-              <img src="{{ STATIC_URL }}img/link-rot-20.svg" loading="lazy" height="400" width="400" class="img-responsive" aria-hidden="true" alt="">
+            <div class="figure col-6">
+              <img src="{{ STATIC_URL }}img/link-rot-20.svg" loading="lazy" height="400" width="400" class="img-fluid" aria-hidden="true" alt="">
               <p class="caption"><strong>After one year.</strong> After a year, over 20% of cited links may be dead or otherwise inaccessible.</p>
             </div>
           </div>
         </div>
-        <div class="col-xs-12 col-sm-6">
+        <div class="col-12 col-sm-6">
           <div class="row">
-            <div class="figure col-xs-6">
-              <img src="{{ STATIC_URL }}img/link-rot-50.svg" loading="lazy"  height="400" width="400" class="img-responsive" aria-hidden="true" alt="">
+            <div class="figure col-6">
+              <img src="{{ STATIC_URL }}img/link-rot-50.svg" loading="lazy"  height="400" width="400" class="img-fluid" aria-hidden="true" alt="">
               <p class="caption"><strong>After five years.</strong> After five years, the situation is much worse — over 50% of cited links can be affected.</p>
             </div>
-            <div class="figure col-xs-6">
-              <img src="{{ STATIC_URL }}img/link-rot-80.svg" loading="lazy" height="400" width="400" class="img-responsive" aria-hidden="true" alt="">
+            <div class="figure col-6">
+              <img src="{{ STATIC_URL }}img/link-rot-80.svg" loading="lazy" height="400" width="400" class="img-fluid" aria-hidden="true" alt="">
               <p class="caption"><strong>As time goes on.</strong> Link rot is inevitable and rarely reversible. The longer the wait, the more likely a link will have rotted.</p>
             </div>
           </div>
         </div>
       </div>
       <div class="row row-subsection">
-        <div class="col-xs-12  _isCentered">
+        <div class="col-12  _isCentered">
           {% if request.user.is_authenticated %}
             <a href="{% url 'create_link' %}" class="btn btn-large">Create and manage your Perma Links</a>
           {% else %}
             <a href="{% url 'sign_up' %}" class="btn btn-large">Sign up and start preventing link rot</a>
           {% endif %}
         </div>
-        <div class="col-xs-12">
+        <div class="col-12">
           <p class="section-body small footnote">
             Data taken from <a href="http://harvardlawreview.org/2014/03/perma-scoping-and-addressing-the-problem-of-link-and-reference-rot-in-legal-citations/">“Perma: Scoping and Addressing the Problem of Link and Reference Rot in Legal Citations,”</a> <a class="cc" href="https://perma.cc/63AP-6EHJ"></a> Jonathan Zittrain, Kendra Albert &amp; Lawrence Lessig. Harvard Law Review. March 17, 2014.
           </p>
@@ -176,12 +176,12 @@
     <h2 class="section-title">Meet the Perma Link.</h2>
     <p class="section-subtitle">A Perma Link is a reliable, unbreakable link to an unalterable record of any page you’ve cited. It’s a time capsule for a web page, which your readers can <span class="_noWrap">easily access.</span></p>
     <div class="row">
-      <div class="col-xs-12 col-sm-6">
+      <div class="col-12 col-sm-6">
         <h3 class="section-ah">We’re committed to preservation</h3>
         <p class="section-body">Websites change, go away, and get taken down. When they do, linked citations can lead to broken, blank, unintentional, or even malicious pages. This decay is called “link rot.” Perma.cc helps scholars, journals and courts prevent link rot by creating permanent, reliable, unalterable links to the online sources cited in their work.</p>
         <a href="{% url 'docs_perma_link_creation' %}" class="btn btn-small">All about Perma Links</a>
       </div>
-      <div class="col-xs-12 col-sm-6">
+      <div class="col-12 col-sm-6">
         <h3 class="section-ah">Frequently asked questions</h3>
         <p class="section-body">Once you capture a Perma Link, neither its content nor its address will change, no matter what happens to the original link.</p>
         <ul class="section-list">
@@ -205,11 +205,11 @@
   <div class="container-fluid row-sxs">
     <div class="container cont-fixed" id="step-one">
       <div class="row row-modules">
-        <div class="col-xs-12 col-sm-5 first">
+        <div class="col-12 col-sm-5 first">
           <p class="caption caption-sxs right"><strong class="num">Step 1 </strong><strong>Find the page you want to preserve.</strong> Copy its URL and open Perma.cc.</p>
         </div>
-        <div class="col-xs-12 col-sm-7">
-          <img src="{{ STATIC_URL }}img/create-step-1.png" loading="lazy" height="400" width="400" class="img-responsive img-sxs left"  alt="An illustration of a website displayed in a person's browser. The URL is highlighted." />
+        <div class="col-12 col-sm-7">
+          <img src="{{ STATIC_URL }}img/create-step-1.png" loading="lazy" height="400" width="400" class="img-fluid img-sxs left"  alt="An illustration of a website displayed in a person's browser. The URL is highlighted." />
         </div>
       </div>
     </div>
@@ -217,10 +217,10 @@
   <div class="container-fluid row-sxs">
     <div class="container cont-fixed" id="step-two">
       <div class="row row-modules">
-        <div class="col-xs-12 col-sm-7">
-          <img src="{{ STATIC_URL }}img/create-step-2.png" loading="lazy" height="400" width="400" class="img-responsive img-sxs right" alt="An illustration of the Perma.cc create page: a simple form. The URL from step 1 appears in the input field, and there is a button labeled 'Create Perma Link'"/>
+        <div class="col-12 col-sm-7">
+          <img src="{{ STATIC_URL }}img/create-step-2.png" loading="lazy" height="400" width="400" class="img-fluid img-sxs right" alt="An illustration of the Perma.cc create page: a simple form. The URL from step 1 appears in the input field, and there is a button labeled 'Create Perma Link'"/>
         </div>
-        <div class="col-xs-12 col-sm-5 first">
+        <div class="col-12 col-sm-5 first">
           <p class="caption caption-sxs"><strong class="num">Step 2 </strong><strong>Add your URL to Perma.cc.</strong> Select Create Perma Link and Perma.cc does the rest.</p>
         </div>
       </div>
@@ -229,11 +229,11 @@
   <div class="container-fluid row-sxs">
     <div class="container cont-fixed" id="step-three">
       <div class="row row-modules">
-        <div class="col-xs-12 col-sm-5 first">
+        <div class="col-12 col-sm-5 first">
           <p class="caption caption-sxs right"><strong class="num">Step 3 </strong><strong>Get your Perma Link.</strong> Perma.cc builds your new record in a matter of moments. When it’s finished, you have a chance to delete or annotate it.</p>
         </div>
-        <div class="col-xs-12 col-sm-7">
-          <img src="{{ STATIC_URL }}img/create-step-3.png" loading="lazy" height="400" width="400" class="img-responsive img-sxs left"  alt="An illustration of a Perma Link's record page. A perfect copy of the original website is displayed, along with a header providing details about the link and various tools." />
+        <div class="col-12 col-sm-7">
+          <img src="{{ STATIC_URL }}img/create-step-3.png" loading="lazy" height="400" width="400" class="img-fluid img-sxs left"  alt="An illustration of a Perma Link's record page. A perfect copy of the original website is displayed, along with a header providing details about the link and various tools." />
         </div>
       </div>
     </div>
@@ -241,10 +241,10 @@
   <div class="container-fluid row-sxs">
     <div class="container cont-fixed" id="step-four">
       <div class="row row-modules">
-        <div class="col-xs-12 col-sm-7">
-          <img src="{{ STATIC_URL }}img/create-step-4.png" loading="lazy" height="400" width="400" class="img-responsive img-sxs right"  alt="An illustration of a publication with citations. The Perma Link is included in the citation along with the webpage's URL." />
+        <div class="col-12 col-sm-7">
+          <img src="{{ STATIC_URL }}img/create-step-4.png" loading="lazy" height="400" width="400" class="img-fluid img-sxs right"  alt="An illustration of a publication with citations. The Perma Link is included in the citation along with the webpage's URL." />
         </div>
-        <div class="col-xs-12 col-sm-5 first">
+        <div class="col-12 col-sm-5 first">
           <p class="caption caption-sxs"><strong class="num">Step 4 </strong><strong>Use the Perma Link in your citations.</strong> Use your Perma Link as you would the original cited URL. Your citation is safe from link rot — it will never change or break.</p>
         </div>
       </div>
@@ -257,18 +257,18 @@
     <h2 class="section-title">Built to last.</h2>
     <p class="section-subtitle">Libraries are in the forever business. We’re committed to preserving your digital records to the same standards that we preserve physical records. That’s why over 150 journals, courts, and universities trust us with their citations.</p>
     <div class="row row-subsection">
-      <div class="col-xs-12 section-hed">
+      <div class="col-12 section-hed">
         <h3 class="section-ah">Articles and awards</h3>
       </div>
     </div>
     <div class="row">
-      <div class="col col-xs-12 col-sm-6">
+      <div class="col-12 col-sm-6">
         <ul class="section-list">
           <li class="section-list-item"><a href="http://webbyawards.com/winners/2015/websites/general-website/law/permacc/"><strong>Webby award winner: Best Law Website</strong></a> <a class="cc" href="http://perma.cc/54M8-YGUP">(Perma.cc archive)</a> 2015</li>
           <li class="section-list-item"><a href="http://blogs.loc.gov/law/2015/08/cooking-up-a-solution-to-link-rot/?loclr=twlaw"><strong>Cooking up a solution to link rot</strong></a> <a class="cc" href="http://perma.cc/H68R-K9Z2">(Perma.cc archive)</a> <cite>Law Library of Congress Blog</cite>, 2015</li>
         </ul>
       </div>
-      <div class="col col-xs-12 col-sm-6">
+      <div class="col-12 col-sm-6">
         <ul class="section-list">
           <li class="section-list-item"><a href="https://bol.bna.com/the-problem-with-urls-in-legal-marketing/"><strong>The Problem with URLs in Legal Marketing</strong></a> <a class="cc" href="http://perma.cc/9GTU-VW9Y">(Perma.cc archive)</a> <cite>BloombergBNA Big Law Business</cite>, 2015</li>
           <li class="section-list-item"><a href="http://www.newyorker.com/magazine/2015/01/26/cobweb"><strong>Can the Internet Be Archived?</strong></a> <a class="cc" href="http://perma.cc/ZJ2N-GGUS">(Perma.cc archive)</a> <cite>The New Yorker</cite>, 2015</li>
@@ -283,23 +283,23 @@
     <h2 class="section-title-alt">Sign up</h2>
     <p class="section-subtitle-alt">It only takes a minute to sign up with Perma.cc. Select your organization type and get&nbsp;started.</p>
     <div class="row row-modules">
-      <div class="col-xs-12 col-sm-3 _isCentered signup-module">
-        <img class="img-responsive signup-image" loading="lazy" src="{{ STATIC_URL }}img/signup-libraries-bg.png" aria-hidden="true" alt="" />
+      <div class="col-12 col-sm-3 _isCentered signup-module">
+        <img class="img-fluid signup-image" loading="lazy" src="{{ STATIC_URL }}img/signup-libraries-bg.png" aria-hidden="true" alt="" />
         <p class="caption"><strong>Libraries<span class="_verbose">.</span></strong> Libraries play a critical role in powering and supporting Perma.cc.</p>
         <a href="{% url 'sign_up_libraries' %}" class="btn btn-small center">Perma.cc for libraries</a>
       </div>
-      <div class="col-xs-12 col-sm-3 _isCentered signup-module">
-        <img class="img-responsive signup-image" loading="lazy" src="{{ STATIC_URL }}img/signup-courts-bg.png" aria-hidden="true" alt="" />
+      <div class="col-12 col-sm-3 _isCentered signup-module">
+        <img class="img-fluid signup-image" loading="lazy" src="{{ STATIC_URL }}img/signup-courts-bg.png" aria-hidden="true" alt="" />
         <p class="caption"><strong>Courts<span class="_verbose">.</span></strong> Courts demand long-term reliability from the links in their decisions.</p>
         <a href="{% url 'sign_up_courts' %}" class="btn btn-small center">Perma.cc for courts</a>
       </div>
-      <div class="col-xs-12 col-sm-3 _isCentered signup-module">
-        <img class="img-responsive signup-image" loading="lazy" src="{{ STATIC_URL }}img/signup-everyone-bg.png" aria-hidden="true" alt="" />
+      <div class="col-12 col-sm-3 _isCentered signup-module">
+        <img class="img-fluid signup-image" loading="lazy" src="{{ STATIC_URL }}img/signup-everyone-bg.png" aria-hidden="true" alt="" />
         <p class="caption"><strong>Other organizations<span class="_verbose">.</span></strong> There are wide-ranging applications for Perma.cc tools.</p>
         <a href="{% url 'sign_up_orgs' %}" class="btn btn-small center">Perma.cc for other orgs</a>
       </div>
-      <div class="col-xs-12 col-sm-3 _isCentered signup-module">
-        <img class="img-responsive signup-image" loading="lazy" src="{{ STATIC_URL }}img/signup-individuals-bg.png" aria-hidden="true" alt="" />
+      <div class="col-12 col-sm-3 _isCentered signup-module">
+        <img class="img-fluid signup-image" loading="lazy" src="{{ STATIC_URL }}img/signup-individuals-bg.png" aria-hidden="true" alt="" />
         <p class="caption"><strong>Individuals<span class="_verbose">.</span></strong> Anyone can register a free account and start creating Perma Links.</p>
         <a href="{% url 'sign_up' %}" class="btn btn-small center">Perma.cc for individuals</a>
       </div>

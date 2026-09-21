@@ -1,5 +1,4 @@
 import unicodedata
-import imghdr
 from collections import OrderedDict
 from collections.abc import Mapping
 from functools import wraps
@@ -172,21 +171,35 @@ file_extension_lookup = {
 }
 
 
+def _image_type(file_obj):
+    position = file_obj.tell()
+    header = file_obj.read(32)
+    file_obj.seek(position)
+
+    if header[:6] in (b'GIF87a', b'GIF89a'):
+        return 'gif'
+    if header[:8] == b'\x89PNG\r\n\x1a\n':
+        return 'png'
+    if header[6:10] in (b'JFIF', b'Exif') or header[:4] == b'\xff\xd8\xff\xdb':
+        return 'jpeg'
+    return None
+
+
 # Map allowed mime types to new file extensions and validation functions.
 # We manually pick the new extension instead of using MimeTypes().guess_extension,
 # because that varies between systems.
 mime_type_lookup = {
     'image/jpeg': {
         'new_extension': 'jpg',
-        'valid_file': lambda f: imghdr.what(f) == 'jpeg',
+        'valid_file': lambda f: _image_type(f) == 'jpeg',
     },
     'image/png': {
         'new_extension': 'png',
-        'valid_file': lambda f: imghdr.what(f) == 'png',
+        'valid_file': lambda f: _image_type(f) == 'png',
     },
     'image/gif': {
         'new_extension': 'gif',
-        'valid_file': lambda f: imghdr.what(f) == 'gif',
+        'valid_file': lambda f: _image_type(f) == 'gif',
     },
     'application/pdf': {
         'new_extension': 'pdf',
@@ -313,5 +326,4 @@ def get_download_url(request, link, file_format='warc'):
             return None
         case _:
             raise NotImplementedError("Unsupported file format.")
-
 
