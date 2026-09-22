@@ -30,7 +30,7 @@ from django.utils import timezone
 from django.template.defaultfilters import pluralize, filesizeformat
 
 from perma.models import LinkUser, Link, Capture, \
-    CaptureJob, InternetArchiveItem, InternetArchiveFile, Folder, Sponsorship, UserOrganizationAffiliation
+    CaptureAttemptFacts, CaptureJob, InternetArchiveItem, InternetArchiveFile, Folder, Sponsorship, UserOrganizationAffiliation
 from perma.exceptions import PermaPaymentsCommunicationException, ScoopAPINetworkException, ScoopAPIException
 from perma.utils import (
     remove_whitespace,
@@ -276,6 +276,31 @@ def run_next_capture():
         logger.info("Deployment sentinel is present, not running next capture.")
 
 
+MAX_CAPTURE_FACTS_BYTES = 16 * 1024
+
+
+def record_capture_facts(capture_job, poll_data):
+    """
+    Keep Scoop's account of how this attempt was made (`capture_facts`), so
+    captures can be compared by capture configuration: exit IP, Scoop release,
+    worker, egress, experiment arm. Stored per attempt.
+
+    Scoop deployments that predate the field report nothing, and nothing is
+    recorded. An envelope far larger than Scoop produces is not stored.
+    """
+    facts = poll_data.get('capture_facts')
+    if not isinstance(facts, dict):
+        return
+    if len(json.dumps(facts)) > MAX_CAPTURE_FACTS_BYTES:
+        logger.warning(f"{capture_job.link_id}: capture_facts over {MAX_CAPTURE_FACTS_BYTES} bytes; not stored.")
+        return
+    CaptureAttemptFacts.objects.update_or_create(
+        capture_job=capture_job,
+        attempt=capture_job.attempt,
+        defaults={'facts': facts, 'scoop_job_id': capture_job.scoop_job_id},
+    )
+
+
 def capture_with_scoop(capture_job):
     capture_job.link.captured_by_software = 'scoop @ harvard library innovation lab'
     capture_job.link.save(update_fields=['captured_by_software'])
@@ -340,6 +365,8 @@ def capture_with_scoop(capture_job):
             # Show progress to user. Assumes Scoop won't take much longer than ~60s, worst case scenario
             wait_time = time.time() - scoop_start_time
             inc_progress(capture_job, min(wait_time/60, 0.99), f"Waiting for Scoop job {capture_job.scoop_job_id} to finish: {poll_data['status']}")
+
+        record_capture_facts(capture_job, poll_data)
 
         if poll_data.get('scoop_capture_summary'):
             states = poll_data['scoop_capture_summary']['states']
