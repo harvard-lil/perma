@@ -152,7 +152,7 @@ ENV PERMA_SETTINGS_MODULE=settings_ecs
 # the `test` build so that test's FROM-prod layers are the cached prod layers
 # rather than a second copy stamped `dev`.
 ARG PERMA_VERSION=dev
-ENV PERMA_VERSION=$PERMA_VERSION
+ENV PERMA_VERSION=$PERMA_VERSION SENTRY_RELEASE=perma@$PERMA_VERSION
 
 # DJANGO_SETTINGS_MODULE is deliberately not set here: manage.py, wsgi.py and
 # celery.py default it to perma.settings themselves, and an image-level value
