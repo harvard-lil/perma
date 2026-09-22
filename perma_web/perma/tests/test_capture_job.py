@@ -107,3 +107,21 @@ def test_hard_timeout(pending_capture_job):
 
     # failed jobs will have a message indicating failure reason
     assert json.loads(job.message)[api_settings.NON_FIELD_ERRORS_KEY][0] == "Timed out."
+
+
+def test_scoop_capture_pool_is_recorded_as_a_tag(pending_capture_job_factory):
+    """ Captures can be compared by the Scoop configuration that ran them. """
+    from perma.celery_tasks import tag_capture_pool
+
+    link = pending_capture_job_factory().link
+    tag_capture_pool(link, {"status": "success", "capture_pool": "ECS EC2 staging"})
+    assert list(link.tags.names()) == ["scoop-pool-ecs-ec2-staging"]
+
+
+def test_no_tag_when_scoop_does_not_report_a_pool(pending_capture_job_factory):
+    from perma.celery_tasks import tag_capture_pool
+
+    link = pending_capture_job_factory().link
+    tag_capture_pool(link, {"status": "failed"})
+    tag_capture_pool(link, {"status": "failed", "capture_pool": None})
+    assert list(link.tags.names()) == []

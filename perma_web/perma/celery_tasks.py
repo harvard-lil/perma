@@ -27,6 +27,7 @@ from django.db.models import F
 from django.db.models.functions import Greatest, Now
 from django.conf import settings
 from django.utils import timezone
+from django.utils.text import slugify
 from django.template.defaultfilters import pluralize, filesizeformat
 
 from perma.models import LinkUser, Link, Capture, \
@@ -276,6 +277,20 @@ def run_next_capture():
         logger.info("Deployment sentinel is present, not running next capture.")
 
 
+def tag_capture_pool(link, poll_data):
+    """
+    Record which Scoop capture configuration handled this attempt, as a tag.
+
+    Scoop reports `capture_pool` for finished captures (for instance the Hetzner
+    gVisor workers or the ECS fleet), so tagging it lets captures be compared by
+    configuration without a schema change. Scoop deployments that predate the
+    field report nothing, and nothing is tagged.
+    """
+    pool = poll_data.get('capture_pool')
+    if pool:
+        link.tags.add(f'scoop-pool-{slugify(pool)}')
+
+
 def capture_with_scoop(capture_job):
     capture_job.link.captured_by_software = 'scoop @ harvard library innovation lab'
     capture_job.link.save(update_fields=['captured_by_software'])
@@ -340,6 +355,8 @@ def capture_with_scoop(capture_job):
             # Show progress to user. Assumes Scoop won't take much longer than ~60s, worst case scenario
             wait_time = time.time() - scoop_start_time
             inc_progress(capture_job, min(wait_time/60, 0.99), f"Waiting for Scoop job {capture_job.scoop_job_id} to finish: {poll_data['status']}")
+
+        tag_capture_pool(capture_job.link, poll_data)
 
         if poll_data.get('scoop_capture_summary'):
             states = poll_data['scoop_capture_summary']['states']
