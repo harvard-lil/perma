@@ -1,12 +1,12 @@
-![](https://raw.githubusercontent.com/harvard-lil/perma/develop/perma_web/static/img/watermark.png)
+![](https://raw.githubusercontent.com/harvard-lil/perma/main/perma_web/static/img/watermark.png)
 
 Perma - indelible links
 =====
 
 Perma.cc helps authors and journals create permanent archived citations in their published work.
 
-[![test status](https://github.com/harvard-lil/perma/actions/workflows/tests.yml/badge.svg)](https://github.com/harvard-lil/perma/actions)
-[![codecov](https://codecov.io/gh/harvard-lil/perma/branch/develop/graph/badge.svg?token=PmUtgx6QFh)](https://codecov.io/gh/harvard-lil/perma)
+[![test status](https://github.com/harvard-lil/perma/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/harvard-lil/perma/actions)
+[![codecov](https://codecov.io/gh/harvard-lil/perma/branch/main/graph/badge.svg?token=PmUtgx6QFh)](https://codecov.io/gh/harvard-lil/perma)
 
 ## Connect with Perma.cc
 
@@ -15,11 +15,21 @@ Perma.cc helps authors and journals create permanent archived citations in their
 
 ## Installation
 
-If you're installing Perma.cc, see [the installation section of the developer doc](https://github.com/harvard-lil/perma/blob/develop/developer.md#installing-perma).
+If you're installing Perma.cc, see [the installation section of the developer doc](https://github.com/harvard-lil/perma/blob/main/developer.md#installing-perma).
 
 ## Developing in Perma.cc
 
-If you're wrenchin' on Perma.cc, see [the developer doc](https://github.com/harvard-lil/perma/blob/develop/developer.md).
+If you're wrenchin' on Perma.cc, see [the developer doc](https://github.com/harvard-lil/perma/blob/main/developer.md).
+
+## Contributing and releases
+
+Open feature and fix PRs against **`main`**, the default integration branch.
+`develop` is retained as a frozen historical branch; existing PRs targeting it
+will be moved in coordination with their authors.
+
+Releases use merge-commit promotions from `main` to `staging`, then from
+`staging` to `prod`. Merging a promotion deploys that environment; production
+uses the image already validated on staging. See [the release workflow](developer.md#git-and-github).
 
 ## License
 
