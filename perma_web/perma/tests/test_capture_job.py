@@ -107,3 +107,42 @@ def test_hard_timeout(pending_capture_job):
 
     # failed jobs will have a message indicating failure reason
     assert json.loads(job.message)[api_settings.NON_FIELD_ERRORS_KEY][0] == "Timed out."
+
+
+FACTS = {
+    "version": 1,
+    "controller": {"pool": "ecs-ec2-staging", "api_release": "abc123", "host": "i-0123"},
+    "sandbox": {"capture_ip": "3.84.113.108", "scoop_version": "0.7.0"},
+}
+
+
+@pytest.mark.django_db
+def test_capture_facts_are_kept_per_attempt(pending_capture_job_factory):
+    """ Retries reuse the CaptureJob, so facts are stored per attempt. """
+    from perma.celery_tasks import record_capture_facts
+
+    job = pending_capture_job_factory()
+    job.scoop_job_id = "job-1"
+    job.attempt = 1
+    record_capture_facts(job, {"status": "failed", "capture_facts": FACTS})
+    job.attempt = 2
+    retry = {**FACTS, "controller": {**FACTS["controller"], "host": "i-0456"}}
+    record_capture_facts(job, {"status": "success", "capture_facts": retry})
+
+    rows = list(job.attempt_facts.order_by('attempt').values_list('attempt', 'facts'))
+    assert [(attempt, facts["controller"]["host"]) for attempt, facts in rows] == [
+        (1, "i-0123"),
+        (2, "i-0456"),
+    ]
+    assert job.attempt_facts.get(attempt=2).scoop_job_id == "job-1"
+
+
+@pytest.mark.django_db
+def test_nothing_is_recorded_without_capture_facts(pending_capture_job_factory):
+    from perma.celery_tasks import record_capture_facts
+
+    job = pending_capture_job_factory()
+    record_capture_facts(job, {"status": "failed"})
+    record_capture_facts(job, {"status": "failed", "capture_facts": None})
+    record_capture_facts(job, {"status": "failed", "capture_facts": {"sandbox": "x" * 20_000}})
+    assert not job.attempt_facts.exists()
