@@ -94,12 +94,13 @@ def test_user_dropdown_opens_and_closes(page, ui_urls, user, log_in_user) -> Non
 
 
 @pytest.mark.uses_storage
-def test_skip_links_precede_the_navigation(page, ui_urls) -> None:
+@pytest.mark.parametrize("width", [375, 768, 1200])
+def test_skip_links_precede_the_navigation(page, ui_urls, width) -> None:
     """
     Both skip links are the first things a keyboard user reaches, and each
     points at a target that exists on the page.
     """
-    page.set_viewport_size(DESKTOP_VIEWPORT)
+    page.set_viewport_size({"width": width, "height": 900})
     page.goto(ui_urls("landing"))
 
     skip_links = page.locator("a.skip-link")
@@ -107,10 +108,32 @@ def test_skip_links_precede_the_navigation(page, ui_urls) -> None:
 
     page.keyboard.press("Tab")
     expect(skip_links.first).to_be_focused()
+    expect(skip_links.first).to_be_in_viewport()
+    page.keyboard.press("Tab")
+    expect(skip_links.nth(1)).to_be_focused()
+    expect(skip_links.nth(1)).to_be_in_viewport()
 
     for href in ["#main-skip-target", "#footer-skip-target"]:
         expect(page.locator(f"a.skip-link[href='{href}']")).to_have_count(1)
         assert page.locator(href).count() == 1
+
+
+@pytest.mark.uses_storage
+@pytest.mark.parametrize("width", [375, 768, 1200])
+@pytest.mark.parametrize("section, tab_count", [("main", 1), ("footer", 2)])
+def test_skip_link_moves_keyboard_focus_to_section(page, ui_urls, width, section, tab_count) -> None:
+    page.set_viewport_size({"width": width, "height": 900})
+    page.goto(ui_urls("landing"))
+
+    for _ in range(tab_count):
+        page.keyboard.press("Tab")
+    link = page.locator(f"a.skip-link[href='#{section}-skip-target']")
+    expect(link).to_be_focused()
+    page.keyboard.press("Enter")
+    expect(page.locator(f"#{section}-skip-target")).to_be_focused()
+
+    page.keyboard.press("Tab")
+    expect(page.locator(f"{section} :focus")).to_have_count(1)
 
 
 @pytest.mark.uses_storage

@@ -462,6 +462,15 @@ Bootstrap 3's compiled output so that markup and inline JavaScript still
 depending on them keeps working. Each has a comment saying who depends on it.
 Prefer migrating a caller to a Bootstrap 5 equivalent over adding a new shim.
 
+`_bootstrap-layout.scss` preserves the previous grid padding, navigation,
+dialog, form, and typography defaults shared by both stylesheets. Perma's
+columns also appear outside `.row`; its non-column row children must not
+inherit Bootstrap 5's column gutters. The native Vue dialogs retain their
+own close controls and dimensions. Account menus use `data-bs-display="static"`
+so their placement follows Perma's CSS in both the main and archive headers.
+The layout tests in `functional_tests/test_ui_layout_parity.py` cover these
+contracts alongside desktop landing modules and documentation columns.
+
 Bootstrap's JavaScript is pulled in as individual ES modules in
 `static/js/global.js` (`bootstrap/js/dist/dropdown`, `collapse`, `tab`), which
 register their own `data-bs-*` data-API. Note that these dispatch **native**
@@ -551,12 +560,16 @@ framework upgrade has to preserve behavior instead of markup:
 | `test_ui_components.py` | tabs, collapse panels, dialogs, pagination, table semantics |
 | `test_ui_responsive.py` | breakpoint boundaries, grid stacking, no horizontal scroll |
 | `test_ui_computed_style.py` | typography, link states, box model, button colour, z-index |
+| `test_ui_layout_parity.py` | list columns, landing modules, dialogs, menu bounds, archive geometry |
 | `test_ui_archive.py` | archive details tray, view-mode toggle, playback structure |
 | `test_ui_touch.py` | tap activation under mobile emulation |
 
-When changing UI markup, expect to keep these passing unmodified. If an
-assertion has to change, that is a product-visible behavior change and should
-be treated as one.
+When changing UI markup, preserve these behavioral expectations. Compare a
+failure with the baseline in the same browser before changing an expected
+value. CSSOM serialization can differ between engines without changing the
+rendered result, such as quotes around a font family name. Geometry checks
+wait for fonts to load, and login helpers wait for the redirected document
+before querying its authenticated UI.
 
 Note that `test_ui_touch.py` builds its own browser contexts with an iOS Safari
 user agent. That is not decoration: libraries that gate themselves on

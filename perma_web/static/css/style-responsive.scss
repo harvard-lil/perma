@@ -10,6 +10,7 @@
 // and @extend cannot reach across a @use module boundary -- switching this
 // line silently changed 51 generated rules.
 @import "bootstrap-custom";
+@import "bootstrap-layout";
 @import "bootstrap-mod";
 
 
@@ -1057,12 +1058,12 @@ a.cc {
   margin-right: -2px;
 }
 
-.col.col-no-gutter {
+.col-no-gutter {
   padding-left: 0;
   padding-right: 0;
 }
 
-.col.col-half-gutter {
+.col-half-gutter {
   padding-left: 2px;
   padding-right: 2px;
 }
@@ -1070,10 +1071,11 @@ a.cc {
 div.col-right {
   @include respond-tablet {
     float: right;
+    margin-left: auto;
   }
 }
 
-.col.align-right {
+.align-right {
   @include respond-tablet {
     text-align: right;
   }
@@ -1855,6 +1857,9 @@ h3.page-section-title {
 .overview .row {
   display: flex;
   flex-wrap: wrap;
+  > nav {
+    width: auto;
+  }
   @include respond-tablet {
     display: block;
   }
@@ -2317,7 +2322,7 @@ p.caption {
   }
 }
 
-.col-xs-6 p.caption {
+.col-6 p.caption {
   @include respond-mobile {
     line-height: 1.45;
   }
@@ -2355,7 +2360,7 @@ figcaption {
   }
 }
 
-figcaption + .img-responsive {
+figcaption + .img-fluid {
   margin-top: 5px;
 }
 
@@ -2389,7 +2394,8 @@ figcaption + .img-responsive {
 // Alerts
 
 .text-warning {
-  color: $color-error;
+  // Bootstrap 5's color utilities are important; retain Perma's warning color.
+  color: $color-error !important;
 }
 
 .alert {
@@ -3524,6 +3530,31 @@ li.dropdown {
   }
 }
 
+// Bootstrap's navbar dropdown positioning otherwise overrides these offsets
+// through .dropdown-menu[data-bs-popper], and opens the menu off-screen.
+.navbar-nav .dropdown-menu[data-bs-popper] {
+  left: auto;
+  right: 0;
+  margin-top: 0;
+  @include respond-tablet {
+    top: 77px;
+  }
+  @include respond-desktop {
+    top: 85px;
+  }
+}
+
+.navbar-default .navbar-nav > .dropdown > .dropdown-toggle.show {
+  color: #555;
+  background-color: #e7e7e7;
+}
+
+@include respond-mobile {
+  .admin-content {
+    display: block;
+  }
+}
+
 .dropdown-inner-list {
   @include style-dropdown-items;
   padding-left: 0;
@@ -3591,7 +3622,7 @@ li.dropdown {
       display: block;
     }
   }
-  .navbar-nav.navbar-right:last-child {
+  .navbar-nav.ms-auto:last-child {
     margin-right: $grid;
     margin-left: $grid;
     @include respond-tablet {
@@ -3751,7 +3782,7 @@ footer {
       margin-left: $grid;
     }
   }
-  div.col:first-child li:first-child{
+  #footer-nav li:first-child {
     border-top: none;
   }
   #footer-nav {
@@ -4147,6 +4178,11 @@ ol.result-list {
 
   .item-container {
     margin-top: 0;
+    @include respond-tablet {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
   }
 
   .admin-actions {
@@ -4242,7 +4278,7 @@ ol.result-list {
   }
   .text-warning {
     margin-left: 8px;
-    color: $color-orange;
+    color: $color-orange !important;
   }
 }
 
@@ -4992,7 +5028,7 @@ h6.image-hed {
   .row.outer {
     margin: 0 (-$grid * 4);
   }
-  .col-xs-12 {
+  .col-12 {
     border-bottom: 1px solid $color-blue;
     @include respond-tablet {
       padding: 0 $grid * 4;
@@ -5443,10 +5479,14 @@ section .caption {
     flex-direction: row;
   }
   @include respond-desktop {
-    display: block;
+    // Columns no longer float in Bootstrap 5.
+    display: flex;
   }
   .first {
     order: -1;
+    @include respond-desktop {
+      order: 0;
+    }
   }
 }
 
@@ -5969,14 +6009,13 @@ li[data-read_only="true"] {
   }
 }
 
-/* Measurements use calc so rem measurements are 1:1 with px size
-Example: calc(4rem / 16) is equal to 4px or 0.25rem */
+// Preserve dimensions that previously used Bootstrap 3's 10px root font.
 .u-pb-150 {
-  padding-bottom: calc(18rem / 16);
+  padding-bottom: 11.25px;
 }
 
 .u-min-h-48 {
-  min-height: 12rem;
+  min-height: 120px;
 }
 .c-button {
   cursor: pointer;
@@ -5986,7 +6025,7 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
   display: flex;
   align-items: center;
   color: rgba(0, 0, 0, 0.4);
-  font-size: 2rem;
+  font-size: 20px;
   background: none;
   border: none;
   padding: 0;
@@ -5997,11 +6036,11 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
 }
 
 .c-button--icon:not(:last-child) {
-  margin-inline-end: 1rem;
+  margin-inline-end: 10px;
 }
 
 .c-button__chevron {
-  margin-inline: 1rem;
+  margin-inline: 10px;
 }
 
 .c-button--link, .c-button--privateLink {
@@ -6036,7 +6075,7 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
   border: none;
 
   @include respond-tablet {
-    margin-block-start: 3.75rem;
+    margin-block-start: 37.5px;
     width: unset;
   }
 
@@ -6050,14 +6089,14 @@ Example: calc(4rem / 16) is equal to 4px or 0.25rem */
   grid-template-columns: auto auto 1fr;
   align-items: center;
   justify-content: start;
-  gap: 0.6rem;
+  gap: 6px;
   border-block-start: 2px solid $color-blue;
   padding-block-start: $grid;
   padding-block-end: $grid * 2;
 }
 
 .c-sectionHeading__name {
-  font-size: 2.2rem;
+  font-size: 22px;
   color: $color-blue;
   font-family: $font-hed-alt;
   font-weight: 700;

@@ -7,6 +7,7 @@
 // @import, not @use: see the note in style-responsive.scss -- @extend cannot
 // cross a @use boundary, and this entry point is kept in step with that one.
 @import "bootstrap-custom-archive";
+@import "bootstrap-layout";
 
 
 
@@ -38,6 +39,7 @@ a {
 }
 
 .capture-wrapper {
+  padding: 0;
   position: relative;
   height: 100%;
   width : 100%;
@@ -980,6 +982,19 @@ li.dropdown {
   display: block;
 }
 
+.navbar-nav .dropdown-menu[data-bs-popper] {
+  left: auto;
+  right: 0;
+  margin-top: 0;
+  @include respond-tablet {
+    position: absolute;
+    top: 77px;
+  }
+  @include respond-desktop {
+    top: 64px;
+  }
+}
+
 .dropdown-header {
   margin-top: 0;
   margin-bottom: 0;
@@ -1046,15 +1061,21 @@ li.dropdown {
 // undo-ing bootstrap
 
 @include respond-tablet {
-  .navbar-nav.navbar-right:last-child {
+  .navbar-nav.ms-auto:last-child {
     margin-right: 0 !important;
   }
 }
 
 .navbar-nav {
   margin: 0 (-$grid) $double (-$grid);
+  @include respond-mobile {
+    &.ms-auto {
+      margin-left: -$grid !important;
+    }
+  }
   @include respond-tablet {
     margin: 0;
+    float: right;
   }
 }
 

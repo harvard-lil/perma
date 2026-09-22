@@ -14413,7 +14413,7 @@ function informUser(message, alertClass) {
    */
   $('.popup-alert button.close').click();
   alertClass = alertClass || "info";
-  $('<div class="alert alert-' + alertClass + ' alert-dismissible popup-alert" role="alert" style="display: none">' + '<button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' + message + '</div>').prependTo('body').fadeIn('fast');
+  $('<div class="alert alert-' + alertClass + ' alert-dismissible popup-alert" role="alert" style="display: none">' + '<button type="button" class="close"><span aria-hidden="true">&times;</span><span class="visually-hidden">Close</span></button>' + message + '</div>').prependTo('body').fadeIn('fast');
 }
 
 // via http://www.w3schools.com/js/js_cookies.asp

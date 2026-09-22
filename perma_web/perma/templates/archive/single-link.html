@@ -82,7 +82,7 @@
           <p class="title"><span class="_verbose">This is a </span>{% if link.is_private %}Private {% endif %}<span class="logo">Perma.cc</span> record</p>
           <p class="creation"><span class="cat">{% if capture.user_upload %}Uploaded{% else %}Captured{% endif %}</span> {{ link.creation_timestamp|local_datetime }}</p>
           <div class="view-mode">
-            <div class="server-client-toggle toggle-btn-group pt-3">
+            <div class="server-client-toggle toggle-btn-group">
               <strong>View<span class="_verbose"> Mode</span>:</strong>
               {% if link.primary_capture and link.primary_capture.status == 'success' %}
                 <a class="btn btn-ui-small btn-toggle {% if serve_type != 'image' %} active {% endif %}" href="{% url 'single_permalink' link.guid %}?type=standard">Standard</a>

@@ -36,7 +36,8 @@
     {% block styles %}{% endblock %}
 
   </head>
-  <body class="{% block bodyFlags %}{% endblock bodyFlags %}">
+  {# Keep the scrollable body out of the tab order so the skip links come first. #}
+  <body tabindex="-1" class="{% block bodyFlags %}{% endblock bodyFlags %}">
     {% block modals %}{% endblock modals %}
     {% block top_banner %}{% endblock top_banner %}
     <div id="after-modals">

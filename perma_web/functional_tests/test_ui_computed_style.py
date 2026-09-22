@@ -69,7 +69,9 @@ def test_body_base_typography_and_background(page, ui_urls) -> None:
     page.goto(ui_urls("landing"))
 
     body = page.locator("body")
-    assert computed_style(body, "font-family") == '"Roboto Slab", sans-serif'
+    # Engines differ on whether CSSOM quotes font family names containing spaces.
+    families = [name.strip().strip('\"\'') for name in computed_style(body, "font-family").split(',')]
+    assert families == ['Roboto Slab', 'sans-serif']
     assert computed_style(body, "font-size") == "14px"
     assert computed_style(body, "line-height") == "20px"
     assert computed_style(body, "color") == "rgb(34, 34, 34)"
