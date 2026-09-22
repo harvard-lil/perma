@@ -753,6 +753,18 @@ wheels = [
 ]
 
 [[package]]
+name = "lil-request-logging"
+version = "0.1.0"
+source = { url = "https://github.com/harvard-lil/lil-request-logging/releases/download/v0.1.0/lil_request_logging-0.1.0-py3-none-any.whl" }
+wheels = [
+    { url = "https://github.com/harvard-lil/lil-request-logging/releases/download/v0.1.0/lil_request_logging-0.1.0-py3-none-any.whl", hash = "sha256:e8d9b8b8a9c8c2f0434c9fa4e0dbb1baf5e4f9632c2b07fc28ac405134f0ec96" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "gunicorn", marker = "extra == 'gunicorn'", specifier = ">=23,<27" }]
+provides-extras = ["gunicorn"]
+
+[[package]]
 name = "linkheader"
 version = "0.4.3"
 source = { registry = "https://pypi.org/simple" }
@@ -903,6 +915,7 @@ dependencies = [
     { name = "gunicorn" },
     { name = "internetarchive" },
     { name = "invoke" },
+    { name = "lil-request-logging" },
     { name = "lxml" },
     { name = "netaddr" },
     { name = "psycopg2" },
@@ -967,6 +980,7 @@ requires-dist = [
     { name = "gunicorn", specifier = "~=26.2" },
     { name = "internetarchive", specifier = "~=5.11.1" },
     { name = "invoke", specifier = "~=3.0.3" },
+    { name = "lil-request-logging", url = "https://github.com/harvard-lil/lil-request-logging/releases/download/v0.1.0/lil_request_logging-0.1.0-py3-none-any.whl" },
     { name = "lxml", specifier = "~=6.1.2" },
     { name = "netaddr", specifier = "~=1.3.0" },
     { name = "psycopg2", specifier = "~=2.9.12" },

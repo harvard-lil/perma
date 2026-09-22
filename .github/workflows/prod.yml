@@ -34,6 +34,9 @@ jobs:
   # Only allow merges from staging, from this repository.
   check-source-branch:
     name: Check Source Branch
+    permissions:
+      contents: read
+      actions: read
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
@@ -52,6 +55,24 @@ jobs:
             exit 1
           fi
           echo "Source branch verification passed"
+
+      - name: Require a successful source workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # Check the exact source commit, not an unrelated green branch tip.
+          runs="$(gh api --method GET "repos/${REPOSITORY}/actions/workflows/staging.yml/runs" \
+            -f head_sha="$HEAD_SHA" -f event=push -f per_page=100)"
+          if ! jq -e --arg sha "$HEAD_SHA" '
+            [.workflow_runs[] | select(.head_sha == $sha and .head_branch == "staging")]
+            | sort_by(.run_number) | last
+            | .status == "completed" and .conclusion == "success"
+          ' <<< "$runs" >/dev/null; then
+            echo "::error::The exact staging source commit needs a successful staging.yml push run. Rerun this check after it succeeds."
+            exit 1
+          fi
 
   # Production never builds. It ships the exact image the staging web service
   # is running, read out of that service's task definition: on prod, HEAD^2 is
