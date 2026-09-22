@@ -156,7 +156,7 @@ SSL certs and keys should already be present. If they are not, or if they have
 expired, you can run `bash make_cert.sh` to generate new files.)
 
 To log in and explore Perma, try logging in as one of our
-[test users (the `linkuser` objects)](https://github.com/harvard-lil/perma/blob/develop/perma_web/fixtures/users.json#L167). All test users have a password of "pass".
+[test users (the `linkuser` objects)](https://github.com/harvard-lil/perma/blob/main/perma_web/fixtures/users.json#L167). All test users have a password of "pass".
 
 The server will automatically reload any time you make a change to the `perma_web` directory: just refresh the page to see your changes.
 
@@ -267,9 +267,38 @@ You can also prefix arbitrary commands with `d`:
 
 We use Git to track code changes and use [GitHub](https://github.com/harvard-lil/perma) to host the code publicly.
 
-The `prod` branch contains production code (likely what is running at [Perma.cc](https://perma.cc/)) while the `develop` branch contains the group's working version. We follow [Vincent Driessen's approach](https://nvie.com/posts/a-successful-git-branching-model/).
+Create feature branches from `main` and open pull requests against `main`.
+The required `test / Lint` and `test / Test` checks must pass, with the branch
+up to date, before merging. A merge to `main` tests and publishes a versioned
+container image; it does not deploy a serving environment.
 
-Fork our repo, then make a feature branch on your fork. Issue a pull request to merge your feature branch into Perma's develop branch when your code is ready.
+Deploy through merge-commit PRs:
+
+1. `main` → `staging`: require a successful main push build for the exact source
+   commit, then merge to deploy the published image to staging.
+2. QA staging, then `staging` → `prod`: require a successful staging push deploy
+   for the exact source commit, then merge to promote the staged image to production.
+
+The promotion checks reject other source branches and forks. If the upstream
+build or deploy has not finished successfully, rerun the promotion check after
+it succeeds. Do not squash or rebase promotion PRs: the workflows rely on merge
+history. Deploy-time checks also verify the selected image and source tree.
+Keep staging at the reviewed release until production promotion completes.
+
+`develop` is retained but frozen against updates and deletion. New PRs belong
+on `main`; coordinate with authors before retargeting older PRs. The old Salt
+branches `stage` and `salt-prod` are retained for the transition, not used for
+new releases. Production now runs on ECS. The initial `prod` branch was seeded
+from the staged cutover release without dispatching a deployment; subsequent
+promotions use the workflow above. Confirm a successful deployment run and its
+image digest before treating a branch tip as proof of what is running.
+
+GitHub's `staging` and `prod` environments are restricted to their matching
+branches. Each needs `AWS_ROLE_TO_ASSUME`, `STATIC_BUCKET`,
+`CLOUDFLARE_ZONE_ID`, `MAINTENANCE_SCRIPT`, `MAINTENANCE_HOSTNAMES`, and
+`SITE_URL` variables, plus `CLOUDFLARE_API_TOKEN` and `SLACK_WEBHOOK_URL`
+secrets. Infrastructure and maintenance-page controls live in
+[lil-terraform](https://github.com/harvard-lil/lil-terraform/tree/main/perma).
 
 Track issues using [GitHub Issues](https://github.com/harvard-lil/perma/issues).
 
