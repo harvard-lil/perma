@@ -111,7 +111,7 @@ def test_hard_timeout(pending_capture_job):
 
 FACTS = {
     "version": 1,
-    "controller": {"pool": "ECS EC2 staging", "api_release": "abc123", "host": "i-0123"},
+    "controller": {"pool": "ecs-ec2-staging", "api_release": "abc123", "host": "i-0123"},
     "sandbox": {"capture_ip": "3.84.113.108", "scoop_version": "0.7.0"},
 }
 
@@ -135,7 +135,6 @@ def test_capture_facts_are_kept_per_attempt(pending_capture_job_factory):
         (2, "i-0456"),
     ]
     assert job.attempt_facts.get(attempt=2).scoop_job_id == "job-1"
-    assert list(job.link.tags.names()) == ["scoop-pool-ecs-ec2-staging"]
 
 
 @pytest.mark.django_db
@@ -147,4 +146,3 @@ def test_nothing_is_recorded_without_capture_facts(pending_capture_job_factory):
     record_capture_facts(job, {"status": "failed", "capture_facts": None})
     record_capture_facts(job, {"status": "failed", "capture_facts": {"sandbox": "x" * 20_000}})
     assert not job.attempt_facts.exists()
-    assert list(job.link.tags.names()) == []

@@ -27,7 +27,6 @@ from django.db.models import F
 from django.db.models.functions import Greatest, Now
 from django.conf import settings
 from django.utils import timezone
-from django.utils.text import slugify
 from django.template.defaultfilters import pluralize, filesizeformat
 
 from perma.models import LinkUser, Link, Capture, \
@@ -284,8 +283,7 @@ def record_capture_facts(capture_job, poll_data):
     """
     Keep Scoop's account of how this attempt was made (`capture_facts`), so
     captures can be compared by capture configuration: exit IP, Scoop release,
-    worker, egress, experiment arm. Stored per attempt; the pool is also tagged
-    on the link, where the admin can filter by it.
+    worker, egress, experiment arm. Stored per attempt.
 
     Scoop deployments that predate the field report nothing, and nothing is
     recorded. An envelope far larger than Scoop produces is not stored.
@@ -301,9 +299,6 @@ def record_capture_facts(capture_job, poll_data):
         attempt=capture_job.attempt,
         defaults={'facts': facts, 'scoop_job_id': capture_job.scoop_job_id},
     )
-    pool = (facts.get('controller') or {}).get('pool')
-    if pool:
-        capture_job.link.tags.add(f'scoop-pool-{slugify(pool)}')
 
 
 def capture_with_scoop(capture_job):
