@@ -19,14 +19,29 @@ import pytest
 
 
 @pytest.fixture
-def server(tmp_path):
+def server(tmp_path, request):
     app = tmp_path / "acceptance_app.py"
     app.write_text("""
-import time
+import time, os, concurrent.futures
 from pathlib import Path
 
 def application(environ, start_response):
     path = environ["PATH_INFO"]
+    if path in ("/slow", "/nested", "/hang"):
+        Path(__file__).with_suffix(".started").touch()
+    if path == "/nested":
+        time.sleep(2)
+        with concurrent.futures.ThreadPoolExecutor() as pool:
+            pool.submit(lambda: None).result()
+    if path == "/hang":
+        time.sleep(30)
+    if path == "/block":
+        Path(__file__).with_suffix(f".{os.getpid()}.blocked").touch()
+        deadline = time.monotonic() + 10
+        while not Path(__file__).with_suffix(".release").exists():
+            if time.monotonic() > deadline:
+                raise TimeoutError("Test did not release blocked request")
+            time.sleep(0.01)
     if path == "/slow":
         Path(__file__).with_suffix(".started").touch()
         time.sleep(1)
@@ -56,8 +71,11 @@ def application(environ, start_response):
                 f"127.0.0.1:{port}",
                 "--workers",
                 "1",
+                "--worker-tmp-dir",
+                str(tmp_path),
                 "--chdir",
                 str(tmp_path),
+                *getattr(request, "param", []),
                 "acceptance_app:application",
             ],
             stdout=log,
@@ -101,18 +119,18 @@ def test_head_keeps_headers_without_body(server, path, status):
     assert app.with_suffix(".closed").exists()
 
 
-def test_head_then_get_on_reused_connection(server):
+def test_head_then_get_reconnects_after_origin_close(server):
     port, _, _ = server
     with closing(http.client.HTTPConnection("127.0.0.1", port, timeout=5)) as conn:
         conn.request("HEAD", "/")
         response = conn.getresponse()
         assert response.read() == b""
-        original_socket = conn.sock
+        assert conn.sock is None  # sync closes the origin connection
         conn.request("GET", "/")
         response = conn.getresponse()
         assert response.status == 200
         assert response.read() == b"payload"
-        assert conn.sock is original_socket
+        assert conn.sock is None
 
 
 def test_sigterm_completes_inflight_request(server):
@@ -133,3 +151,72 @@ def test_sigterm_completes_inflight_request(server):
         process.terminate()
         assert future.result(timeout=5) == b"payload"
     assert process.wait(timeout=10) == 0
+
+
+def fetch(port, path="/", timeout=5):
+    with closing(http.client.HTTPConnection("127.0.0.1", port, timeout=timeout)) as conn:
+        conn.request("GET", path)
+        response = conn.getresponse()
+        return response.status, response.read()
+
+
+def wait_for(path):
+    for _ in range(200):
+        if path.exists():
+            return
+        time.sleep(0.01)
+    pytest.fail(f"Request did not reach {path.name}")
+
+
+@pytest.mark.parametrize("server", [["--max-requests", "1", "--max-requests-jitter", "0", "--graceful-timeout", "1"]], indirect=True)
+def test_recycling_waits_for_request_using_nested_thread_pool(server):
+    # Reproduces the upload's boto3-style late thread-pool creation. The old
+    # gthread worker could start interpreter shutdown before this request ended.
+    port, _, _ = server
+    assert fetch(port, "/nested") == (200, b"payload")
+    assert fetch(port) == (200, b"payload")
+
+
+@pytest.mark.parametrize("server", [["--timeout", "2"]], indirect=True)
+def test_stuck_request_is_terminated_and_worker_recovers(server):
+    port, _, app = server
+    started = time.monotonic()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        future = pool.submit(fetch, port, "/hang", 8)
+        wait_for(app.with_suffix(".started"))
+        try:
+            status, _ = future.result(timeout=8)
+            assert status == 500
+        except (http.client.RemoteDisconnected, ConnectionResetError):
+            pass  # The timed-out worker may close before sending an error.
+    assert time.monotonic() - started < 8
+    assert "WORKER TIMEOUT" in (app.parent / "server.log").read_text()
+    assert fetch(port) == (200, b"payload")
+
+
+@pytest.mark.parametrize("server", [["--workers", "5"]], indirect=True)
+def test_health_request_uses_spare_worker_during_slow_requests(server):
+    port, _, app = server
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+        pending = [pool.submit(fetch, port, "/block") for _ in range(4)]
+        try:
+            for _ in range(200):
+                if len(list(app.parent.glob("*.blocked"))) == 4:
+                    break
+                time.sleep(0.01)
+            assert len(list(app.parent.glob("*.blocked"))) == 4
+            assert fetch(port, "/healthcheck/", timeout=1) == (200, b"payload")
+        finally:
+            app.with_suffix(".release").touch()
+        assert all(f.result(timeout=5) == (200, b"payload") for f in pending)
+
+
+@pytest.mark.parametrize("server", [["--graceful-timeout", "3"]], indirect=True)
+def test_sigterm_allows_late_thread_pool_creation(server):
+    port, process, app = server
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        future = pool.submit(fetch, port, "/nested")
+        wait_for(app.with_suffix(".started"))
+        process.terminate()
+        assert future.result(timeout=5) == (200, b"payload")
+    assert process.wait(timeout=5) == 0

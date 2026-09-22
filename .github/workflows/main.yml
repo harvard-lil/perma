@@ -2,10 +2,8 @@ name: Lint and Test
 
 # `main` is the integration branch of the ECS line: a push here builds the
 # image once, runs the suite against it, and publishes it to ECR under the
-# commit SHA for the staging deploy to promote. Perma's Salt line keeps its
-# own `develop` -> `stage` -> `salt-prod` branches and its own tests.yml and
-# lints.yml, which are not part of this workflow set; `develop` merges forward
-# into `main`.
+# commit SHA for staging to promote. New work targets main; develop remains
+# frozen for historical reference. Releases promote main -> staging -> prod.
 
 on:
   push:
