@@ -13,6 +13,7 @@ from .internet_archive import ( # noqa: F401
 )
 from .link import ( # noqa: F401
     Capture,
+    CaptureAttemptFacts,
     CaptureJob,
     Link,
     LinkBatch,
