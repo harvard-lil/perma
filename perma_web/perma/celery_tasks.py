@@ -31,7 +31,7 @@ from django.utils.text import slugify
 from django.template.defaultfilters import pluralize, filesizeformat
 
 from perma.models import LinkUser, Link, Capture, \
-    CaptureJob, InternetArchiveItem, InternetArchiveFile, Folder, Sponsorship, UserOrganizationAffiliation
+    CaptureAttemptFacts, CaptureJob, InternetArchiveItem, InternetArchiveFile, Folder, Sponsorship, UserOrganizationAffiliation
 from perma.exceptions import PermaPaymentsCommunicationException, ScoopAPINetworkException, ScoopAPIException
 from perma.utils import (
     remove_whitespace,
@@ -277,18 +277,33 @@ def run_next_capture():
         logger.info("Deployment sentinel is present, not running next capture.")
 
 
-def tag_capture_pool(link, poll_data):
-    """
-    Record which Scoop capture configuration handled this attempt, as a tag.
+MAX_CAPTURE_FACTS_BYTES = 16 * 1024
 
-    Scoop reports `capture_pool` for finished captures (for instance the Hetzner
-    gVisor workers or the ECS fleet), so tagging it lets captures be compared by
-    configuration without a schema change. Scoop deployments that predate the
-    field report nothing, and nothing is tagged.
+
+def record_capture_facts(capture_job, poll_data):
     """
-    pool = poll_data.get('capture_pool')
+    Keep Scoop's account of how this attempt was made (`capture_facts`), so
+    captures can be compared by capture configuration: exit IP, Scoop release,
+    worker, egress, experiment arm. Stored per attempt; the pool is also tagged
+    on the link, where the admin can filter by it.
+
+    Scoop deployments that predate the field report nothing, and nothing is
+    recorded. An envelope far larger than Scoop produces is not stored.
+    """
+    facts = poll_data.get('capture_facts')
+    if not isinstance(facts, dict):
+        return
+    if len(json.dumps(facts)) > MAX_CAPTURE_FACTS_BYTES:
+        logger.warning(f"{capture_job.link_id}: capture_facts over {MAX_CAPTURE_FACTS_BYTES} bytes; not stored.")
+        return
+    CaptureAttemptFacts.objects.update_or_create(
+        capture_job=capture_job,
+        attempt=capture_job.attempt,
+        defaults={'facts': facts, 'scoop_job_id': capture_job.scoop_job_id},
+    )
+    pool = (facts.get('controller') or {}).get('pool')
     if pool:
-        link.tags.add(f'scoop-pool-{slugify(pool)}')
+        capture_job.link.tags.add(f'scoop-pool-{slugify(pool)}')
 
 
 def capture_with_scoop(capture_job):
@@ -356,7 +371,7 @@ def capture_with_scoop(capture_job):
             wait_time = time.time() - scoop_start_time
             inc_progress(capture_job, min(wait_time/60, 0.99), f"Waiting for Scoop job {capture_job.scoop_job_id} to finish: {poll_data['status']}")
 
-        tag_capture_pool(capture_job.link, poll_data)
+        record_capture_facts(capture_job, poll_data)
 
         if poll_data.get('scoop_capture_summary'):
             states = poll_data['scoop_capture_summary']['states']

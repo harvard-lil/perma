@@ -109,19 +109,42 @@ def test_hard_timeout(pending_capture_job):
     assert json.loads(job.message)[api_settings.NON_FIELD_ERRORS_KEY][0] == "Timed out."
 
 
-def test_scoop_capture_pool_is_recorded_as_a_tag(pending_capture_job_factory):
-    """ Captures can be compared by the Scoop configuration that ran them. """
-    from perma.celery_tasks import tag_capture_pool
-
-    link = pending_capture_job_factory().link
-    tag_capture_pool(link, {"status": "success", "capture_pool": "ECS EC2 staging"})
-    assert list(link.tags.names()) == ["scoop-pool-ecs-ec2-staging"]
+FACTS = {
+    "version": 1,
+    "controller": {"pool": "ECS EC2 staging", "api_release": "abc123", "host": "i-0123"},
+    "sandbox": {"capture_ip": "3.84.113.108", "scoop_version": "0.7.0"},
+}
 
 
-def test_no_tag_when_scoop_does_not_report_a_pool(pending_capture_job_factory):
-    from perma.celery_tasks import tag_capture_pool
+@pytest.mark.django_db
+def test_capture_facts_are_kept_per_attempt(pending_capture_job_factory):
+    """ Retries reuse the CaptureJob, so facts are stored per attempt. """
+    from perma.celery_tasks import record_capture_facts
 
-    link = pending_capture_job_factory().link
-    tag_capture_pool(link, {"status": "failed"})
-    tag_capture_pool(link, {"status": "failed", "capture_pool": None})
-    assert list(link.tags.names()) == []
+    job = pending_capture_job_factory()
+    job.scoop_job_id = "job-1"
+    job.attempt = 1
+    record_capture_facts(job, {"status": "failed", "capture_facts": FACTS})
+    job.attempt = 2
+    retry = {**FACTS, "controller": {**FACTS["controller"], "host": "i-0456"}}
+    record_capture_facts(job, {"status": "success", "capture_facts": retry})
+
+    rows = list(job.attempt_facts.order_by('attempt').values_list('attempt', 'facts'))
+    assert [(attempt, facts["controller"]["host"]) for attempt, facts in rows] == [
+        (1, "i-0123"),
+        (2, "i-0456"),
+    ]
+    assert job.attempt_facts.get(attempt=2).scoop_job_id == "job-1"
+    assert list(job.link.tags.names()) == ["scoop-pool-ecs-ec2-staging"]
+
+
+@pytest.mark.django_db
+def test_nothing_is_recorded_without_capture_facts(pending_capture_job_factory):
+    from perma.celery_tasks import record_capture_facts
+
+    job = pending_capture_job_factory()
+    record_capture_facts(job, {"status": "failed"})
+    record_capture_facts(job, {"status": "failed", "capture_facts": None})
+    record_capture_facts(job, {"status": "failed", "capture_facts": {"sandbox": "x" * 20_000}})
+    assert not job.attempt_facts.exists()
+    assert list(job.link.tags.names()) == []
