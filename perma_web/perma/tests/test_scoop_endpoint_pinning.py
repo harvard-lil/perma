@@ -104,13 +104,13 @@ def test_the_capture_path_resolves_the_instance_exactly_once():
     source = Path(__file__).resolve().parents[1] / "celery_tasks.py"
     tree = ast.parse(source.read_text())
 
-    resolutions = [
-        node
-        for function in ast.walk(tree)
-        if isinstance(function, ast.FunctionDef) and function.name == "capture_with_scoop"
-        for node in ast.walk(function)
-        if isinstance(node, ast.Call)
-        and isinstance(node.func, ast.Name)
-        and node.func.id == "current_scoop_api"
-    ]
-    assert len(resolutions) == 1
+    resolutions = 0
+    for function in ast.walk(tree):
+        if not isinstance(function, ast.FunctionDef) or function.name != "capture_with_scoop":
+            continue
+        for node in ast.walk(function):
+            callee = node.func if isinstance(node, ast.Call) else None
+            if isinstance(callee, ast.Name) and callee.id == "current_scoop_api":
+                resolutions += 1
+
+    assert resolutions == 1
