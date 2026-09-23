@@ -832,6 +832,41 @@ class CaptureJob(models.Model):
         return self.link.accessible_to(user)
 
 
+class CaptureAttemptFacts(models.Model):
+    """
+    How one capture attempt was made, as Scoop reported it in `capture_facts`:
+    a small versioned JSON envelope, namespaced by who asserts each fact
+    ("controller" or "sandbox"). The key registry lives with Scoop, in
+    perma-scoop-api's docs/capture-facts.md; typed columns for analysis are
+    extracted downstream, so adding a fact never needs a migration here.
+
+    A row per attempt rather than a column on CaptureJob, which is reused
+    across retries (`attempt`) and is very large: creating this table touches
+    nothing that exists. For the same reason the foreign key has no database
+    constraint, which would lock perma_capturejob to create; deletions through
+    the ORM still cascade.
+    """
+    capture_job = models.ForeignKey(
+        CaptureJob,
+        on_delete=models.CASCADE,
+        related_name='attempt_facts',
+        db_constraint=False,
+        db_index=False,  # covered by the unique constraint's index
+    )
+    attempt = models.SmallIntegerField()
+    scoop_job_id = models.CharField(max_length=255, blank=True, null=True)
+    recorded_at = models.DateTimeField(auto_now_add=True)
+    facts = JSONField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['capture_job', 'attempt'], name='unique_capture_attempt_facts'),
+        ]
+
+    def __str__(self):
+        return f"CaptureAttemptFacts {self.capture_job_id}#{self.attempt}"
+
+
 class LinkBatch(models.Model):
     created_by = models.ForeignKey(LinkUser, blank=False, null=False, related_name='link_batches', on_delete=models.CASCADE)
     started_on = models.DateTimeField(auto_now=True, blank=False, null=False, db_index=True)

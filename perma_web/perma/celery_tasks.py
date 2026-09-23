@@ -30,13 +30,14 @@ from django.utils import timezone
 from django.template.defaultfilters import pluralize, filesizeformat
 
 from perma.models import LinkUser, Link, Capture, \
-    CaptureJob, InternetArchiveItem, InternetArchiveFile, Folder, Sponsorship, UserOrganizationAffiliation
+    CaptureAttemptFacts, CaptureJob, InternetArchiveItem, InternetArchiveFile, Folder, Sponsorship, UserOrganizationAffiliation
 from perma.exceptions import PermaPaymentsCommunicationException, ScoopAPINetworkException, ScoopAPIException
 from perma.utils import (
     remove_whitespace,
     get_ia_session, ia_global_task_limit_approaching,
     ia_perma_task_limit_approaching, ia_bucket_task_limit_approaching,
-    copy_file_data, date_range, deployment_pending, send_to_scoop, calculate_s3_etag,
+    copy_file_data, date_range, deployment_pending, send_to_scoop, current_scoop_api,
+    calculate_s3_etag,
     temporary_working_directory)
 from perma.email import send_staff_invited_new_user_email, send_user_email
 from perma.wsgi_utils import retry_on_exception
@@ -93,7 +94,7 @@ def inc_progress(capture_job, inc, description):
 
 ### CAPTURE COMPLETION ###
 
-def save_scoop_archive(link, capture_job, data):
+def save_scoop_archive(link, capture_job, data, api):
     inc_progress(capture_job, 1, "Downloading web archive file (WACZ)")
 
     # mode set to 'ab+' as a workaround for https://github.com/python/cpython/issues/69528
@@ -106,7 +107,8 @@ def save_scoop_archive(link, capture_job, data):
                 method="get",
                 path=f"artifact/{data['id_capture']}/archive.wacz",
                 valid_if=lambda code, _: code == 200,
-                stream=True
+                stream=True,
+                api=api
             )
 
             # Write the response, chunk by chunk, into the temp file.
@@ -276,6 +278,31 @@ def run_next_capture():
         logger.info("Deployment sentinel is present, not running next capture.")
 
 
+MAX_CAPTURE_FACTS_BYTES = 16 * 1024
+
+
+def record_capture_facts(capture_job, poll_data):
+    """
+    Keep Scoop's account of how this attempt was made (`capture_facts`), so
+    captures can be compared by capture configuration: exit IP, Scoop release,
+    worker, egress, experiment arm. Stored per attempt.
+
+    Scoop deployments that predate the field report nothing, and nothing is
+    recorded. An envelope far larger than Scoop produces is not stored.
+    """
+    facts = poll_data.get('capture_facts')
+    if not isinstance(facts, dict):
+        return
+    if len(json.dumps(facts)) > MAX_CAPTURE_FACTS_BYTES:
+        logger.warning(f"{capture_job.link_id}: capture_facts over {MAX_CAPTURE_FACTS_BYTES} bytes; not stored.")
+        return
+    CaptureAttemptFacts.objects.update_or_create(
+        capture_job=capture_job,
+        attempt=capture_job.attempt,
+        defaults={'facts': facts, 'scoop_job_id': capture_job.scoop_job_id},
+    )
+
+
 def capture_with_scoop(capture_job):
     capture_job.link.captured_by_software = 'scoop @ harvard library innovation lab'
     capture_job.link.save(update_fields=['captured_by_software'])
@@ -285,6 +312,13 @@ def capture_with_scoop(capture_job):
         link = capture_job.link
         target_url = link.ascii_safe_url
         success = False
+
+        # Which Scoop runs this capture, decided once. Every request below
+        # names an id_capture that only this instance issued, so re-reading the
+        # switch per request would send the poll somewhere that has never heard
+        # of the job. Deciding here also means the switch can be flipped while
+        # captures are in flight: they finish where they started.
+        api = current_scoop_api()
 
         # Get started, unless the user has deleted the capture in the meantime
         inc_progress(capture_job, 0, "Starting capture")
@@ -303,6 +337,7 @@ def capture_with_scoop(capture_job):
             method="post",
             path="capture",
             json={"url": target_url},
+            api=api,
             valid_if=lambda code, data: code == 200 and all(key in data for key in {"status", "id_capture"}) and data["status"] in ["pending", "started"],
         )
 
@@ -324,6 +359,7 @@ def capture_with_scoop(capture_job):
                     json={
                         "url": target_url
                     },
+                    api=api,
                     valid_if=lambda code, data: code == 200 and all(key in data for key in {'status'})
                 )
             except ScoopAPINetworkException:
@@ -340,6 +376,8 @@ def capture_with_scoop(capture_job):
             # Show progress to user. Assumes Scoop won't take much longer than ~60s, worst case scenario
             wait_time = time.time() - scoop_start_time
             inc_progress(capture_job, min(wait_time/60, 0.99), f"Waiting for Scoop job {capture_job.scoop_job_id} to finish: {poll_data['status']}")
+
+        record_capture_facts(capture_job, poll_data)
 
         if poll_data.get('scoop_capture_summary'):
             states = poll_data['scoop_capture_summary']['states']
@@ -394,7 +432,7 @@ def capture_with_scoop(capture_job):
     finally:
         try:
             if success:
-                save_scoop_archive(link, capture_job, poll_data)
+                save_scoop_archive(link, capture_job, poll_data, api)
                 save_archive_metadata(link, capture_job, poll_data)
                 capture_job.mark_completed()
                 print(f"{capture_job.link_id} capture succeeded.")
