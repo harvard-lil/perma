@@ -19,7 +19,6 @@ from . import dev
 from . import once
 from . import wacz_conversion
 from . import check_storage
-from . import merge_accounts
 
 ns = Collection()
 ns.add_task(run)
@@ -28,4 +27,3 @@ ns.add_collection(dev)
 ns.add_collection(once)
 ns.add_collection(wacz_conversion)
 ns.add_collection(check_storage)
-ns.add_collection(merge_accounts)
