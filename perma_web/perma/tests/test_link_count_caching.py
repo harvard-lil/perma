@@ -270,6 +270,49 @@ def test_moving_folder_out_of_org_updates_org_and_registrar_counts(org_user, fol
     assert registrar.link_count == registrar_count - 1
 
 
+def test_moving_folder_with_other_users_links_out_of_org_and_back(org_user, link_user_factory, folder_factory, link_factory):
+    """ Moving an org folder of links created by several users into personal links and back must only change org and registrar counts """
+    organization = org_user.organizations.first()
+    registrar = organization.registrar
+    other_user = link_user_factory()
+    subfolder = folder_factory(parent=organization.shared_folder, name="to-move")
+    link_factory(created_by=org_user, submitted_url="http://example.com/a").move_to_folder_for_user(subfolder, org_user)
+    link_factory(created_by=other_user, submitted_url="http://example.com/b").move_to_folder_for_user(subfolder, other_user)
+
+    org_user.refresh_from_db()
+    other_user.refresh_from_db()
+    organization.refresh_from_db()
+    registrar.refresh_from_db()
+    org_user_count = org_user.link_count
+    other_user_count = other_user.link_count
+    org_count = organization.link_count
+    registrar_count = registrar.link_count
+
+    subfolder.parent = org_user.root_folder
+    subfolder.save()
+
+    org_user.refresh_from_db()
+    other_user.refresh_from_db()
+    organization.refresh_from_db()
+    registrar.refresh_from_db()
+    assert org_user.link_count == org_user_count
+    assert other_user.link_count == other_user_count
+    assert organization.link_count == org_count - 2
+    assert registrar.link_count == registrar_count - 2
+
+    subfolder.parent = organization.shared_folder
+    subfolder.save()
+
+    org_user.refresh_from_db()
+    other_user.refresh_from_db()
+    organization.refresh_from_db()
+    registrar.refresh_from_db()
+    assert org_user.link_count == org_user_count
+    assert other_user.link_count == other_user_count
+    assert organization.link_count == org_count
+    assert registrar.link_count == registrar_count
+
+
 def test_moving_folder_between_orgs_same_registrar_does_not_change_registrar_count(org_user, organization_factory, folder_factory, link_factory):
     """ Same-registrar org folder movements must change org counts and leave the registrar unchanged """
     source = org_user.organizations.first()
