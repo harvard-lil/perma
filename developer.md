@@ -436,33 +436,98 @@ computed values — the arithmetic is authoritative.
 
 #### Bootstrap
 
-Perma retains **Bootstrap 3.4** (`bootstrap-sass` 3.4.3) while the ECS and
-backend dependency updates are validated. The Bootstrap 5 migration is deferred
-for a separate UI QA round. Templates, Vue components, stylesheets, and the
-Bootstrap JavaScript plugins must move together when that migration resumes.
+Perma uses **Bootstrap 5.3** (`bootstrap`, with `@popperjs/core` as its
+declared peer), compiled from source rather than consumed as a prebuilt CSS
+file. Three things about the setup are non-obvious:
 
-`_bootstrap-custom.scss` (main site) and `_bootstrap-custom-archive.scss`
-(archive playback) import separate subsets of Bootstrap's Sass partials.
-Test both entry points when changing shared layout rules. Bootstrap JavaScript
-is imported through the `bootstrap-js` webpack alias in `static/js/global.js`;
-its dropdown, collapse, and tab plugins use `data-toggle` attributes and jQuery
-events such as `shown.bs.collapse`.
+**Bootstrap 3's grid tiers are deliberately restored.** Bootstrap 5 ships
+`sm`/`md`/`lg` at 576/768/992px; `_bootstrap-custom.scss` overrides
+`$grid-breakpoints` and `$container-max-widths` back to 768/992/1200px so
+`.col-sm-*` keeps meaning what Perma's markup has always meant by it. Those
+overrides **must** precede `@import "~bootstrap/scss/variables"`, which
+declares the defaults with `!default`.
+
+**Only the components Perma uses are imported.** `_bootstrap-custom.scss`
+(main site) and `_bootstrap-custom-archive.scss` (archive playback pages) each
+import an explicit list of Bootstrap partials. Accordion, badge, breadcrumb,
+button-group, card, carousel, list-group, offcanvas, placeholders, popover,
+spinners, toasts and tooltip are all omitted because nothing uses them; adding
+markup that needs one means adding its `@import` too. The archive entry also
+omits `transitions`, which is intentional and pinned by a test — the archive
+pages have never animated their collapse panels.
+
+**`_bootstrap-mod.scss` carries shims for classes Bootstrap 5 dropped.**
+`.hidden`, `.caret`, `.dl-horizontal` and `.btn-default` are reproduced from
+Bootstrap 3's compiled output so that markup and inline JavaScript still
+depending on them keeps working. Each has a comment saying who depends on it.
+Prefer migrating a caller to a Bootstrap 5 equivalent over adding a new shim.
+
+`_bootstrap-layout.scss` preserves the previous grid padding, navigation,
+dialog, form, and typography defaults shared by both stylesheets. Perma's
+columns also appear outside `.row`; its non-column row children must not
+inherit Bootstrap 5's column gutters. The native Vue dialogs retain their
+own close controls and dimensions. Account menus use `data-bs-display="static"`
+so their placement follows Perma's CSS in both the main and archive headers.
+The layout tests in `functional_tests/test_ui_layout_parity.py` cover these
+contracts alongside desktop landing modules and documentation columns.
+
+Bootstrap's JavaScript is pulled in as individual ES modules in
+`static/js/global.js` (`bootstrap/js/dist/dropdown`, `collapse`, `tab`), which
+register their own `data-bs-*` data-API. Note that these dispatch **native**
+events, not jQuery ones: a listener for `shown.bs.collapse` must be registered
+with `addEventListener`, because jQuery would parse that name as event `shown`
+in namespaces `bs` and `collapse` and never fire.
 
 #### Sass
 
-The stylesheets use Dart Sass with legacy `@import` partials and Compass
-mixins. `sassOptions.quietDeps` suppresses dependency deprecations; warnings
-from Perma's own styles remain visible. This works with the current locked
-Sass version but does not eliminate the eventual Sass migration work.
+Perma's own partials use the Sass module system (`@use` / `@forward`), with
+`_perma-imports.scss` as the aggregator. Two constraints are worth knowing
+before refactoring:
+
+- **`@extend` cannot cross a `@use` module boundary.** Perma `@extend`s
+  Bootstrap classes such as `.container`, so the entry stylesheets must reach
+  Bootstrap through `@import`, not `@use`. Switching them compiles cleanly and
+  silently changes the generated rules.
+- **`sassOptions.quietDeps` is still set** in `webpack.config.js`. Bootstrap
+  5.3's own SCSS is written with `@import` throughout, so without the flag the
+  build reports far more deprecations from inside `node_modules` than from
+  Perma's code. `quietDeps` silences dependency files only, so Perma-owned
+  deprecations still surface and should still be fixed. The flag can go when
+  Bootstrap moves to `@use`.
+
+Use `color.adjust($c, $lightness: $n)` to replace a deprecated `lighten()`.
+Sass's own deprecation message suggests `color.scale()`, which computes a
+different colour.
 
 #### jQuery and the remaining legacy libraries
 
-Perma uses **jQuery 3.7.1** for Bootstrap 3 compatibility. Webpack's
-`ProvidePlugin` injects `"jquery"` for `$`, `jQuery`, and `window.jQuery`.
-jsTree's declared peer dependency accepts this version, so no override is
-needed. After jQuery-adjacent changes, confirm `npm ls jquery` reports one
-deduplicated instance. Moving back to jQuery 4 requires changing the injection
-to `["jquery", "default"]` and reviewing both Bootstrap and jsTree compatibility.
+Perma is on **jQuery 4**. Nothing imports it by name: `webpack.ProvidePlugin`
+injects `$`, `jQuery`, and `window.jQuery` into every module that references
+them.
+
+**That injection must name the default export** — `jQuery: ["jquery", "default"]`,
+not `jQuery: "jquery"`. jQuery 4 added an `exports` map to its package, so
+webpack now resolves the injection to the ESM build, and a bare module name
+provides the *module namespace object* rather than jQuery itself. The symptom is
+`$.ajaxSetup is not a function` thrown from `global.js` on every page, with a
+green build and no warning. jsTree's own CommonJS `require("jquery")` resolves
+through jQuery's `bundler-require-wrapper` to the same single instance, so both
+entry points share one jQuery.
+
+**jQuery 4 also throws when imported without a DOM.** jQuery 3 exported a
+factory in that case; jQuery 4 does not, so `import "jquery"` in a Node-environment
+test fails at module load with `jQuery requires a window with a document`. That
+is why `spec/vitest.setup.js` imports it only when `document` exists — the
+Webpack build contract runs under `@vitest-environment node`.
+
+**`package.json` carries an `overrides` entry** forcing `jstree`'s `jquery`
+peer to the top-level version. jsTree 3.3.x declares `jquery: ^3.5.0`, which
+excludes jQuery 4. Without the override npm does not fail — it silently nests a
+second jQuery 3 under `node_modules/jstree`, and jsTree then registers
+`$.fn.jstree` on a different instance from the one the application holds. The
+override is safe because jsTree's source uses none of the APIs jQuery 4 removed;
+recheck that if jsTree is upgraded. After any jQuery-adjacent change, confirm
+`npm ls jquery` reports a single deduped instance.
 
 **spin.js 4 needs its stylesheet imported.** `Spinner.vue` imports
 `spin.js/spin.css` alongside the named `{ Spinner }` export, because v4 animates
@@ -495,12 +560,16 @@ framework upgrade has to preserve behavior instead of markup:
 | `test_ui_components.py` | tabs, collapse panels, dialogs, pagination, table semantics |
 | `test_ui_responsive.py` | breakpoint boundaries, grid stacking, no horizontal scroll |
 | `test_ui_computed_style.py` | typography, link states, box model, button colour, z-index |
+| `test_ui_layout_parity.py` | list columns, landing modules, dialogs, menu bounds, archive geometry |
 | `test_ui_archive.py` | archive details tray, view-mode toggle, playback structure |
 | `test_ui_touch.py` | tap activation under mobile emulation |
 
-When changing UI markup, expect to keep these passing unmodified. If an
-assertion has to change, that is a product-visible behavior change and should
-be treated as one.
+When changing UI markup, preserve these behavioral expectations. Compare a
+failure with the baseline in the same browser before changing an expected
+value. CSSOM serialization can differ between engines without changing the
+rendered result, such as quotes around a font family name. Geometry checks
+wait for fonts to load, and login helpers wait for the redirected document
+before querying its authenticated UI.
 
 Note that `test_ui_touch.py` builds its own browser contexts with an iOS Safari
 user agent. That is not decoration: libraries that gate themselves on

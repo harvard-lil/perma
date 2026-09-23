@@ -269,6 +269,8 @@ def log_in_user(urls):
         password.focus()
         password.type(user.password)
         page.locator("button.btn.login").click()
+        # Wait for the redirected document before querying its authenticated UI.
+        page.wait_for_load_state('load')
     return f
 
 
@@ -307,6 +309,8 @@ def log_in(ui_urls):
         password.focus()
         password.type(user.password)
         page.locator("button.btn.login").click()
+        # Wait for the redirected document before querying its authenticated UI.
+        page.wait_for_load_state('load')
         # The logout form renders only on the authenticated branch of
         # upper_right_menu.html, so its presence proves the login took. Matched
         # by DOM attachment rather than by role or visibility: below the tablet

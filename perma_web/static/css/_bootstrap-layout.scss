@@ -1,0 +1,236 @@
+// Preserve the dimensions Perma inherited before the Bootstrap 5 migration.
+// Grid columns also occur outside .row (for example in settings-layout.html).
+.row {
+  align-items: flex-start;
+}
+
+.row > * {
+  padding-left: 0;
+  padding-right: 0;
+}
+@include all-columns {
+  position: relative;
+  min-height: 1px;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.btn {
+  white-space: nowrap;
+}
+
+.navbar-nav > li > a {
+  display: block;
+  line-height: 20px;
+}
+
+ul, ol {
+  padding-left: 40px;
+  margin-bottom: 10px;
+  ul, ol {
+    margin-bottom: 0;
+  }
+}
+
+.nav-pills.flex-column > li + li {
+  margin-top: 2px;
+}
+
+@include respond-tablet {
+  .nav-pills.flex-column {
+    display: block;
+  }
+}
+
+dd {
+  margin-bottom: 0;
+}
+
+figure {
+  margin: 0;
+}
+
+small {
+  font-size: 85%;
+}
+
+.checkbox, .radio {
+  position: relative;
+  display: block;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  label {
+    min-height: 20px;
+    padding-left: 20px;
+    margin-bottom: 0;
+    font-weight: 400;
+    cursor: pointer;
+  }
+  input[type="checkbox"], input[type="radio"] {
+    position: absolute;
+    margin-top: 4px;
+    margin-left: -20px;
+    line-height: normal;
+  }
+}
+
+hr {
+  margin: 20px 0;
+  border-top: 1px solid #eee;
+  opacity: 1;
+}
+
+.form-label {
+  margin-bottom: 0;
+}
+
+.form-text {
+  display: block;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  font-size: inherit;
+  color: #737373;
+}
+
+.nav-tabs .nav-link {
+  padding: 10px 15px;
+  margin-right: 2px;
+  border-radius: 4px 4px 0 0;
+  &.active {
+    color: #555;
+  }
+}
+
+.dropdown-menu > li > a {
+  display: block;
+  clear: both;
+  font-weight: 400;
+  line-height: 1.42857143;
+  white-space: nowrap;
+}
+
+.dropdown-header {
+  padding: 3px 20px;
+  font-size: 12px;
+  line-height: 1.42857143;
+}
+
+.dropdown-divider {
+  height: 1px;
+  margin: 9px 0;
+  border: 0;
+  background-color: #e5e5e5;
+}
+
+button, input, select, textarea {
+  color: inherit;
+}
+
+// Perma's Vue dialogs and dismissible notices use their own close control.
+.close {
+  float: right;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  text-shadow: 0 1px 0 #fff;
+  opacity: .2;
+  &:hover, &:focus {
+    color: #000;
+    opacity: .5;
+  }
+}
+
+.modal-header {
+  display: block;
+  .close {
+    margin-top: -2px;
+  }
+}
+
+.modal-content {
+  display: block;
+  background-color: #fff;
+}
+
+.modal-title {
+  line-height: 1.428571429;
+}
+
+@include respond-tablet {
+  .modal-dialog {
+    max-width: none;
+    width: 600px;
+  }
+}
+@media (min-width: 992px) {
+  .modal-lg {
+    width: 900px;
+  }
+}
+
+.navbar-brand {
+  font-size: 18px;
+  line-height: 20px;
+  margin-right: 0;
+}
+
+.navbar-toggler {
+  padding: 9px 10px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.navbar-default {
+  padding: 0;
+  margin-bottom: 20px;
+  > .container {
+    align-items: flex-start;
+  }
+  .navbar-header {
+    margin-left: -15px;
+    margin-right: -15px;
+  }
+  .navbar-brand a {
+    line-height: 20px;
+  }
+  .navbar-toggler {
+    padding: 9px 10px;
+    &:hover, &:focus {
+      background-color: #ddd;
+      box-shadow: none;
+    }
+    .icon-bar {
+      background-color: #888;
+    }
+  }
+  @include respond-mobile {
+    > .container > .navbar-collapse {
+      margin-left: -15px;
+      margin-right: -15px;
+      flex-basis: calc(100% + 30px);
+    }
+    .navbar-nav.ms-auto {
+      margin-left: 8px !important;
+    }
+  }
+  @include respond-tablet {
+    .navbar-header {
+      margin-right: 0;
+    }
+    .navbar-collapse {
+      flex-grow: 0;
+    }
+    .navbar-nav.ms-auto {
+      margin-left: 8px !important;
+      margin-right: 0;
+    }
+    .navbar-nav > li > a.btn {
+      padding: 15px;
+      line-height: 20px;
+    }
+  }
+}

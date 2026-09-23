@@ -3,13 +3,13 @@
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
         <h3 id="batch-modal-title" class="modal-title">Create A Link Batch</h3>
       </div>
       <div class="spinner _hide">
-      <span class="sr-only" id="loading" tabindex="-1">Loading</span></div>
+      <span class="visually-hidden" id="loading" tabindex="-1">Loading</span></div>
       <div class="modal-body">
 
         <div id="batch-create-input">
@@ -22,7 +22,7 @@
           </div>
           <div class="form-buttons">
             <button id="start-batch" class="btn" disabled="disabled">Create Links</button>
-            <button class="btn cancel" data-dismiss="modal">Cancel</button>
+            <button class="btn cancel" data-bs-dismiss="modal">Cancel</button>
           </div>
         </div>
 
@@ -30,7 +30,7 @@
           <p id="batch-progress-report" role="log" aria-atomic="false"></p>
           <div id="batch-details" aria-describedby="batch-progress-report"></div>
           <div class="form-buttons">
-            <button class="btn cancel" data-dismiss="modal">Exit</button>
+            <button class="btn cancel" data-bs-dismiss="modal">Exit</button>
             <a href="#" id="export-csv" class="btn _hide">Export list as CSV</a>
           </div>
         </div>

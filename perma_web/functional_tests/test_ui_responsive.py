@@ -147,10 +147,11 @@ def test_footer_columns_stack_below_wide_breakpoint(page, ui_urls) -> None:
     page.set_viewport_size(JUST_BELOW_WIDE)
     page.goto(ui_urls("landing"))
 
-    footer_nav_box = page.locator("#footer-nav").bounding_box()
-    boilerplate_box = page.locator("#boilerplate").bounding_box()
+    footer_nav_y, boilerplate_y = page.evaluate(
+        "['footer-nav', 'boilerplate'].map(id => document.getElementById(id).getBoundingClientRect().y)"
+    )
 
-    assert boilerplate_box["y"] - footer_nav_box["y"] > 20, (
+    assert boilerplate_y - footer_nav_y > 20, (
         "expected the boilerplate list to be stacked below the footer-nav "
         "list just below the wide breakpoint"
     )
@@ -162,10 +163,11 @@ def test_footer_columns_side_by_side_at_wide_breakpoint(page, ui_urls) -> None:
     page.set_viewport_size(AT_WIDE)
     page.goto(ui_urls("landing"))
 
-    footer_nav_box = page.locator("#footer-nav").bounding_box()
-    boilerplate_box = page.locator("#boilerplate").bounding_box()
+    footer_nav_y, boilerplate_y = page.evaluate(
+        "['footer-nav', 'boilerplate'].map(id => document.getElementById(id).getBoundingClientRect().y)"
+    )
 
-    assert abs(boilerplate_box["y"] - footer_nav_box["y"]) <= SAME_ROW_TOLERANCE, (
+    assert abs(boilerplate_y - footer_nav_y) <= SAME_ROW_TOLERANCE, (
         "expected the footer-nav and boilerplate lists to sit side by side "
         "at the wide breakpoint"
     )

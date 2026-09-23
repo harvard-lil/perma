@@ -20,7 +20,7 @@ const { toasts } = storeToRefs(useGlobalStore())
       </span>
       <button type="button" class="close">
         <span aria-hidden="true">&times;</span>
-        <span class="sr-only">Close</span>
+        <span class="visually-hidden">Close</span>
       </button>
     </div>
   </TransitionGroup>

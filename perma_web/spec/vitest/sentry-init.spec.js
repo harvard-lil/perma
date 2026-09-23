@@ -26,7 +26,7 @@ const { initMock } = vi.hoisted(() => ({ initMock: vi.fn() }))
 vi.mock('@sentry/browser', () => ({ init: initMock }))
 
 describe('global.js Sentry configuration contract', () => {
-  // global.js also `require()`s 'bootstrap-js/*' as a side effect unrelated to Sentry.
+  // global.js also `require()`s 'bootstrap/js/dist/*' as a side effect unrelated to Sentry.
   // Under Vitest's vite-node runtime, a bare `require()` call (unlike `import`) bypasses Vite's
   // resolver entirely and hits Node's real module system directly, so neither a vitest.config.mjs
   // alias nor vi.mock() can reach it - confirmed by probing both independently. Stub that
@@ -35,7 +35,7 @@ describe('global.js Sentry configuration contract', () => {
   const originalRequire = Module.prototype.require
   beforeEach(() => {
     Module.prototype.require = function (request, ...rest) {
-      if (request.startsWith('bootstrap-js/')) return {}
+      if (request.startsWith('bootstrap/js/dist/')) return {}
       return originalRequire.call(this, request, ...rest)
     }
     vi.resetModules()
