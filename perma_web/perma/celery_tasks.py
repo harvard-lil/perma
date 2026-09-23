@@ -281,6 +281,49 @@ def run_next_capture():
 MAX_CAPTURE_FACTS_BYTES = 16 * 1024
 
 
+def tag_scoop_failure(capture_job, poll_data):
+    """
+    Tag a failed capture with the kind of failure, recognised by a line of
+    Scoop's output, and report failures of any other kind as errors.
+
+    Which log field holds a given line depends on how the Scoop API runs
+    Scoop: run directly, Scoop's own stderr is `stderr_logs`; run as an ECS
+    task, all of Scoop's output is `stdout_logs` and `stderr_logs` holds the
+    controller's account. So both are searched.
+    """
+    logs = "\n".join(poll_data.get(field) or "" for field in ('stderr_logs', 'stdout_logs'))
+
+    killed = "\nKilled\n"
+    didnt_load = "ERROR Navigation to page failed (about:blank)"
+    proxy_error = "ERROR An error occurred during capture setup"
+    blocklist_error = "TypeError: Cannot read properties of undefined (reading 'match')"
+    playwright_error = "${arg.guid} was not bound in the connection"
+    warc_header_error = "An error occurred while creating underlying WARC file"
+    if killed in logs:
+        logger.warning(f"{capture_job.link_id}: Scoop process killed.")
+        capture_job.link.tags.add('scoop-load-failure')
+    elif didnt_load in logs:
+        logger.warning(f"{capture_job.link_id}: Scoop failed to load submitted URL ({capture_job.submitted_url}).")
+        capture_job.link.tags.add('scoop-load-failure')
+    elif proxy_error in logs:
+        logger.warning(f"{capture_job.link_id}: Scoop failed during capture setup.")
+        capture_job.link.tags.add('scoop-proxy-failure')
+    elif blocklist_error in logs:
+        logger.warning(f"{capture_job.link_id}: Scoop failed while checking the blocklist.")
+        capture_job.link.tags.add('scoop-blocklist-failure')
+    elif playwright_error in logs:
+        logger.warning(f"{capture_job.link_id}: Scoop failed with a Playwright error.")
+        capture_job.link.tags.add('scoop-playwright-failure')
+    elif warc_header_error in logs:
+        logger.warning(f"{capture_job.link_id}: Scoop failed while writing the WARC file.")
+        capture_job.link.tags.add('scoop-warc-header-failure')
+    elif not logs.strip():
+        logger.warning(f"{capture_job.link_id}: Scoop failed without logs ({poll_data['id_capture']}).")
+        capture_job.link.tags.add('scoop-silent-failure')
+    else:
+        logger.error(f"Scoop capture of {capture_job.link_id} failed: {poll_data}")
+
+
 def record_capture_facts(capture_job, poll_data):
     """
     Keep Scoop's account of how this attempt was made (`capture_facts`), so
@@ -392,36 +435,7 @@ def capture_with_scoop(capture_job):
             capture_job.scoop_logs = poll_data
             capture_job.save(update_fields=['scoop_logs'])
 
-            # Tag particular errors we are tracking
-            killed = "\nKilled\n"
-            didnt_load = "ERROR Navigation to page failed (about:blank)"
-            proxy_error = "ERROR An error occurred during capture setup"
-            blocklist_error = "TypeError: Cannot read properties of undefined (reading 'match')"
-            playwright_error = "${arg.guid} was not bound in the connection"
-            warc_header_error = "An error occurred while creating underlying WARC file"
-            if poll_data['stderr_logs'] and killed in poll_data['stderr_logs']:
-                logger.warning(f"{capture_job.link_id}: Scoop process killed.")
-                capture_job.link.tags.add('scoop-load-failure')
-            elif poll_data['stderr_logs'] and didnt_load in poll_data['stderr_logs']:
-                logger.warning(f"{capture_job.link_id}: Scoop failed to load submitted URL ({capture_job.submitted_url}).")
-                capture_job.link.tags.add('scoop-load-failure')
-            elif poll_data['stderr_logs'] and proxy_error in poll_data['stderr_logs']:
-                logger.warning(f"{capture_job.link_id}: Scoop failed during capture setup.")
-                capture_job.link.tags.add('scoop-proxy-failure')
-            elif poll_data['stderr_logs'] and blocklist_error in poll_data['stderr_logs']:
-                logger.warning(f"{capture_job.link_id}: Scoop failed while checking the blocklist.")
-                capture_job.link.tags.add('scoop-blocklist-failure')
-            elif poll_data['stderr_logs'] and playwright_error in poll_data['stderr_logs']:
-                logger.warning(f"{capture_job.link_id}: Scoop failed with a Playwright error.")
-                capture_job.link.tags.add('scoop-playwright-failure')
-            elif poll_data['stderr_logs'] and warc_header_error in poll_data['stderr_logs']:
-                logger.warning(f"{capture_job.link_id}: Scoop failed while writing the WARC file.")
-                capture_job.link.tags.add('scoop-warc-header-failure')
-            elif not poll_data['stderr_logs'] and not poll_data['stdout_logs']:
-                logger.warning(f"{capture_job.link_id}: Scoop failed without logs ({poll_data['id_capture']}).")
-                capture_job.link.tags.add('scoop-silent-failure')
-            else:
-                logger.error(f"Scoop capture of {capture_job.link_id} failed: {poll_data}")
+            tag_scoop_failure(capture_job, poll_data)
 
     except HaltCaptureException:
         print("HaltCaptureException thrown")
