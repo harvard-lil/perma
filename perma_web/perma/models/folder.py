@@ -266,8 +266,10 @@ class Folder(TreeNode):
                 from .link import Link
                 # update the de-normalized reference to owning org on any links in this folder's subtree
                 links = Link.objects.filter(folders__in=subtree_ids)
-                update_org_and_registrar_link_counts(links, previous_parent_org_id, parent.organization_id)
                 links.update(organization_id=parent.organization_id)
+
+                # update organization and registrar link counts
+                update_org_and_registrar_link_counts(links, previous_parent_org_id, parent.organization_id)
 
                 # if any bonus links got transferred to an org or to a sponsored folder, give users their bonus credit back
                 bonus_links = links.filter(bonus_link=True)
