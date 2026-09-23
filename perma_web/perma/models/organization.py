@@ -88,11 +88,8 @@ class Organization(DeletableModel):
         if old_registrar_id == new_registrar_id or not self.link_count:
             return
 
-        if old_registrar_id:
-            Registrar.objects.filter(pk=old_registrar_id).update(link_count=F('link_count') - self.link_count)
-
-        if new_registrar_id:
-            Registrar.objects.filter(pk=new_registrar_id).update(link_count=F('link_count') + self.link_count)
+        Registrar.objects.filter(pk=old_registrar_id).update(link_count=F('link_count') - self.link_count)
+        Registrar.objects.filter(pk=new_registrar_id).update(link_count=F('link_count') + self.link_count)
 
     def __str__(self):
         return self.name
