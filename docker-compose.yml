@@ -125,6 +125,10 @@ services:
           - 'rejouer.perma.test'
     volumes:
       - ./services/docker/wacz-exhibitor/ssl:/etc/nginx/certs
+      # The published image predates these two files; mounting them applies
+      # the current configuration without rebuilding it. See nginx.conf.
+      - ./services/docker/wacz-exhibitor/nginx.conf:/etc/nginx/conf.d/nginx.conf:ro
+      - ./services/docker/wacz-exhibitor/replay-web-page-index.html:/usr/share/nginx/html/replay-web-page/index.html:ro
 
   #
   # Upload scanning

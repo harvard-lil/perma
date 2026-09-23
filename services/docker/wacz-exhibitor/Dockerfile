@@ -9,3 +9,4 @@ FROM registry.lil.tools/harvardlil/nginx:0.03
 
 COPY --from=builder /wacz-exhibitor/html/ /usr/share/nginx/html/
 COPY ./nginx.conf /etc/nginx/conf.d/nginx.conf
+COPY ./replay-web-page-index.html /usr/share/nginx/html/replay-web-page/index.html
