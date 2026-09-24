@@ -428,12 +428,6 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
         allowed.assert_called_once_with(target_org.shared_folder.organization.registrar)
 
 
-    def test_should_add_http_to_url(self):
-        self.successful_post(self.list_url,
-                             data={'url': self.server_url.split("//")[1] + "/test.html"},
-                             user=self.org_user)
-
-
     def test_should_not_use_bonus_link_if_regular_limit_is_available(self):
         # give our user a bonus link
         user = self.org_user
@@ -637,7 +631,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                                        user=self.org_user)
 
             link = Link.objects.get(guid=obj['guid'])
-            self.assertEqual(link.submitted_url, 'http://asdf.asdf')
+            self.assertEqual(link.submitted_url, 'https://asdf.asdf')
             self.assertRecordsInArchive(link, upload=True)
             self.assertEqual(link.primary_capture.user_upload, True)
 

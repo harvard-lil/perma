@@ -114,7 +114,13 @@ services:
   # wacz-exhibitor
   #
   wacz-exhibitor:
-    image: registry.lil.tools/harvardlil/wacz-exhibitor:6-ec122b8e74374fd90ad71189cbd42b62
+    # Built locally, like filecheck; the release pins wacz-exhibitor and so
+    # the ReplayWeb.page version.
+    build:
+      context: ./services/docker/wacz-exhibitor
+      args:
+        RELEASE: v0.2.18
+    pull_policy: build
     ports:
       - "127.0.0.1:8080:8080"
     extra_hosts:
