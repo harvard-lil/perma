@@ -1,4 +1,8 @@
-from tasks.once import reconcile_user_link_counts
+from tasks.once import (
+    reconcile_user_link_counts,
+    reconcile_organization_link_counts,
+    reconcile_registrar_link_counts
+)
 from invoke import Context
 
 
@@ -22,6 +26,7 @@ def test_reconcile_user_link_counts_sets_cache_from_non_deleted_links(link_user,
 
 
 def test_reconcile_user_link_counts_dry_run_does_not_write(link_user, link_factory):
+    """ Task should not update LinkUser.link_count if dry_run is True """
     link_factory(created_by=link_user, submitted_url="http://example.com")
     link_user.link_count = 99
     link_user.save(update_fields=['link_count'])
@@ -32,6 +37,102 @@ def test_reconcile_user_link_counts_dry_run_does_not_write(link_user, link_facto
     link_user.refresh_from_db()
     assert count >= 1
     assert link_user.link_count == 99
+
+
+def test_reconcile_organization_link_counts_sets_cache_from_non_deleted_links(org_user, link_factory):
+    """ Task should set Organization.link_count to non-deleted links under that org """
+    organization = org_user.organizations.first()
+    live = link_factory(
+        created_by=org_user,
+        submitted_url="http://example.com/live",
+        organization=organization,
+    )
+    deleted = link_factory(
+        created_by=org_user,
+        submitted_url="http://example.com/deleted",
+        organization=organization,
+    )
+    deleted.safe_delete()
+    deleted.save()
+
+    organization.link_count = 99
+    organization.save(update_fields=['link_count'])
+
+    ctx = Context()
+    updated = reconcile_organization_link_counts(ctx)
+
+    organization.refresh_from_db()
+    assert updated >= 1
+    assert organization.link_count == 1
+    assert live.user_deleted is False
+
+
+def test_reconcile_organization_link_counts_dry_run_does_not_write(org_user, link_factory):
+    """ Task should not update Organization.link_count if dry_run is True """
+    organization = org_user.organizations.first()
+    link_factory(
+        created_by=org_user,
+        submitted_url="http://example.com",
+        organization=organization,
+    )
+    organization.link_count = 99
+    organization.save(update_fields=['link_count'])
+
+    ctx = Context()
+    count = reconcile_organization_link_counts(ctx, dry_run=True)
+
+    organization.refresh_from_db()
+    assert count >= 1
+    assert organization.link_count == 99
+
+
+def test_reconcile_registrar_link_counts_sets_cache_from_org_links(org_user, link_factory):
+    """ Task should set Registrar.link_count to non-deleted links under its orgs """
+    organization = org_user.organizations.first()
+    registrar = organization.registrar
+    live = link_factory(
+        created_by=org_user,
+        submitted_url="http://example.com/live",
+        organization=organization,
+    )
+    deleted = link_factory(
+        created_by=org_user,
+        submitted_url="http://example.com/deleted",
+        organization=organization,
+    )
+    link_factory(created_by=org_user, submitted_url="http://example.com/personal")
+    deleted.safe_delete()
+    deleted.save()
+
+    registrar.link_count = 99
+    registrar.save(update_fields=['link_count'])
+    ctx = Context()
+    updated = reconcile_registrar_link_counts(ctx)
+
+    registrar.refresh_from_db()
+    assert updated >= 1
+    assert registrar.link_count == 1
+    assert live.user_deleted is False
+
+
+def test_reconcile_registrar_link_counts_dry_run_does_not_write(org_user, link_factory):
+    """ Task should not update Registrar.link_count if dry_run is True """
+    organization = org_user.organizations.first()
+    registrar = organization.registrar
+    link_factory(
+        created_by=org_user,
+        submitted_url="http://example.com",
+        organization=organization,
+    )
+    registrar.link_count = 99
+    registrar.save(update_fields=['link_count'])
+
+    ctx = Context()
+    count = reconcile_registrar_link_counts(ctx, dry_run=True)
+
+    registrar.refresh_from_db()
+    assert count >= 1
+    assert registrar.link_count == 99
 
 
 def test_link_count_do_not_increment_after_saving_a_deleted_link(org_user, link_factory):
@@ -117,6 +218,153 @@ def test_link_count_for_registrars(registrar_user, link_factory):
     registrar_user.registrar.refresh_from_db()
     assert link_count == registrar_user.registrar.link_count
 
+
+def test_moving_folder_into_org_updates_org_and_registrar_counts(org_user, folder_factory, link_factory):
+    """ Moving a folder into an org must update org and registrar counts, not the user's """
+    organization = org_user.organizations.first()
+    registrar = organization.registrar
+    subfolder = folder_factory(parent=org_user.root_folder, name="to-move")
+    link_factory(created_by=org_user, submitted_url="http://example.com/a").move_to_folder_for_user(subfolder, org_user)
+    link_factory(created_by=org_user, submitted_url="http://example.com/b").move_to_folder_for_user(subfolder, org_user)
+
+    org_user.refresh_from_db()
+    organization.refresh_from_db()
+    registrar.refresh_from_db()
+    user_count = org_user.link_count
+    org_count = organization.link_count
+    registrar_count = registrar.link_count
+
+    subfolder.parent = organization.shared_folder
+    subfolder.save()
+
+    org_user.refresh_from_db()
+    organization.refresh_from_db()
+    registrar.refresh_from_db()
+    assert org_user.link_count == user_count
+    assert organization.link_count == org_count + 2
+    assert registrar.link_count == registrar_count + 2
+
+
+def test_moving_folder_out_of_org_updates_org_and_registrar_counts(org_user, folder_factory, link_factory):
+    """ Moving a folder out of an org must decrement org and registrar counts, not the user's """
+    organization = org_user.organizations.first()
+    registrar = organization.registrar
+    subfolder = folder_factory(parent=organization.shared_folder, name="to-move")
+    link_factory(created_by=org_user, submitted_url="http://example.com").move_to_folder_for_user(subfolder, org_user)
+
+    org_user.refresh_from_db()
+    organization.refresh_from_db()
+    registrar.refresh_from_db()
+    user_count = org_user.link_count
+    org_count = organization.link_count
+    registrar_count = registrar.link_count
+
+    subfolder.parent = org_user.root_folder
+    subfolder.save()
+
+    org_user.refresh_from_db()
+    organization.refresh_from_db()
+    registrar.refresh_from_db()
+    assert org_user.link_count == user_count
+    assert organization.link_count == org_count - 1
+    assert registrar.link_count == registrar_count - 1
+
+
+def test_moving_folder_with_other_users_links_out_of_org_and_back(org_user, link_user_factory, folder_factory, link_factory):
+    """ Moving an org folder of links created by several users into personal links and back must only change org and registrar counts """
+    organization = org_user.organizations.first()
+    registrar = organization.registrar
+    other_user = link_user_factory()
+    subfolder = folder_factory(parent=organization.shared_folder, name="to-move")
+    link_factory(created_by=org_user, submitted_url="http://example.com/a").move_to_folder_for_user(subfolder, org_user)
+    link_factory(created_by=other_user, submitted_url="http://example.com/b").move_to_folder_for_user(subfolder, other_user)
+
+    org_user.refresh_from_db()
+    other_user.refresh_from_db()
+    organization.refresh_from_db()
+    registrar.refresh_from_db()
+    org_user_count = org_user.link_count
+    other_user_count = other_user.link_count
+    org_count = organization.link_count
+    registrar_count = registrar.link_count
+
+    subfolder.parent = org_user.root_folder
+    subfolder.save()
+
+    org_user.refresh_from_db()
+    other_user.refresh_from_db()
+    organization.refresh_from_db()
+    registrar.refresh_from_db()
+    assert org_user.link_count == org_user_count
+    assert other_user.link_count == other_user_count
+    assert organization.link_count == org_count - 2
+    assert registrar.link_count == registrar_count - 2
+
+    subfolder.parent = organization.shared_folder
+    subfolder.save()
+
+    org_user.refresh_from_db()
+    other_user.refresh_from_db()
+    organization.refresh_from_db()
+    registrar.refresh_from_db()
+    assert org_user.link_count == org_user_count
+    assert other_user.link_count == other_user_count
+    assert organization.link_count == org_count
+    assert registrar.link_count == registrar_count
+
+
+def test_moving_folder_between_orgs_same_registrar_does_not_change_registrar_count(org_user, organization_factory, folder_factory, link_factory):
+    """ Same-registrar org folder movements must change org counts and leave the registrar unchanged """
+    source = org_user.organizations.first()
+    dest = organization_factory(registrar=source.registrar)
+    subfolder = folder_factory(parent=source.shared_folder, name="to-move")
+    link_factory(created_by=org_user, submitted_url="http://example.com").move_to_folder_for_user(subfolder, org_user)
+
+    source.refresh_from_db()
+    dest.refresh_from_db()
+    source.registrar.refresh_from_db()
+    source_count = source.link_count
+    dest_count = dest.link_count
+    registrar_count = source.registrar.link_count
+
+    subfolder.parent = dest.shared_folder
+    subfolder.save()
+
+    source.refresh_from_db()
+    dest.refresh_from_db()
+    source.registrar.refresh_from_db()
+    assert source.link_count == source_count - 1
+    assert dest.link_count == dest_count + 1
+    assert source.registrar.link_count == registrar_count
+
+
+def test_moving_folder_between_orgs_different_registrar_transfers_registrar_count(org_user, organization_factory, folder_factory, link_factory):
+    """ Moving a folder to an org on another registrar must update both org and registrar counts """
+    source = org_user.organizations.first()
+    dest = organization_factory()
+    subfolder = folder_factory(parent=source.shared_folder, name="to-move")
+    link_factory(created_by=org_user, submitted_url="http://example.com").move_to_folder_for_user(subfolder, org_user)
+
+    source.refresh_from_db()
+    dest.refresh_from_db()
+    source.registrar.refresh_from_db()
+    dest.registrar.refresh_from_db()
+    source_count = source.link_count
+    dest_count = dest.link_count
+    source_registrar_count = source.registrar.link_count
+    dest_registrar_count = dest.registrar.link_count
+
+    subfolder.parent = dest.shared_folder
+    subfolder.save()
+
+    source.refresh_from_db()
+    dest.refresh_from_db()
+    source.registrar.refresh_from_db()
+    dest.registrar.refresh_from_db()
+    assert source.link_count == source_count - 1
+    assert dest.link_count == dest_count + 1
+    assert source.registrar.link_count == source_registrar_count - 1
+    assert dest.registrar.link_count == dest_registrar_count + 1
 
 def test_changing_organization_registrar_updates_registrar_link_count(org_user, registrar_factory, link_factory):
     """ Moving an org to another registrar must update the both registrars' link counts """

@@ -147,6 +147,35 @@ class Folder(TreeNode):
                 )[:1]
             )
 
+        def update_org_and_registrar_link_counts(links, old_org_id, new_org_id):
+            """ update the organization and registrar link counts after a folder move """
+            from .organization import Organization
+            from .registrar import Registrar
+
+            if old_org_id == new_org_id:
+                return
+
+            num_of_links = links.count()
+            if not num_of_links:
+                return
+
+            if old_org_id:
+                Organization.objects.filter(pk=old_org_id).update(link_count=F('link_count') - num_of_links)
+            if new_org_id:
+                Organization.objects.filter(pk=new_org_id).update(link_count=F('link_count') + num_of_links)
+
+            registrar_ids_by_orgs = dict(Organization.objects.filter(pk__in=(old_org_id, new_org_id)).values_list('pk', 'registrar_id'))
+
+            old_registrar_id = registrar_ids_by_orgs.get(old_org_id)
+            new_registrar_id = registrar_ids_by_orgs.get(new_org_id)
+            if old_registrar_id == new_registrar_id:
+                return
+
+            if old_registrar_id:
+                Registrar.objects.filter(pk=old_registrar_id).update(link_count=F('link_count') - num_of_links)
+            if new_registrar_id:
+                Registrar.objects.filter(pk=new_registrar_id).update(link_count=F('link_count') + num_of_links)
+
         def update_parents_cached_has_children(parent_id=None, previous_parent_id=None):
             if parent_id:
                 Folder.objects.filter(
@@ -217,6 +246,10 @@ class Folder(TreeNode):
                 # make note of the former parent and the new one
                 parent = Folder.objects.get(id=self.parent_id)
                 previous_parent_id = self.tracker.previous('parent_id')
+                if previous_parent_id:
+                    previous_parent_org_id = Folder.objects.values_list('organization_id', flat=True).get(pk=previous_parent_id)
+                else:
+                    previous_parent_org_id = None
 
                 # retrieve the ids of this folder and all its descendants, so we can propagate changes.
                 # do it before calling "save", while the database is still in a consistent state
@@ -234,6 +267,9 @@ class Folder(TreeNode):
                 # update the de-normalized reference to owning org on any links in this folder's subtree
                 links = Link.objects.filter(folders__in=subtree_ids)
                 links.update(organization_id=parent.organization_id)
+
+                # update organization and registrar link counts
+                update_org_and_registrar_link_counts(links, previous_parent_org_id, parent.organization_id)
 
                 # if any bonus links got transferred to an org or to a sponsored folder, give users their bonus credit back
                 bonus_links = links.filter(bonus_link=True)
