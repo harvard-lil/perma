@@ -220,3 +220,14 @@ def test_sigterm_allows_late_thread_pool_creation(server):
         process.terminate()
         assert future.result(timeout=5) == (200, b"payload")
     assert process.wait(timeout=5) == 0
+
+
+def test_statement_timeout_is_below_worker_timeout():
+    # Postgres should cancel a long statement before gunicorn kills the worker
+    # waiting on it; see raw_env in gunicorn_config.py.
+    import runpy
+    config = runpy.run_path(str(Path(__file__).resolve().parents[2] / "gunicorn_config.py"))
+    env = dict(item.split("=", 1) for item in config["raw_env"])
+    statement_timeout = env["PERMA_STATEMENT_TIMEOUT"]
+    assert statement_timeout.endswith("s")
+    assert int(statement_timeout[:-1]) < config["timeout"]

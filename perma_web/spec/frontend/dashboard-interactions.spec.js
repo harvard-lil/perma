@@ -102,12 +102,12 @@ describe('dashboard interactions', () => {
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
       '/api/v1/folders/1/archives/?q=&limit=20&offset=0',
-      {headers: {'X-CSRFToken': undefined}},
+      {headers: {'X-CSRFToken': undefined}, signal: expect.any(AbortSignal)},
     )
     expect(fetchMock).toHaveBeenNthCalledWith(
       2,
       '/api/v1/folders/1/archives/?q=&limit=20&offset=20',
-      {headers: {'X-CSRFToken': undefined}},
+      {headers: {'X-CSRFToken': undefined}, signal: expect.any(AbortSignal)},
     )
     expect(wrapper.findAll('.item-container._isExpandable')).toHaveLength(40)
     expect(wrapper.text()).toContain('Link first-0')
@@ -136,7 +136,7 @@ describe('dashboard interactions', () => {
     expect(fetchMock).toHaveBeenNthCalledWith(
       2,
       '/api/v1/folders/1/archives/?q=&limit=20&offset=20',
-      {headers: {'X-CSRFToken': undefined}},
+      {headers: {'X-CSRFToken': undefined}, signal: expect.any(AbortSignal)},
     )
     expect(wrapper.findAll('.item-container._isExpandable')).toHaveLength(25)
 
@@ -167,6 +167,60 @@ describe('dashboard interactions', () => {
 
     await onLoadMore()
     expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('sends one request per search, and none while the same search is running', async () => {
+    const {pinia} = configureStore()
+    let releaseSearch
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+      .mockReturnValueOnce(new Promise((resolve) => { releaseSearch = resolve }))
+      .mockResolvedValue(response({objects: []}))
+    const wrapper = mount(LinkList, {global: {plugins: [pinia]}})
+
+    await wrapper.get('.search-query').setValue('needle')
+    await wrapper.get('.search-query-form').trigger('submit')
+    await flushPromises()
+    await wrapper.get('.search-query-form').trigger('submit')
+    await flushPromises()
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/folders/1/archives/?q=needle&limit=20&offset=0',
+      {headers: {'X-CSRFToken': undefined}, signal: expect.any(AbortSignal)},
+    )
+
+    releaseSearch(response({objects: [link('found')]}))
+    await flushPromises()
+    expect(wrapper.text()).toContain('Link found')
+
+    // once it has finished, searching again refreshes it
+    await wrapper.get('.search-query-form').trigger('submit')
+    await flushPromises()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('drops the response to a request that a newer one replaced', async () => {
+    const {pinia, store} = configureStore()
+    let releaseFirstFolder
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+      .mockImplementationOnce((url, {signal}) => new Promise((resolve, reject) => {
+        releaseFirstFolder = () => resolve(response({objects: [link('stale')]}))
+        signal.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')))
+      }))
+      .mockResolvedValueOnce(response({objects: [link('fresh')]}))
+    const wrapper = mount(LinkList, {global: {plugins: [pinia]}})
+
+    const firstFolder = wrapper.vm.fetchLinks()
+    store.selectedFolder = {...store.selectedFolder, folderId: 2}
+    await flushPromises()
+    releaseFirstFolder()
+    await firstFolder
+    await flushPromises()
+
+    expect(fetchMock.mock.calls[0][1].signal.aborted).toBe(true)
+    expect(wrapper.text()).toContain('Link fresh')
+    expect(wrapper.text()).not.toContain('Link stale')
+    expect(store.toasts).toEqual([])
   })
 
   it('keeps the folder selector keyboard and click path routed through jsTree', async () => {
