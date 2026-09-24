@@ -114,7 +114,13 @@ services:
   # wacz-exhibitor
   #
   wacz-exhibitor:
-    image: registry.lil.tools/harvardlil/wacz-exhibitor:6-ec122b8e74374fd90ad71189cbd42b62
+    # Built locally, like filecheck; the release pins wacz-exhibitor and so
+    # the ReplayWeb.page version.
+    build:
+      context: ./services/docker/wacz-exhibitor
+      args:
+        RELEASE: v0.2.18
+    pull_policy: build
     ports:
       - "127.0.0.1:8080:8080"
     extra_hosts:
@@ -125,10 +131,6 @@ services:
           - 'rejouer.perma.test'
     volumes:
       - ./services/docker/wacz-exhibitor/ssl:/etc/nginx/certs
-      # The published image predates these two files; mounting them applies
-      # the current configuration without rebuilding it. See nginx.conf.
-      - ./services/docker/wacz-exhibitor/nginx.conf:/etc/nginx/conf.d/nginx.conf:ro
-      - ./services/docker/wacz-exhibitor/replay-web-page-index.html:/usr/share/nginx/html/replay-web-page/index.html:ro
 
   #
   # Upload scanning
