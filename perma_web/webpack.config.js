@@ -8,8 +8,7 @@ var MiniCssExtractPlugin = require('mini-css-extract-plugin');
 // static/bundles is published to the static bucket as immutable and kept
 // forever, so a page rendered by one version still finds its own bundles
 // while another version is serving. The image build sets
-// WEBPACK_CONTENT_HASH=1 (Dockerfile, assets stage). Everything else -- local
-// development and the bundles committed for the Salt hosts -- keeps plain
+// WEBPACK_CONTENT_HASH=1 (Dockerfile, assets stage). Local builds keep plain
 // names. Django finds either through webpack-stats.json.
 var contentHash = process.env.WEBPACK_CONTENT_HASH === '1';
 const { VueLoaderPlugin } = require('vue-loader')
