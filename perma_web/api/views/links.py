@@ -172,7 +172,8 @@ class AuthenticatedLinkListView(BaseView):
             raise_invalid_capture_job(capture_job, message)
 
         # Make sure a limited user has links left to create
-        if not folder.organization and not folder.sponsored_by:
+        personal_link = not folder.organization and not folder.sponsored_by
+        if personal_link:
             if not request.user.link_creation_allowed():
 
                 error = "You've reached your usage limit."
@@ -214,9 +215,11 @@ class AuthenticatedLinkListView(BaseView):
                 # to lock the row so we don't collide with any simultaneous requests
                 user = request.user.__class__.objects.select_for_update().get(pk=request.user.pk)
 
-                # If this is a Personal Link, and if the user only has bonus links left, decrement bonus links
+                # If this is a Personal Link, and if the user only has bonus links left, decrement bonus links.
+                # The count is repeated under the lock, since a concurrent request may have used the last
+                # regular link since the check above; it only affects the outcome for users with bonus links.
                 bonus_link = False
-                if not folder.organization and not folder.sponsored_by:
+                if personal_link and user.bonus_links:
                     links_remaining, _ , bonus_links = user.get_links_remaining()
                     if bonus_links and not links_remaining:
                         # (this works because it's part of the same transaction with the select_for_update --
@@ -356,11 +359,6 @@ class AuthenticatedLinkDetailView(BaseView):
                     # if link was public but has been marked private, mark it for deletion.
                     link.internet_archive_upload_status = 'deletion_required'
                 link.save(update_fields=["internet_archive_upload_status"])
-
-            # include remaining links in response
-            links_remaining = request.user.get_links_remaining()
-            serializer.data['links_remaining'] = 'Infinity' if links_remaining[0] == float('inf') else links_remaining[0]
-            serializer.data['links_remaining_period'] = links_remaining[1]
 
             return Response(serializer.data)
 

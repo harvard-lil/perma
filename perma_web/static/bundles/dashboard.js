@@ -77889,13 +77889,16 @@ __webpack_require__.r(__webpack_exports__);
     var hasMore = (0,vue__WEBPACK_IMPORTED_MODULE_15__.ref)(true);
     var selectedLink = (0,vue__WEBPACK_IMPORTED_MODULE_15__.ref)(null);
     var linkScrollContainer = (0,vue__WEBPACK_IMPORTED_MODULE_15__.ref)(null);
+    // the request in flight, if any, so that a newer one can replace it
+    var fetchController = null;
 
     /*** Methods ***/
     var fetchLinks = /*#__PURE__*/function () {
       var _fetchLinks = (0,_babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_4__["default"])(/*#__PURE__*/(0,_babel_runtime_corejs3_helpers_regenerator__WEBPACK_IMPORTED_MODULE_1__["default"])().m(function _callee() {
-        var _selectedFolder$value, _context;
+        var _fetchController, _selectedFolder$value, _context;
         var append,
           folderId,
+          controller,
           _yield$fetchDataOrErr,
           data,
           error,
@@ -77906,6 +77909,8 @@ __webpack_require__.r(__webpack_exports__);
           while (1) switch (_context4.n) {
             case 0:
               append = _args.length > 0 && _args[0] !== undefined ? _args[0] : false;
+              (_fetchController = fetchController) === null || _fetchController === void 0 || _fetchController.abort();
+              fetchController = null;
               folderId = (_selectedFolder$value = selectedFolder.value) === null || _selectedFolder$value === void 0 ? void 0 : _selectedFolder$value.folderId;
               if (folderId) {
                 _context4.n = 1;
@@ -77913,6 +77918,8 @@ __webpack_require__.r(__webpack_exports__);
               }
               return _context4.a(2);
             case 1:
+              controller = new AbortController();
+              fetchController = controller;
               loading.value = true;
               if (!append) {
                 resetPagination();
@@ -77923,18 +77930,20 @@ __webpack_require__.r(__webpack_exports__);
                   q: query.value,
                   limit: limit.value,
                   offset: offset.value
-                }
+                },
+                signal: controller.signal
               });
             case 2:
               _yield$fetchDataOrErr = _context4.v;
               data = _yield$fetchDataOrErr.data;
               error = _yield$fetchDataOrErr.error;
-              if (!(selectedFolder.value.folderId !== folderId)) {
+              if (!controller.signal.aborted) {
                 _context4.n = 3;
                 break;
               }
               return _context4.a(2);
             case 3:
+              fetchController = null;
               loading.value = false;
               if (!error) {
                 _context4.n = 4;
@@ -78021,16 +78030,19 @@ __webpack_require__.r(__webpack_exports__);
     };
 
     /*** UI interaction methods ***/
+    // A changed query is fetched by the watcher below. Searching again for the
+    // query already shown refreshes it, unless that search is still running:
+    // searches can take a long time, and repeating one only adds to the load.
     var submitSearch = function submitSearch() {
-      query.value = searchQuery.value;
-      resetPagination();
-      fetchLinks();
+      if (searchQuery.value !== query.value) {
+        query.value = searchQuery.value;
+      } else if (!loading.value) {
+        fetchLinks();
+      }
     };
     var clearSearch = function clearSearch() {
       searchQuery.value = '';
       query.value = '';
-      resetPagination();
-      fetchLinks();
     };
     var toggleLinkDetails = /*#__PURE__*/function () {
       var _toggleLinkDetails = (0,_babel_runtime_corejs3_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_4__["default"])(/*#__PURE__*/(0,_babel_runtime_corejs3_helpers_regenerator__WEBPACK_IMPORTED_MODULE_1__["default"])().m(function _callee2(e, link, focusSelector) {
@@ -78329,6 +78341,12 @@ __webpack_require__.r(__webpack_exports__);
       hasMore: hasMore,
       selectedLink: selectedLink,
       linkScrollContainer: linkScrollContainer,
+      get fetchController() {
+        return fetchController;
+      },
+      set fetchController(v) {
+        fetchController = v;
+      },
       fetchLinks: fetchLinks,
       generateLinkFields: generateLinkFields,
       submitSearch: submitSearch,
