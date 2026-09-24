@@ -357,7 +357,10 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
         if unlimited is None:
             unlimited = self.unlimited
 
-        # exclude bonus links, sponsored links and links associated with an org
+        # exclude bonus links, sponsored links and links associated with an org.
+        # Filters below should not repeat organization_id=None: Postgres treats a
+        # repeated condition as independent and underestimates the rows it matches,
+        # which steers it away from perma_link_personal_idx.
         personal_links = Link.objects.filter(organization_id=None, folders__sponsored_by=None).exclude(bonus_link=True)
 
         if unlimited:
@@ -368,23 +371,23 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
             if self.cached_subscription_started:
                 link_count = personal_links.filter(creation_timestamp__range=(self.cached_subscription_started, today), created_by_id=self.id).count()
             else:
-                link_count = personal_links.filter(created_by_id=self.id, organization_id=None).count()
+                link_count = personal_links.filter(created_by_id=self.id).count()
         elif period == 'monthly':
             # MONTHLY RECURRING
             if self.cached_paid_through:
                 # if you have a paid subscription, calculate via its expiry date
-                link_count = personal_links.filter(creation_timestamp__range=(self.cached_paid_through - relativedelta(months=1), today), created_by_id=self.id, organization_id=None).count()
+                link_count = personal_links.filter(creation_timestamp__range=(self.cached_paid_through - relativedelta(months=1), today), created_by_id=self.id).count()
             else:
                 # else, check the links created this calendar month
-                link_count = personal_links.filter(creation_timestamp__year=today.year, creation_timestamp__month__gte=today.month, created_by_id=self.id, organization_id=None).count()
+                link_count = personal_links.filter(creation_timestamp__year=today.year, creation_timestamp__month__gte=today.month, created_by_id=self.id).count()
         elif period == 'annually':
             # ANNUAL RECURRING
             if self.cached_paid_through:
                 # if you have a paid subscription, calculate via its expiry date
-                link_count = personal_links.filter(creation_timestamp__range=(self.cached_paid_through - relativedelta(years=1), today), created_by_id=self.id, organization_id=None).count()
+                link_count = personal_links.filter(creation_timestamp__range=(self.cached_paid_through - relativedelta(years=1), today), created_by_id=self.id).count()
             else:
                 # else, check the last 365 days
-                link_count = personal_links.filter(creation_timestamp__range=(today - relativedelta(years=1), today), created_by_id=self.id, organization_id=None).count()
+                link_count = personal_links.filter(creation_timestamp__range=(today - relativedelta(years=1), today), created_by_id=self.id).count()
         else:
             raise NotImplementedError("User's link_limit_period not yet handled.")
         return max(limit - link_count, 0)
@@ -400,10 +403,14 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
             return (self.links_remaining_in_period(settings.DEFAULT_CREATE_LIMIT_PERIOD, settings.DEFAULT_CREATE_LIMIT, unlimited=False), settings.DEFAULT_CREATE_LIMIT_PERIOD, self.bonus_links or 0)
         return (self.links_remaining_in_period(self.link_limit_period, self.link_limit), self.link_limit_period, self.bonus_links or 0)
 
-    def link_creation_allowed(self):
+    def link_creation_allowed(self, links_remaining=None):
+        """
+            Pass links_remaining, the tuple from get_links_remaining(), if the
+            caller already has it; otherwise it is computed here.
+        """
         if self.frozen:
             return False
-        links_remaining, _, bonus_links = self.get_links_remaining()
+        links_remaining, _, bonus_links = links_remaining or self.get_links_remaining()
         return links_remaining > 0 or bonus_links > 0
 
     def can_view_usage_plan(self):
