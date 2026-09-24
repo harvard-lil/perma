@@ -349,6 +349,55 @@ def test_moving_folder_between_sponsored_registrars_transfers_sponsored_link_cou
     assert dest_registrar.link_count == 0
 
 
+def test_moving_folder_between_org_and_sponsored_updates_both_counts(org_user, sponsorship_factory, folder_factory, link_factory):
+    """ Moving a folder between an org and a sponsored folder must update org link_count and registrar sponsored_link_count """
+    organization = org_user.organizations.first()
+    org_registrar = organization.registrar
+    sponsorship = sponsorship_factory(user=org_user)
+    sponsoring_registrar = sponsorship.registrar
+    sponsored_folder = sponsorship.folders.first()
+    subfolder = folder_factory(parent=sponsored_folder, name="to-move")
+    link_factory(created_by=org_user, submitted_url="http://example.com/a").move_to_folder_for_user(subfolder, org_user)
+    link_factory(created_by=org_user, submitted_url="http://example.com/b").move_to_folder_for_user(subfolder, org_user)
+
+    org_user.refresh_from_db()
+    organization.refresh_from_db()
+    org_registrar.refresh_from_db()
+    sponsoring_registrar.refresh_from_db()
+    user_count = org_user.link_count
+    assert organization.link_count == 0
+    assert org_registrar.link_count == 0
+    assert sponsoring_registrar.sponsored_link_count == 2
+    assert sponsoring_registrar.link_count == 0
+
+    subfolder.parent = organization.shared_folder
+    subfolder.save()
+
+    org_user.refresh_from_db()
+    organization.refresh_from_db()
+    org_registrar.refresh_from_db()
+    sponsoring_registrar.refresh_from_db()
+    assert org_user.link_count == user_count
+    assert organization.link_count == 2
+    assert org_registrar.link_count == 2
+    assert sponsoring_registrar.sponsored_link_count == 0
+    assert sponsoring_registrar.link_count == 0
+
+    subfolder.refresh_from_db()
+    subfolder.parent = sponsored_folder
+    subfolder.save()
+
+    org_user.refresh_from_db()
+    organization.refresh_from_db()
+    org_registrar.refresh_from_db()
+    sponsoring_registrar.refresh_from_db()
+    assert org_user.link_count == user_count
+    assert organization.link_count == 0
+    assert org_registrar.link_count == 0
+    assert sponsoring_registrar.sponsored_link_count == 2
+    assert sponsoring_registrar.link_count == 0
+
+
 def test_moving_folder_into_org_updates_org_and_registrar_counts(org_user, folder_factory, link_factory):
     """ Moving a folder into an org must update org and registrar counts, not the user's """
     organization = org_user.organizations.first()
