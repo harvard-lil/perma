@@ -1,6 +1,7 @@
 # Core settings used by all deployments.
 import os, sys
 from copy import deepcopy
+from datetime import timedelta
 
 from botocore.config import Config
 
@@ -76,6 +77,12 @@ STORAGES = {
         "BACKEND": 'perma.storage_backends.StaticStorage',
     },
 }
+
+# S3Boto3Storage reads a whole object into a SpooledTemporaryFile before the first
+# read; above this size it moves to a temporary file on disk. django-storages'
+# default of 0 never moves it, so every archive a worker or download request
+# opens would be held in memory in full.
+AWS_S3_MAX_MEMORY_SIZE = 16 * 1024 * 1024
 
 # static files
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static-collected')                # where to store collected static files
@@ -517,6 +524,7 @@ CELERY_TASK_ROUTES = {
     # the 'ia-readonly' queue is for internal tasks that only affect our database
     'perma.celery_tasks.queue_file_uploaded_confirmation_tasks': {'queue': 'ia-readonly'},
     'perma.celery_tasks.confirm_file_uploaded_to_internet_archive': {'queue': 'ia-readonly'},
+    'perma.celery_tasks.confirm_files_uploaded_to_internet_archive_item': {'queue': 'ia-readonly'},
     'perma.celery_tasks.queue_file_deleted_confirmation_tasks': {'queue': 'ia-readonly'},
     'perma.celery_tasks.confirm_file_deleted_from_daily_item': {'queue': 'ia-readonly'},
     'perma.celery_tasks.conditionally_queue_internet_archive_uploads_for_date_range': {'queue': 'ia-readonly'},
@@ -550,10 +558,26 @@ INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT = 2
 INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED = False
 INTERNET_ARCHIVE_ITEM_LOCK_RETRIES = 4
 INTERNET_ARCHIVE_RETRY_FOR_CONFIRMATION_CONNECTION_ERROR = 3
-INTERNET_ARCHIVE_UPLOAD_MAX_TIMEOUTS = None
+# Uploads get longer than the default time limits: the largest WACZs are around
+# 250 MB. The gap between the two leaves time to re-queue after the soft limit.
+INTERNET_ARCHIVE_UPLOAD_SOFT_TIME_LIMIT = 900
+INTERNET_ARCHIVE_UPLOAD_TIME_LIMIT = 1020
+INTERNET_ARCHIVE_UPLOAD_MAX_TIMEOUTS = 3
+# An upload or deletion attempt not saved again within this long is no longer
+# counted in InternetArchiveItem.tasks_in_progress: its task has ended without
+# recording a result. Must be longer than INTERNET_ARCHIVE_UPLOAD_TIME_LIMIT.
+INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER = timedelta(hours=1)
+# Upload confirmation. An item is checked again after its newest pending file's
+# age times the backoff factor, bounded by the max interval; items with IA tasks
+# queued or running, or stopped in error or paused, wait at least the longer
+# intervals. Files not confirmed within the max age become 'upload_unconfirmed'.
+INTERNET_ARCHIVE_CONFIRMATION_BACKOFF_FACTOR = 0.25
+INTERNET_ARCHIVE_CONFIRMATION_MAX_INTERVAL = timedelta(hours=6)
+INTERNET_ARCHIVE_CONFIRMATION_PENDING_TASKS_INTERVAL = timedelta(minutes=15)
+INTERNET_ARCHIVE_CONFIRMATION_BLOCKED_TASKS_INTERVAL = timedelta(hours=6)
+INTERNET_ARCHIVE_UPLOAD_CONFIRMATION_MAX_AGE = timedelta(days=7)
 # Other
 INTERNET_ARCHIVE_EXCEPTION_IF_NO_ITEM = False
-INTERNET_ARCHIVE_UPLOAD_MAX_TMEOUTS = 2
 
 #
 # Hosts
@@ -618,7 +642,6 @@ TESTING = False
 
 ### MIRRORS ###
 
-from datetime import timedelta
 ARCHIVE_DELAY = timedelta(hours=24)
 
 #
