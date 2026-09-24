@@ -25,6 +25,13 @@ logger_class = PermaAccessLogger
 raw_env = [
     "SERVICE_NAME=perma",
     f"ENVIRONMENT={json.loads(os.getenv('APP_CONFIG', '{}')).get('TIER', 'dev')}",
+    # settings_ecs makes this the Postgres statement_timeout for the web
+    # workers' connections. It is below `timeout` so that Postgres cancels a
+    # long statement before the worker is killed; a killed worker's query
+    # otherwise runs on with no client. It is set here, not from PERMA_ROLE,
+    # because migrations and other manage.py commands run by ECS Exec in the
+    # web container share its environment and must not inherit the limit.
+    "PERMA_STATEMENT_TIMEOUT=60s",
 ]
 
 
