@@ -1,3 +1,5 @@
+import re
+
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import URLValidator
@@ -14,6 +16,10 @@ from .utils import get_mime_type, mime_type_lookup, get_download_url
 
 import logging
 logger = logging.getLogger(__name__)
+
+# An explicit scheme followed by "://", per RFC 3986 scheme syntax. Requiring "://"
+# keeps host:port inputs like "example.com:8080" from being read as a scheme.
+URL_SCHEME_RE = re.compile(r'^([a-z][a-z0-9+.-]*)://', re.IGNORECASE)
 
 
 def scope_folder_relationship(serializer, field_name):
@@ -253,10 +259,16 @@ class AuthenticatedLinkSerializer(LinkSerializer):
         return get_download_url(self.context['request'], link, file_format='wacz')
 
     def validate_url(self, url):
-        # Clean up the user submitted url
+        # Clean up the user submitted url. A url with no scheme ("example.com",
+        # "example.com:8080/path", "//example.com") is assumed to be https.
         url = url.strip()
-        if url and url[:4] != 'http':
-            url = 'http://' + url
+        if not url:
+            return url
+        scheme_match = URL_SCHEME_RE.match(url)
+        if scheme_match is None:
+            return 'https://' + url.removeprefix('//')
+        if scheme_match.group(1).lower() not in ('http', 'https'):
+            raise serializers.ValidationError("URL must begin with http:// or https://.")
         return url
 
     def validate(self, data):

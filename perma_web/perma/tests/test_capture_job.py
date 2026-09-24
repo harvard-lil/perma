@@ -146,3 +146,39 @@ def test_nothing_is_recorded_without_capture_facts(pending_capture_job_factory):
     record_capture_facts(job, {"status": "failed", "capture_facts": None})
     record_capture_facts(job, {"status": "failed", "capture_facts": {"sandbox": "x" * 20_000}})
     assert not job.attempt_facts.exists()
+
+
+ECS_FAILURE = {
+    "id_capture": "97567c4a",
+    "status": "failed",
+    "stdout_logs": "[19:39:59] WARN STEP [2/12]: Wait for initial page load - failed\n"
+                   "[19:39:59] ERROR Navigation to page failed (about:blank).\n",
+    "stderr_logs": "Missing artifact 'archive.wacz'\nMissing artifact 'archive.wacz'",
+}
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("poll_data, tag", [
+    # Run as an ECS task: Scoop's output is all in stdout_logs.
+    (ECS_FAILURE, "scoop-load-failure"),
+    # Run directly: Scoop's errors are in stderr_logs.
+    ({**ECS_FAILURE, "stdout_logs": "", "stderr_logs": ECS_FAILURE["stdout_logs"]}, "scoop-load-failure"),
+    ({**ECS_FAILURE, "stdout_logs": "", "stderr_logs": "ERROR An error occurred during capture setup"}, "scoop-proxy-failure"),
+    ({**ECS_FAILURE, "stdout_logs": None, "stderr_logs": None}, "scoop-silent-failure"),
+])
+def test_scoop_failures_are_tagged_from_either_log(pending_capture_job_factory, poll_data, tag):
+    from perma.celery_tasks import tag_scoop_failure
+
+    job = pending_capture_job_factory()
+    tag_scoop_failure(job, poll_data)
+    assert list(job.link.tags.names()) == [tag]
+
+
+@pytest.mark.django_db
+def test_unrecognised_scoop_failures_are_reported(pending_capture_job_factory, caplog):
+    from perma.celery_tasks import tag_scoop_failure
+
+    job = pending_capture_job_factory()
+    tag_scoop_failure(job, {**ECS_FAILURE, "stdout_logs": "something else went wrong"})
+    assert not job.link.tags.exists()
+    assert any(r.levelname == "ERROR" and "failed" in r.getMessage() for r in caplog.records)
