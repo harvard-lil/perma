@@ -5,9 +5,11 @@ from django.conf import settings
 from django.contrib.postgres.fields import DateTimeRangeField
 from django.contrib.postgres.indexes import GistIndex
 from django.db import models
-from django.db.models import Sum
+from django.db.models import Count, OuterRef, Q, Subquery, Sum
+from django.db.models.functions import Coalesce
 from django.template.defaultfilters import truncatechars
 from django.urls import reverse
+from django.utils import timezone
 from model_utils import FieldTracker
 from psycopg2.extras import DateTimeTZRange
 
@@ -71,10 +73,11 @@ class InternetArchiveItem(models.Model):
     cached_title = models.TextField(null=True, blank=True, default=None)
     cached_description = models.TextField(null=True, blank=True, default=None)
 
-    tasks_in_progress = models.IntegerField(default=0, db_index=True, help_text="We have asked Internet Archive to run appx this many tasks for this item and have not yet confirmed that those tasks are complete; derivative tasks not counted.")
+    tasks_in_progress = models.IntegerField(default=0, db_index=True, help_text="We have asked Internet Archive to run appx this many tasks for this item and have not yet confirmed that those tasks are complete; derivative tasks not counted. Recomputed from file statuses by refresh_tasks_in_progress.")
     complete = models.BooleanField(default=False, help_text="Has all the files it ought to have; has no files it ought not have.")
     last_derived = models.DateTimeField(null=True, blank=True)
     derive_required = models.BooleanField(default=False)
+    next_confirmation_check = models.DateTimeField(null=True, blank=True, help_text="Uploads to this item awaiting confirmation are not checked again before this time.")
 
     class Meta:
         verbose_name = "Internet Archive Item"
@@ -112,6 +115,25 @@ class InternetArchiveItem(models.Model):
     def inflight_task_count(cls):
         return cls.objects.aggregate(Sum('tasks_in_progress'))['tasks_in_progress__sum']
 
+    @classmethod
+    def refresh_tasks_in_progress(cls, identifier=None):
+        """
+        Set tasks_in_progress to the number of this item's files that are in flight
+        (see InternetArchiveFile.in_flight), for every item whose count is nonzero
+        or should be, or for the one item named.
+        """
+        in_flight = InternetArchiveFile.in_flight()
+        count = in_flight.filter(
+            item_id=OuterRef('identifier')
+        ).order_by().values('item_id').annotate(n=Count('*')).values('n')
+        if identifier:
+            items = cls.objects.filter(identifier=identifier)
+        else:
+            items = cls.objects.filter(
+                ~Q(tasks_in_progress=0) | Q(identifier__in=in_flight.values('item_id'))
+            )
+        items.update(tasks_in_progress=Coalesce(Subquery(count), 0))
+
 
 class InternetArchiveFile(models.Model):
     """
@@ -127,9 +149,11 @@ class InternetArchiveFile(models.Model):
         max_length=19,
         null=True,
         blank=True,
-        choices=((s, s) for s in ('upload_attempted', 'upload_submitted', 'confirmed_present', 'deletion_attempted', 'deletion_submitted', 'confirmed_absent')),
-        db_index=True
+        choices=((s, s) for s in ('upload_attempted', 'upload_submitted', 'upload_unconfirmed', 'confirmed_present', 'deletion_attempted', 'deletion_submitted', 'confirmed_absent')),
+        db_index=True,
+        help_text="upload_unconfirmed: IA accepted the upload, but the file did not appear with the expected metadata within INTERNET_ARCHIVE_UPLOAD_CONFIRMATION_MAX_AGE, so we stopped checking. Needs a human."
     )
+    status_updated = models.DateTimeField(null=True, blank=True, help_text="When status was last saved, even if unchanged: an upload retry saves 'upload_attempted' again.")
 
     cached_size = models.IntegerField(null=True, blank=True, default=None)
 
@@ -152,6 +176,28 @@ class InternetArchiveFile(models.Model):
 
     def __str__(self):
         return f"IA File {self.pk}: {self.item_id} > {self.link_id}"
+
+    def save(self, *args, **kwargs):
+        update_fields = kwargs.get('update_fields')
+        if update_fields is None or 'status' in update_fields:
+            self.status_updated = timezone.now()
+            if update_fields is not None:
+                kwargs['update_fields'] = [*update_fields, 'status_updated']
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def in_flight(cls):
+        """
+        Files with an IA task we started and have not seen finish. An upload or
+        deletion attempt that has not been saved again within
+        INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER belongs to a task that was killed or
+        gave up, and is not counted.
+        """
+        stale_before = timezone.now() - settings.INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER
+        return cls.objects.filter(
+            Q(status__in=['upload_submitted', 'deletion_submitted']) |
+            Q(status__in=['upload_attempted', 'deletion_attempted'], status_updated__gte=stale_before)
+        )
 
     WARC_FILENAME = '{guid}.warc.gz'
 
