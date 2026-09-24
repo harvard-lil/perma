@@ -1130,16 +1130,27 @@ def safe_get_response_json(response):
         data = {}
     return data
 
-def send_to_scoop(method, path, valid_if, json=None, stream=False, timeout=10):
-    api_root = settings.SCOOP_API_URL
-    api_key = settings.SCOOP_API_KEY
+def current_scoop_api():
+    """
+        Which Scoop API to use, as of right now.
 
+        A capture is several requests -- start it, poll it, then fetch what it
+        produced -- and the later ones name an id_capture that only the
+        instance that issued it knows. So a caller working through one capture
+        resolves this once and passes the result to every send_to_scoop for
+        that capture; only send_to_scoop calls that stand alone may resolve it
+        per request. Otherwise flipping the switch mid-capture sends the poll
+        to an instance that has never heard of the job.
+    """
     if waffle.switch_is_active('use_beta_capture_api'):
         if settings.BETA_SCOOP_API_URL and settings.BETA_SCOOP_API_KEY:
-            api_root = settings.BETA_SCOOP_API_URL
-            api_key = settings.BETA_SCOOP_API_KEY
-        else:
-            logger.warning("The 'use_beta_capture_api' is on, but configuration is absent. Using standard API.")
+            return settings.BETA_SCOOP_API_URL, settings.BETA_SCOOP_API_KEY
+        logger.warning("The 'use_beta_capture_api' is on, but configuration is absent. Using standard API.")
+    return settings.SCOOP_API_URL, settings.SCOOP_API_KEY
+
+
+def send_to_scoop(method, path, valid_if, json=None, stream=False, timeout=10, api=None):
+    api_root, api_key = api if api else current_scoop_api()
 
     # Make the request
     try:

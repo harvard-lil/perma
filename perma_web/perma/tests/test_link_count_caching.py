@@ -366,3 +366,51 @@ def test_moving_folder_between_orgs_different_registrar_transfers_registrar_coun
     assert source.registrar.link_count == source_registrar_count - 1
     assert dest.registrar.link_count == dest_registrar_count + 1
 
+def test_changing_organization_registrar_updates_registrar_link_count(org_user, registrar_factory, link_factory):
+    """ Moving an org to another registrar must update the both registrars' link counts """
+    organization = org_user.organizations.first()
+    source_registrar = organization.registrar
+    dest_registrar = registrar_factory()
+
+    link_factory(created_by=org_user, submitted_url="http://example.com/a", organization=organization)
+    link_factory(created_by=org_user, submitted_url="http://example.com/b", organization=organization)
+
+    organization.refresh_from_db()
+    source_registrar.refresh_from_db()
+    dest_registrar.refresh_from_db()
+    assert organization.link_count == 2
+    assert source_registrar.link_count == 2
+    assert dest_registrar.link_count == 0
+
+    organization.registrar = dest_registrar
+    organization.save()
+
+    organization.refresh_from_db()
+    source_registrar.refresh_from_db()
+    dest_registrar.refresh_from_db()
+    assert organization.registrar_id == dest_registrar.pk
+    assert organization.link_count == 2
+    assert source_registrar.link_count == 0
+    assert dest_registrar.link_count == 2
+
+
+def test_changing_organization_registrar_with_no_links_does_not_update_registrar_link_counts(org_user, registrar_factory):
+    """ Changing an org's registrar when the org has no links must not update either registrar's link count """
+    organization = org_user.organizations.first()
+    source_registrar = organization.registrar
+    dest_registrar = registrar_factory()
+
+    source_registrar.refresh_from_db()
+    dest_registrar.refresh_from_db()
+    source_count = source_registrar.link_count
+    dest_count = dest_registrar.link_count
+    assert organization.link_count == 0
+
+    organization.registrar = dest_registrar
+    organization.save()
+
+    source_registrar.refresh_from_db()
+    dest_registrar.refresh_from_db()
+    assert organization.registrar_id == dest_registrar.pk
+    assert source_registrar.link_count == source_count
+    assert dest_registrar.link_count == dest_count

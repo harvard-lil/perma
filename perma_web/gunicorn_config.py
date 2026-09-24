@@ -5,7 +5,28 @@ the Salt hosts' uWSGI (repos/salt, perma.ini) ran with: five single-threaded
 workers and a 90-second worker timeout.
 """
 
+import json
 import os
+
+from lil_request_logging.gunicorn import AccessLogger
+
+
+class PermaAccessLogger(AccessLogger):
+    trusted_peers = ("127.0.0.1", "::1")
+
+    def access(self, resp, req, environ, request_time):
+        # Perma rewrites REMOTE_ADDR for Django. Trust the connection peer,
+        # not the resulting client address, when logging proxy headers.
+        super().access(resp, req, {**environ, "REMOTE_ADDR": req.peer_addr[0]},
+                       request_time)
+
+
+logger_class = PermaAccessLogger
+raw_env = [
+    "SERVICE_NAME=perma",
+    f"ENVIRONMENT={json.loads(os.getenv('APP_CONFIG', '{}')).get('TIER', 'dev')}",
+]
+
 
 # Only the cloudflared sidecar reaches this, over localhost.
 bind = "0.0.0.0:8000"
@@ -33,9 +54,9 @@ max_requests = 2000
 max_requests_jitter = 500
 worker_tmp_dir = "/dev/shm"
 
-# ECS supplies the combined access format, duration and Cloudflare request ID
-# through GUNICORN_CMD_ARGS. Django application logs also go to stdout.
-accesslog = None
+# The shared adapter writes JSON to stdout; Django application logs remain
+# separate. Older ECS access-logformat overrides do not affect this adapter.
+accesslog = "-"
 errorlog = "-"
 capture_output = True
 # ECS owns process lifecycle; no separate administrative socket is needed.

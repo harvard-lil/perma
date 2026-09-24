@@ -15,6 +15,7 @@ def post_process_settings(settings):
 
         sentry_sdk.init(
             environment=settings['SENTRY_ENVIRONMENT'],
+            release=os.environ.get('SENTRY_RELEASE') or None,
             dsn=settings['SENTRY_DSN'],
             integrations=[
                 DjangoIntegration(),

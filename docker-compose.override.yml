@@ -3,20 +3,6 @@
 # The web service's build configuration lives in docker-compose.yml so that CI
 # and developers build the same way. What is left here is genuinely dev-only.
 services:
-  wacz-exhibitor:
-    build:
-      context: ./services/docker/wacz-exhibitor
-      args:
-        RELEASE: v0.2.18
-      x-bake:
-        tags:
-          - registry.lil.tools/harvardlil/wacz-exhibitor:6-ec122b8e74374fd90ad71189cbd42b62
-        platforms:
-          - linux/amd64
-          - linux/arm64
-      x-hash-paths:
-        - ./nginx.conf
-
   #
   # Scoop REST API
   #

@@ -22,6 +22,7 @@ dependencies = [
     "gunicorn~=26.2",
     "internetarchive~=5.11.1",
     "invoke~=3.0.3",
+    "lil-request-logging",
     "lxml~=6.1.2",
     "netaddr~=1.3.0",
     "psycopg2~=2.9.12",
@@ -95,3 +96,4 @@ package = false
 
 [tool.uv.sources]
 timegate = { url = "https://github.com/mementoweb/timegate/archive/6810fbc873b84f6af8e78e89fc8515f21b695cae.zip" }
+lil-request-logging = { url = "https://github.com/harvard-lil/lil-request-logging/releases/download/v0.1.0/lil_request_logging-0.1.0-py3-none-any.whl" }

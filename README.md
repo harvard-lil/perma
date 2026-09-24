@@ -46,3 +46,30 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 </small>
+
+## Request logging
+
+The ECS web process uses
+[`lil-request-logging`](https://github.com/harvard-lil/lil-request-logging)
+for JSON access records on stdout. ECS delivers these to CloudWatch alongside
+Django logs. The managed [Perma dashboard](https://lil.grafana.net/d/3y8N2PZGk)
+reads both JSON and older combined access records; durations are displayed in
+milliseconds.
+
+Access records use `service=perma` and the tier from `APP_CONFIG`. The image
+sets `SENTRY_RELEASE=perma@<PERMA_VERSION>`, identifying the built commit for
+both access logs and Sentry, including Celery errors. The release stays the
+same when that image moves from staging to production.
+
+Perma's WSGI proxy middleware sets `REMOTE_ADDR` for Django. The access logger
+uses Gunicorn's original connection peer so that middleware cannot change
+which peers are trusted. Only loopback peers may supply the Cloudflare client
+IP, matching the task-local tunnel and lack of inbound task rules. Django's
+proxy validation remains unchanged. See the shared library for field and
+filtering behavior.
+
+Grafana queries must support JSON before deploying this image. Existing ECS
+`GUNICORN_CMD_ARGS` text-format settings are harmless with the shared adapter
+and remain useful for rollback to an older image. Apply the managed dashboard
+change separately; then verify request records and latency in staging before
+production promotion.
