@@ -287,6 +287,8 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
         resp = self.api_client.put(url, **req_kwargs)
         self.assertHttpOK(resp)
 
+        return self.deserialize(resp)
+
     def successful_patch(self, url, check_results=True, **kwargs):
         req_kwargs = self.get_req_kwargs(kwargs)
         get_kwargs = req_kwargs.copy()

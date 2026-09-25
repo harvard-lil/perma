@@ -419,4 +419,10 @@ class MoveLinkView(BaseView):
             raise_general_validation_error("You can't move links to your Sponsored Links folder. Select a folder belonging to a sponsor or organization, or your Personal Links folder.")
         link.move_to_folder_for_user(request.parent, request.user)
         serializer = self.serializer_class(link, context={'request': request})
-        return Response(serializer.data)
+        # Moving a link into or out of an org or sponsored folder changes the
+        # personal-link quota, so report the new count for the manage UI.
+        data = dict(serializer.data)
+        links_remaining = request.user.get_links_remaining()
+        data['links_remaining'] = 'Infinity' if links_remaining[0] == float('inf') else links_remaining[0]
+        data['links_remaining_period'] = links_remaining[1]
+        return Response(data)
