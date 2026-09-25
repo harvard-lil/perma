@@ -61,7 +61,7 @@ jobs:
       # Pull requests have no publishing credentials and always run the suite.
       - name: Configure build credentials
         if: env.PUBLISHING == 'true'
-        uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
           role-to-assume: ${{ vars.BUILD_AWS_ROLE_TO_ASSUME }}
           aws-region: us-east-1
@@ -280,7 +280,7 @@ jobs:
       # https://github.com/codecov/codecov-action
       - name: Codecov
         if: github.event_name == 'pull_request' || steps.publication.outputs.state == 'absent'
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
