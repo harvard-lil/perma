@@ -322,24 +322,39 @@ def reconcile_organization_link_counts(ctx, dry_run=False):
 @task
 def reconcile_registrar_link_counts(ctx, dry_run=False):
     """
-    Set Registrar.link_count to the count of non-deleted links under its organizations.
-    Sponsored and personal links are not included. Pass dry_run=True to count mismatches without updating.
+    Set Registrar.link_count from non-deleted links under its organizations, and
+    Registrar.sponsored_link_count from non-deleted links in folders it sponsors.
+    Personal links are not included. Pass dry_run=True to count mismatches without updating.
     """
     logger.info("reconcile_registrar_link_counts: Preparing to count links per registrar.")
     link_counts = dict(
         Link.objects
         .filter(organization_id__isnull=False)
         .values("organization__registrar_id")
-        .annotate(actual_count=Count("pk"))
-        .values_list("organization__registrar_id", "actual_count")
+        .annotate(actual_link_count=Count("pk"))
+        .values_list("organization__registrar_id", "actual_link_count")
     )
-    logger.info("reconcile_registrar_link_counts: link_counts dict was successfully created.")
+    sponsored_link_counts = dict(
+        Link.objects
+        .filter(folders__sponsored_by_id__isnull=False)
+        .values("folders__sponsored_by_id")
+        .annotate(actual_sponsored_link_count=Count("pk"))
+        .values_list("folders__sponsored_by_id", "actual_sponsored_link_count")
+    )
+    logger.info("reconcile_registrar_link_counts: link count dicts were successfully created.")
 
     mismatches = []
-    for registrar in tqdm(Registrar.objects.only("pk", "link_count").iterator()):
-        actual_count = link_counts.get(registrar.pk, 0)
-        if registrar.link_count != actual_count:
-            registrar.link_count = actual_count
+    for registrar in tqdm(Registrar.objects.only("pk", "link_count", "sponsored_link_count").iterator()):
+        actual_link_count = link_counts.get(registrar.pk, 0)
+        actual_sponsored_link_count = sponsored_link_counts.get(registrar.pk, 0)
+        changed = False
+        if registrar.link_count != actual_link_count:
+            registrar.link_count = actual_link_count
+            changed = True
+        if registrar.sponsored_link_count != actual_sponsored_link_count:
+            registrar.sponsored_link_count = actual_sponsored_link_count
+            changed = True
+        if changed:
             mismatches.append(registrar)
 
     mismatch_count = len(mismatches)
@@ -349,7 +364,7 @@ def reconcile_registrar_link_counts(ctx, dry_run=False):
         return mismatch_count
 
     if mismatches:
-        Registrar.objects.bulk_update(mismatches, ["link_count"])
+        Registrar.objects.bulk_update(mismatches, ["link_count", "sponsored_link_count"])
 
     logger.info(f"Updated {mismatch_count} Registrar records.")
     return mismatch_count
