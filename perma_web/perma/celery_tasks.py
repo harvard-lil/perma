@@ -23,8 +23,8 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 from django.core.files.storage import storages
 from django.core.mail import mail_admins
-from django.db.models import F
-from django.db.models.functions import Greatest, Now
+from django.db.models import F, Q
+from django.db.models.functions import Now
 from django.conf import settings
 from django.utils import timezone
 from django.template.defaultfilters import pluralize, filesizeformat
@@ -620,7 +620,11 @@ def queue_batched_tasks(task, query, batch_size=1000, **kwargs):
     logger.info(f"Queued {batches_queued} batches of size {batch_size}{' and a single batch of size ' + str(remainder) if remainder else ''}, pks {first}-{last}.")
 
 
-@shared_task(acks_late=True)
+@shared_task(
+    acks_late=True,
+    soft_time_limit=settings.INTERNET_ARCHIVE_UPLOAD_SOFT_TIME_LIMIT,
+    time_limit=settings.INTERNET_ARCHIVE_UPLOAD_TIME_LIMIT,
+)
 def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
     """
     This task adds a link's WARC and metadata to a "daily" Internet Archive item
@@ -682,13 +686,7 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
     # Attempt the upload
 
     def retry_upload(attempt_count, timeout_count):
-        perma_item.tasks_in_progress = F('tasks_in_progress') - 1
-        perma_item.save(update_fields=['tasks_in_progress'])
         upload_link_to_internet_archive.delay(link_guid, attempt_count, timeout_count)
-
-    # Indicate that this InternetArchiveItem should be tracked until further notice
-    perma_item.tasks_in_progress = F('tasks_in_progress') + 1
-    perma_item.save(update_fields=['tasks_in_progress'])
 
     # Record that we are attempting an upload
     perma_file.status = 'upload_attempted'
@@ -844,125 +842,176 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
 def queue_file_uploaded_confirmation_tasks(limit=None):
     """
     It takes some time for IA to finish processing uploads, even after the S3-like API
-    returns a success code. This task schedules a confirmation task for each file we've
-    attempted to upload but have not yet verified has succeeded. We do this on a schedule,
-    rather than immediately upon uploading a file, in order to introduce a delay: if we
-    start checking immediately, an intolerable number of attempts fail... which causes
-    too much IA API usage and too much churn.
-
-    This may be too blunt an instrument; we may need to introduce a delay in the confirmation
-    task itself, sleeping between each retry, but we want to try this first: if we can, we want
-    to avoid having sleeping-but-active celery tasks.
+    returns a success code. This task schedules a confirmation task for each IA item
+    that has files we've submitted but not yet seen arrive, once that item is due to be
+    checked again. Checking by item means fetching the item's metadata, which can run
+    to several MB, once per check rather than once per file.
     """
     tasks_in_ia_readonly_queue = redis.from_url(settings.CELERY_BROKER_URL).llen('ia-readonly')
-
-    if not tasks_in_ia_readonly_queue:
-
-        file_ids = InternetArchiveFile.objects.filter(
-                    status='upload_submitted'
-                ).exclude(
-                    item_id__in=[
-                        'daily_perma_cc_2022-07-25',
-                        'daily_perma_cc_2022-07-21',
-                        'daily_perma_cc_2022-07-20',
-                        'daily_perma_cc_2022-07-19'
-                    ]
-                ).values_list(
-                    'id', flat=True
-                )[:limit]
-
-        queued = 0
-        for file_id in file_ids.iterator():
-            confirm_file_uploaded_to_internet_archive.delay(file_id)
-            queued = queued + 1
-        logger.info(f"Queued the file upload confirmation task for {queued} InternetArchiveFiles.")
-
-    else:
+    if tasks_in_ia_readonly_queue:
         logger.info(f"Skipped the queuing of file upload confirmation tasks: {tasks_in_ia_readonly_queue} task{pluralize(tasks_in_ia_readonly_queue)} in the ia-readonly queue.")
+        return
+
+    identifiers = InternetArchiveItem.objects.filter(
+        identifier__in=InternetArchiveFile.objects.filter(status='upload_submitted').values('item_id')
+    ).filter(
+        Q(next_confirmation_check__isnull=True) | Q(next_confirmation_check__lte=Now())
+    ).exclude(
+        identifier__in=[
+            'daily_perma_cc_2022-07-25',
+            'daily_perma_cc_2022-07-21',
+            'daily_perma_cc_2022-07-20',
+            'daily_perma_cc_2022-07-19'
+        ]
+    ).order_by(
+        F('next_confirmation_check').asc(nulls_first=True)
+    ).values_list(
+        'identifier', flat=True
+    )[:limit]
+
+    queued = 0
+    for identifier in identifiers:
+        confirm_files_uploaded_to_internet_archive_item.delay(identifier)
+        queued = queued + 1
+    logger.info(f"Queued the file upload confirmation task for {queued} InternetArchiveItem{pluralize(queued)}.")
+
+
+def ia_file_metadata_mismatch(ia_file, link):
+    """
+    Describe how a file listed in an IA item's metadata differs from what we uploaded
+    for this link, or return None if it matches.
+    """
+    for k, v in InternetArchiveFile.standard_metadata_for_link(link).items():
+        # IA normalizes whitespace idiosyncratically:
+        # ignore all whitespace when checking for expected values
+        if remove_whitespace(ia_file.get(k, '')) != remove_whitespace(v):
+            return f"expected {k}: {v}, got {ia_file.get(k)}."
+    return None
+
+
+def ia_confirmation_interval(newest_pending_age, ia_tasks):
+    """
+    How long to wait before checking an IA item again, given the age of its most
+    recently submitted unconfirmed file and the tasks IA lists as pending for it.
+    IA's wait_admin values are 0 queued, 1 running, 2 error, 9 paused
+    (https://archive.org/developers/tasks.html).
+    """
+    interval = min(
+        newest_pending_age * settings.INTERNET_ARCHIVE_CONFIRMATION_BACKOFF_FACTOR,
+        settings.INTERNET_ARCHIVE_CONFIRMATION_MAX_INTERVAL
+    )
+    if any(str(task.get('wait_admin')) in ('2', '9') for task in ia_tasks):
+        interval = max(interval, settings.INTERNET_ARCHIVE_CONFIRMATION_BLOCKED_TASKS_INTERVAL)
+    elif ia_tasks:
+        interval = max(interval, settings.INTERNET_ARCHIVE_CONFIRMATION_PENDING_TASKS_INTERVAL)
+    return interval
+
 
 @shared_task(acks_late=True)
-def confirm_file_uploaded_to_internet_archive(file_id, attempts=0, connection_errors=0):
+def confirm_files_uploaded_to_internet_archive_item(identifier):
     """
-    This task checks to see if a WARC uploaded to IA's S3-like API has been processed
-    and the new WARC is now visibly a part of the expected IA Item;
-    if not, the task re-queues itself up to settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT times.
-    Once the file is confirmed to be present, it marks that IA item needs to have its
-    "derive.php" task re-triggered.
+    This task fetches an IA item's metadata once and checks each of our files awaiting
+    upload confirmation against it. Files that appear with the expected metadata are
+    marked confirmed, and the item marked as needing its "derive.php" task re-triggered.
+    Files still not confirmed INTERNET_ARCHIVE_UPLOAD_CONFIRMATION_MAX_AGE after upload
+    are marked 'upload_unconfirmed' and logged for a human to investigate. The item's
+    next check is scheduled by ia_confirmation_interval.
     """
-    perma_file = InternetArchiveFile.objects.select_related('item', 'link').get(id=file_id)
-    perma_item = perma_file.item
-    link = perma_file.link
-
-    if perma_file.status == 'confirmed_present':
-        logger.info(f"InternetArchiveFile {file_id} ({link.guid}) already confirmed to be uploaded to {perma_item.identifier}.")
+    perma_item = InternetArchiveItem.objects.get(identifier=identifier)
+    pending = list(perma_item.internet_archive_files.filter(status='upload_submitted').select_related('link'))
+    if not pending:
+        logger.info(f"No uploads to {identifier} awaiting confirmation.")
         return
 
     ia_session = get_ia_session()
     try:
-        ia_item = ia_session.get_item(perma_item.identifier)
-        ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=link.guid))
+        ia_item = ia_session.get_item(identifier)
     except CONNECTION_ERRORS:
-        # Sometimes, requests to retrieve the metadata of an IA Item time out. Retry later.
-        if connection_errors < settings.INTERNET_ARCHIVE_RETRY_FOR_CONFIRMATION_CONNECTION_ERROR:
-            confirm_file_uploaded_to_internet_archive.delay(file_id, attempts, connection_errors + 1)
-            logger.info(f"Re-queued 'confirm_link_uploaded_to_internet_archive' for InternetArchiveFile {file_id} ({link.guid}) after a connection error.")
+        # Sometimes, requests to retrieve the metadata of an IA Item time out.
+        # The item remains due, so the next scheduled run will check it again.
+        logger.info(f"Could not retrieve IA Item {identifier} to confirm uploads: connection error.")
         return
 
-    expected_metadata = InternetArchiveFile.standard_metadata_for_link(link)
-    try:
-        assert ia_file.exists
-        for k, v in expected_metadata.items():
-            # IA normalizes whitespace idiosyncratically:
-            # ignore all whitespace when checking for expected values
-            assert remove_whitespace(ia_file.metadata.get(k, '')) == remove_whitespace(v), f"expected {k}: {v}, got {ia_file.metadata.get(k)}."
-    except AssertionError:
-        # IA's tasks can take some time to complete;
-        # the upload-related tasks for this link appear not to have finished yet.
-        # We'll need to check again later, the next time celerybeat schedules these tasks.
-        logger.info(f"Submitted upload of {link.guid} to IA Item {perma_item.identifier} not yet confirmed.")
-        return
+    now = timezone.now()
+    ia_files = {f.get('name'): f for f in ia_item.item_metadata.get('files', [])}
+    confirmed = []
+    still_pending = []
+    for perma_file in pending:
+        link = perma_file.link
+        ia_file = ia_files.get(InternetArchiveFile.WARC_FILENAME.format(guid=link.guid))
+        mismatch = ia_file_metadata_mismatch(ia_file, link) if ia_file else "not listed in the item."
+        if not mismatch:
+            perma_file.update_from_ia_metadata(ia_file)
+            perma_file.status = 'confirmed_present'
+            perma_file.cached_size = int(ia_file.get('size') or 0)
+            perma_file.save(update_fields=[
+                'status',
+                'cached_size',
+                'cached_title',
+                'cached_comments',
+                'cached_external_identifier',
+                'cached_external_identifier_match_date',
+                'cached_format',
+                'cached_submitted_url',
+                'cached_perma_url'
+            ])
+            confirmed.append(link.guid)
+            continue
 
-    # Update the InternetArchiveFile accordingly
-    perma_file.update_from_ia_metadata(ia_file.metadata)
-    perma_file.status = 'confirmed_present'
-    perma_file.cached_size =  ia_file.size
-    perma_file.save(update_fields=[
-        'status',
-        'cached_size',
-        'cached_title',
-        'cached_comments',
-        'cached_external_identifier',
-        'cached_external_identifier_match_date',
-        'cached_format',
-        'cached_submitted_url',
-        'cached_perma_url'
-    ])
+        if perma_file.status_updated is None:
+            # Submitted before we recorded status times: its wait starts now.
+            perma_file.status_updated = now
+            perma_file.save(update_fields=['status_updated'])
+        if now - perma_file.status_updated >= settings.INTERNET_ARCHIVE_UPLOAD_CONFIRMATION_MAX_AGE:
+            perma_file.status = 'upload_unconfirmed'
+            perma_file.save(update_fields=['status'])
+            logger.error(f"Please investigate the upload of {link.guid} to IA Item {identifier}: not confirmed {settings.INTERNET_ARCHIVE_UPLOAD_CONFIRMATION_MAX_AGE} after submission, so no longer checking. Last check: {mismatch}")
+        else:
+            still_pending.append(perma_file)
 
-    # If this is the first confirmed upload to this IA item,
-    # cache its basic metadata locally
-    if not perma_item.confirmed_exists:
-        perma_item.confirmed_exists = True
-        perma_item.added_date = InternetArchiveItem.datetime(ia_item.metadata['addeddate'])
-        perma_item.cached_title = ia_item.metadata['title']
-        perma_item.cached_description = ia_item.metadata.get('description')
-        perma_item.save(update_fields=[
-            'confirmed_exists',
-            'added_date',
-            'cached_title',
-            'cached_description'
-        ])
+    ia_tasks = ia_item.item_metadata.get('tasks') or []
+    if still_pending:
+        newest_pending_age = now - max(f.status_updated for f in still_pending)
+        interval = ia_confirmation_interval(newest_pending_age, ia_tasks)
+        perma_item.next_confirmation_check = now + interval
+    else:
+        perma_item.next_confirmation_check = None
+    update_fields = ['next_confirmation_check']
 
-    # Update InternetArchiveItem accordingly
-    perma_item.derive_required = True
-    perma_item.cached_file_count = ia_item.files_count
-    perma_item.tasks_in_progress = Greatest(F('tasks_in_progress') - 1, 0)
-    perma_item.save(update_fields=[
-        'derive_required',
-        'cached_file_count',
-        'tasks_in_progress'
-    ])
+    if confirmed:
+        # If this is the first confirmed upload to this IA item,
+        # cache its basic metadata locally
+        if not perma_item.confirmed_exists:
+            item_metadata = ia_item.item_metadata['metadata']
+            perma_item.confirmed_exists = True
+            perma_item.added_date = InternetArchiveItem.datetime(item_metadata['addeddate'])
+            perma_item.cached_title = item_metadata['title']
+            perma_item.cached_description = item_metadata.get('description')
+            update_fields += ['confirmed_exists', 'added_date', 'cached_title', 'cached_description']
+        perma_item.derive_required = True
+        perma_item.cached_file_count = ia_item.item_metadata.get('files_count')
+        update_fields += ['derive_required', 'cached_file_count']
 
-    logger.info(f"Confirmed upload of {link.guid} to {perma_item.identifier}.")
+    perma_item.save(update_fields=update_fields)
+    InternetArchiveItem.refresh_tasks_in_progress(identifier)
+
+    summary = f"Confirmed {len(confirmed)} upload{pluralize(len(confirmed))} to {identifier}; {len(still_pending)} still pending"
+    if still_pending:
+        summary += f", next check at {perma_item.next_confirmation_check.isoformat()}"
+    blocked_tasks = [str(t.get('cmd')) for t in ia_tasks if str(t.get('wait_admin')) in ('2', '9')]
+    if blocked_tasks:
+        summary += f"; IA tasks in error or paused: {', '.join(blocked_tasks)}"
+    logger.info(f"{summary}.")
+
+
+@shared_task(acks_late=True)
+def confirm_file_uploaded_to_internet_archive(file_id, attempts=0, connection_errors=0):
+    """
+    Superseded by confirm_files_uploaded_to_internet_archive_item. Still registered so
+    that messages queued under the old scheme are consumed without error: the file is
+    checked along with the rest of its item on the next scheduled run.
+    """
+    logger.info(f"Ignored per-file upload confirmation for InternetArchiveFile {file_id}: uploads are now confirmed by item.")
 
 
 @shared_task(acks_late=True)
@@ -972,8 +1021,6 @@ def delete_link_from_daily_item(link_guid, attempts=0):
     identifier = perma_item.identifier
 
     def retry_deletion(attempt_count):
-        perma_item.tasks_in_progress = F('tasks_in_progress') - 1
-        perma_item.save(update_fields=['tasks_in_progress'])
         delete_link_from_daily_item.delay(link_guid, attempt_count)
 
     if perma_file.status == 'confirmed_absent':
@@ -995,10 +1042,6 @@ def delete_link_from_daily_item(link_guid, attempts=0):
     # Record that we are attempting a deletion
     perma_file.status = 'deletion_attempted'
     perma_file.save(update_fields=['status'])
-
-    # Indicate that this InternetArchiveItem should be tracked until further notice
-    perma_item.tasks_in_progress = F('tasks_in_progress') + 1
-    perma_item.save(update_fields=['tasks_in_progress'])
 
     # Make sure we aren't exceeding rate limits
     ia_session = get_ia_session()
@@ -1166,11 +1209,9 @@ def confirm_file_deleted_from_daily_item(file_id, attempts=0, connection_errors=
     # Update InternetArchiveItem accordingly
     perma_item.derive_required = True
     perma_item.cached_file_count = ia_item.files_count
-    perma_item.tasks_in_progress = Greatest(F('tasks_in_progress') - 1, 0)
     perma_item.save(update_fields=[
         'derive_required',
         'cached_file_count',
-        'tasks_in_progress'
     ])
 
     logger.info(f"Confirmed deletion of {guid} from {perma_item.identifier}.")
@@ -1325,12 +1366,13 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
     if start > end:
         logger.error(f"Invalid range: start={start} end={end}.")
 
-    tasks_in_flight = InternetArchiveItem.inflight_task_count()
+    InternetArchiveItem.refresh_tasks_in_progress()
+    tasks_in_flight = InternetArchiveItem.inflight_task_count() or 0
     max_to_queue = settings.INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS - tasks_in_flight
     to_queue = min(max_to_queue, limit) if limit else max_to_queue
 
     if to_queue < 0:
-        logger.error(f"Something is amiss with the IA upload process: InternetArchiveItem.inflight_task_count ({InternetArchiveItem.inflight_task_count()}) is larger than settings.INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS.")
+        logger.error(f"Something is amiss with the IA upload process: InternetArchiveItem.inflight_task_count ({tasks_in_flight}) is larger than settings.INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS.")
         return
 
     if to_queue:
