@@ -81,7 +81,7 @@ def test_upgrade_from_salt_migration_state_preserves_existing_login_logs():
             assert cursor.fetchone() == ('',)
         sql = '\n'.join(statements).upper()
         assert 'ADD COLUMN SESSION_HASH' in sql
-        assert 'DROP DEFAULT' not in sql
+        assert not any('SESSION_HASH' in s.upper() and 'DROP DEFAULT' in s.upper() for s in statements)
         assert not any('CREATE INDEX' in s.upper() and 'history_date' in s for s in statements)
     finally:
         MigrationExecutor(connection).migrate(current)

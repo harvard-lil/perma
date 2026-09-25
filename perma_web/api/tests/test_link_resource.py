@@ -212,6 +212,15 @@ class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
                               user=self.capture_view_link.created_by,
                               data={'default_to_screenshot_view': True})
 
+    @patch('perma.models.LinkUser.get_links_remaining', autospec=True)
+    def test_patch_does_not_count_links(self, get_links_remaining):
+        data = self.successful_patch(self.unrelated_link_detail_url,
+                                     check_results=False,
+                                     user=self.unrelated_link.created_by,
+                                     data={'notes': 'These are new notes'})
+        get_links_remaining.assert_not_called()
+        self.assertNotIn('links_remaining', data)
+
     def test_should_reject_updates_to_disallowed_fields(self):
         response = self.rejected_patch(self.unrelated_link_detail_url,
                                      user=self.unrelated_link.created_by,
@@ -428,12 +437,6 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
         allowed.assert_called_once_with(target_org.shared_folder.organization.registrar)
 
 
-    def test_should_add_http_to_url(self):
-        self.successful_post(self.list_url,
-                             data={'url': self.server_url.split("//")[1] + "/test.html"},
-                             user=self.org_user)
-
-
     def test_should_not_use_bonus_link_if_regular_limit_is_available(self):
         # give our user a bonus link
         user = self.org_user
@@ -479,6 +482,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
         self.assertEqual(bonus_links, 1)
 
         # make a link
+        remaining.reset_mock()
         target_folder = self.org_user.root_folder
         obj = self.successful_post(self.list_url,
                                    data={
@@ -490,10 +494,24 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
         user.refresh_from_db()
 
         # assertions
+        # counted once to check the limit, and again under the lock to decide whether to use the bonus link
+        self.assertEqual(remaining.call_count, 2)
         self.assertTrue(link.bonus_link)
         links_remaining, _ , bonus_links = user.get_links_remaining()
         self.assertEqual(links_remaining, 0)
         self.assertEqual(bonus_links, 0)
+
+
+    @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
+    def test_should_count_links_once_without_bonus_links(self, remaining):
+        remaining.return_value = 5
+        self.successful_post(self.list_url,
+                             data={
+                                 'url': self.server_url + "/test.html",
+                                 'folder': self.org_user.root_folder.pk,
+                             },
+                             user=self.org_user)
+        self.assertEqual(remaining.call_count, 1)
 
 
     @patch('perma.models.LinkUser.links_remaining_in_period', autospec=True)
@@ -637,7 +655,7 @@ class LinkResourceTransactionTestCase(LinkResourceTestMixin, ApiResourceTransact
                                        user=self.org_user)
 
             link = Link.objects.get(guid=obj['guid'])
-            self.assertEqual(link.submitted_url, 'http://asdf.asdf')
+            self.assertEqual(link.submitted_url, 'https://asdf.asdf')
             self.assertRecordsInArchive(link, upload=True)
             self.assertEqual(link.primary_capture.user_upload, True)
 

@@ -178,6 +178,8 @@ class Link(DeletableModel):
             models.Index(fields=['-creation_timestamp', 'guid']),
             models.Index(fields=['submitted_url_surt']),
             GinIndex(OpClass(Upper('guid'), name='gin_trgm_ops'), name='guid_case_insensitive_idx'),
+            # Personal links, for LinkUser.links_remaining_in_period.
+            models.Index(fields=['created_by', 'creation_timestamp'], condition=Q(organization=None), name='perma_link_personal_idx'),
         ]
 
     DISCOVERABLE_FILTER = Q(is_unlisted=False, is_private=False)
@@ -298,28 +300,42 @@ class Link(DeletableModel):
         # stick together parts with '-'
         return "-".join(reversed(guid_parts))
 
+    def _sponsored_by_id(self):
+        return (
+            self.folders.filter(sponsored_by_id__isnull=False)
+            .values_list('sponsored_by_id', flat=True)
+            .first()
+        )
+
     def move_to_folder_for_user(self, folder, user):
         """
             Move this link to the given folder for the given user.
         """
+        from .registrar import Registrar
+
         with transaction.atomic():
+            destination_folder = folder
             # Don't let anybody move folders around, until this link is
             # safely inside its destination folder, lest denormalized
             # ownership-related fields get out of sync
-            for folder in itertools.chain(self.folders.all(), [folder]):
-                Folder.objects.select_for_update().get(pk=folder.tree_root_id)
+            for locked_folder in itertools.chain(self.folders.all(), [destination_folder]):
+                Folder.objects.select_for_update().get(pk=locked_folder.tree_root_id)
+
+            old_sponsored_by_id = self._sponsored_by_id()
 
             # remove this link from any folders it's in for this user
             self.folders.remove(*self.folders.accessible_to(user))
             # add it back to the given folder
-            self.folders.add(folder)
-            if not folder.organization:
+            self.folders.add(destination_folder)
+            if not destination_folder.organization:
                 self.organization = None
             else:
-                self.organization = folder.organization
-            if self.bonus_link and (folder.organization or folder.sponsored_by):
+                self.organization = destination_folder.organization
+            if self.bonus_link and (destination_folder.organization or destination_folder.sponsored_by):
                 self.bonus_link = False
                 user.bonus_links = F('bonus_links') + 1
+
+            Registrar.adjust_sponsored_link_count(old_sponsored_by_id, destination_folder.sponsored_by_id)
 
             self.save(update_fields=['organization', 'bonus_link'])
             user.save(update_fields=['bonus_links'])

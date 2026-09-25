@@ -162,6 +162,23 @@ def test_settings_ecs_static_url_from_the_bucket():
     assert "ok" in result.stdout
 
 
+def test_settings_ecs_statement_timeout_comes_from_gunicorn():
+    # gunicorn_config.py exports PERMA_STATEMENT_TIMEOUT to the web workers.
+    # manage.py commands run in the web container, migrate among them, have
+    # PERMA_ROLE=web too, and must not get a timeout.
+    code = """
+        import perma.settings as settings
+        print(repr(settings.DATABASES["default"]["OPTIONS"].get("options")))
+        """
+    env = {"PERMA_SETTINGS_MODULE": "settings_ecs", "APP_CONFIG": json.dumps(FAKE_APP_CONFIG), "PERMA_ROLE": "web"}
+    without = _run(code, env)
+    assert without.returncode == 0, without.stderr
+    assert without.stdout.splitlines()[-1] == "None"
+    with_timeout = _run(code, {**env, "PERMA_STATEMENT_TIMEOUT": "60s"})
+    assert with_timeout.returncode == 0, with_timeout.stderr
+    assert with_timeout.stdout.splitlines()[-1] == repr("-c statement_timeout=60s")
+
+
 def test_settings_ecs_rejects_an_unknown_tier():
     result = _run(
         "import perma.settings",

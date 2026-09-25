@@ -25,13 +25,19 @@ const loading = ref(false);
 const hasMore = ref(true);
 const selectedLink = ref(null);
 const linkScrollContainer = ref(null);
+// the request in flight, if any, so that a newer one can replace it
+let fetchController = null;
 
 /*** Methods ***/
 const fetchLinks = async (append = false) => {
+  fetchController?.abort();
+  fetchController = null;
   const folderId = selectedFolder.value?.folderId;
   if (!folderId) {
     return;
   }
+  const controller = new AbortController();
+  fetchController = controller;
   loading.value = true;
   if (!append) {
     resetPagination();
@@ -41,12 +47,14 @@ const fetchLinks = async (append = false) => {
       q: query.value,
       limit: limit.value,
       offset: offset.value
-    }
+    },
+    signal: controller.signal,
   });
-  if (selectedFolder.value.folderId !== folderId) {
-    // folder changed while we were fetching
+  if (controller.signal.aborted) {
+    // a newer request replaced this one
     return;
   }
+  fetchController = null;
   loading.value = false;
   if (error) {
     globalStore.addToast('Error fetching data. Please try again.', 'error');
@@ -112,17 +120,20 @@ const generateLinkFields = (link, query) => {
 }
 
 /*** UI interaction methods ***/
+// A changed query is fetched by the watcher below. Searching again for the
+// query already shown refreshes it, unless that search is still running:
+// searches can take a long time, and repeating one only adds to the load.
 const submitSearch = () => {
-  query.value = searchQuery.value;
-  resetPagination();
-  fetchLinks();
+  if (searchQuery.value !== query.value) {
+    query.value = searchQuery.value;
+  } else if (!loading.value) {
+    fetchLinks();
+  }
 };
 
 const clearSearch = () => {
   searchQuery.value = '';
   query.value = '';
-  resetPagination();
-  fetchLinks();
 };
 
 const toggleLinkDetails = async (e, link, focusSelector) => {

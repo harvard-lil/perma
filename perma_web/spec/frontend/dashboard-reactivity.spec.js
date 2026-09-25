@@ -85,7 +85,7 @@ describe('dashboard reactivity, watchers, and template refs', () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/v1/folders/2/archives/?q=&limit=20&offset=0',
-      {headers: {'X-CSRFToken': undefined}},
+      {headers: {'X-CSRFToken': undefined}, signal: expect.any(AbortSignal)},
     )
     // relies on the same storeToRefs destructuring: the header text tracks the new folder too
     expect(wrapper.text()).toContain('Organization Links Links')
