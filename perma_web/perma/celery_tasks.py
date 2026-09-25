@@ -6,6 +6,7 @@ import subprocess
 
 import os
 import os.path
+import random
 import tempfile
 import time
 from datetime import datetime, timedelta
@@ -585,6 +586,22 @@ CONNECTION_ERRORS = (
     requests.exceptions.ReadTimeout
 )
 
+def ia_rate_limit_countdown(attempts):
+    """
+    Seconds to wait before retrying an IA task that was turned away by rate limiting.
+
+    Doubles from INTERNET_ARCHIVE_RATE_LIMIT_RETRY_BASE_DELAY with each attempt, up to
+    INTERNET_ARCHIVE_RATE_LIMIT_RETRY_MAX_DELAY, and is jittered so that tasks turned
+    away together do not come back together. A retry with no delay polls IA's load
+    endpoint as fast as the workers can run, for as long as IA is overloaded.
+    """
+    delay = min(
+        settings.INTERNET_ARCHIVE_RATE_LIMIT_RETRY_MAX_DELAY,
+        settings.INTERNET_ARCHIVE_RATE_LIMIT_RETRY_BASE_DELAY * 2 ** min(attempts, 16),
+    )
+    return random.uniform(delay / 2, delay)
+
+
 def queue_batched_tasks(task, query, batch_size=1000, **kwargs):
     """
     A generic queuing task. Chunks the queryset by batch_size,
@@ -681,10 +698,13 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
 
     # Attempt the upload
 
-    def retry_upload(attempt_count, timeout_count):
+    def retry_upload(attempt_count, timeout_count, countdown=None):
         perma_item.tasks_in_progress = F('tasks_in_progress') - 1
         perma_item.save(update_fields=['tasks_in_progress'])
-        upload_link_to_internet_archive.delay(link_guid, attempt_count, timeout_count)
+        if countdown:
+            upload_link_to_internet_archive.apply_async((link_guid, attempt_count, timeout_count), countdown=countdown)
+        else:
+            upload_link_to_internet_archive.delay(link_guid, attempt_count, timeout_count)
 
     # Indicate that this InternetArchiveItem should be tracked until further notice
     perma_item.tasks_in_progress = F('tasks_in_progress') + 1
@@ -711,7 +731,7 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
             (settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT > attempts + 1)
         )
         if retry:
-            retry_upload(attempts + 1, timeouts)
+            retry_upload(attempts + 1, timeouts, countdown=ia_rate_limit_countdown(attempts))
         else:
             msg = f"Not retrying IA upload task for {link_guid} (IA Item {identifier}): rate limit retry maximum reached."
             if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
@@ -797,7 +817,7 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
                 (settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT > attempts + 1)
             )
             if retry:
-                retry_upload(attempts + 1, timeouts)
+                retry_upload(attempts + 1, timeouts, countdown=ia_rate_limit_countdown(attempts))
             else:
                 msg = f"Not retrying IA upload task for {link_guid} (IA Item {identifier}): rate limit retry maximum reached."
                 if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
@@ -971,10 +991,13 @@ def delete_link_from_daily_item(link_guid, attempts=0):
     perma_item = perma_file.item
     identifier = perma_item.identifier
 
-    def retry_deletion(attempt_count):
+    def retry_deletion(attempt_count, countdown=None):
         perma_item.tasks_in_progress = F('tasks_in_progress') - 1
         perma_item.save(update_fields=['tasks_in_progress'])
-        delete_link_from_daily_item.delay(link_guid, attempt_count)
+        if countdown:
+            delete_link_from_daily_item.apply_async((link_guid, attempt_count), countdown=countdown)
+        else:
+            delete_link_from_daily_item.delay(link_guid, attempt_count)
 
     if perma_file.status == 'confirmed_absent':
         logger.info(f"The daily InternetArchiveFile for {link_guid} is already confirmed absent from {identifier}.")
@@ -1016,7 +1039,7 @@ def delete_link_from_daily_item(link_guid, attempts=0):
             (settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT > attempts + 1)
         )
         if retry:
-            retry_deletion(attempts + 1)
+            retry_deletion(attempts + 1, countdown=ia_rate_limit_countdown(attempts))
         else:
             msg = f"Not retrying IA deletion task for {link_guid} (IA Item {identifier}): rate limit retry maximum reached."
             if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
@@ -1068,7 +1091,7 @@ def delete_link_from_daily_item(link_guid, attempts=0):
                 (settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT > attempts + 1)
             )
             if retry:
-                retry_deletion(attempts + 1)
+                retry_deletion(attempts + 1, countdown=ia_rate_limit_countdown(attempts))
             else:
                 msg = f"Not retrying IA deletion task for {link_guid} (IA Item {identifier}): rate limit retry maximum reached."
                 if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
