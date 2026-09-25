@@ -42,16 +42,8 @@ def test_reconcile_user_link_counts_dry_run_does_not_write(link_user, link_facto
 def test_reconcile_organization_link_counts_sets_cache_from_non_deleted_links(org_user, link_factory):
     """ Task should set Organization.link_count to non-deleted links under that org """
     organization = org_user.organizations.first()
-    live = link_factory(
-        created_by=org_user,
-        submitted_url="http://example.com/live",
-        organization=organization,
-    )
-    deleted = link_factory(
-        created_by=org_user,
-        submitted_url="http://example.com/deleted",
-        organization=organization,
-    )
+    live = link_factory(created_by=org_user, submitted_url="http://example.com/live", organization=organization)
+    deleted = link_factory(created_by=org_user, submitted_url="http://example.com/deleted", organization=organization)
     deleted.safe_delete()
     deleted.save()
 
@@ -70,11 +62,7 @@ def test_reconcile_organization_link_counts_sets_cache_from_non_deleted_links(or
 def test_reconcile_organization_link_counts_dry_run_does_not_write(org_user, link_factory):
     """ Task should not update Organization.link_count if dry_run is True """
     organization = org_user.organizations.first()
-    link_factory(
-        created_by=org_user,
-        submitted_url="http://example.com",
-        organization=organization,
-    )
+    link_factory(created_by=org_user, submitted_url="http://example.com", organization=organization)
     organization.link_count = 99
     organization.save(update_fields=['link_count'])
 
@@ -86,46 +74,48 @@ def test_reconcile_organization_link_counts_dry_run_does_not_write(org_user, lin
     assert organization.link_count == 99
 
 
-def test_reconcile_registrar_link_counts_sets_cache_from_org_links(org_user, link_factory):
-    """ Task should set Registrar.link_count to non-deleted links under its orgs """
+def test_reconcile_registrar_link_counts_sets_cache_from_org_and_sponsored_links(org_user, sponsorship_factory, link_factory):
+    """ Task should set link_count from org links and sponsored_link_count from sponsored links """
     organization = org_user.organizations.first()
     registrar = organization.registrar
-    live = link_factory(
-        created_by=org_user,
-        submitted_url="http://example.com/live",
-        organization=organization,
-    )
-    deleted = link_factory(
-        created_by=org_user,
-        submitted_url="http://example.com/deleted",
-        organization=organization,
-    )
+    sponsored_folder = sponsorship_factory(user=org_user, registrar=registrar).folders.first()
+    live = link_factory(created_by=org_user, submitted_url="http://example.com/live", organization=organization)
+    deleted = link_factory(created_by=org_user, submitted_url="http://example.com/deleted", organization=organization)
     link_factory(created_by=org_user, submitted_url="http://example.com/personal")
     deleted.safe_delete()
     deleted.save()
 
+    sponsored_live = link_factory(created_by=org_user, submitted_url="http://example.com/sponsored-live")
+    sponsored_deleted = link_factory(created_by=org_user, submitted_url="http://example.com/sponsored-deleted")
+    sponsored_live.move_to_folder_for_user(sponsored_folder, org_user)
+    sponsored_deleted.move_to_folder_for_user(sponsored_folder, org_user)
+    sponsored_deleted.safe_delete()
+    sponsored_deleted.save()
+
     registrar.link_count = 99
-    registrar.save(update_fields=['link_count'])
+    registrar.sponsored_link_count = 99
+    registrar.save(update_fields=['link_count', 'sponsored_link_count'])
     ctx = Context()
     updated = reconcile_registrar_link_counts(ctx)
 
     registrar.refresh_from_db()
     assert updated >= 1
     assert registrar.link_count == 1
+    assert registrar.sponsored_link_count == 1
     assert live.user_deleted is False
 
 
-def test_reconcile_registrar_link_counts_dry_run_does_not_write(org_user, link_factory):
-    """ Task should not update Registrar.link_count if dry_run is True """
+def test_reconcile_registrar_link_counts_dry_run_does_not_write(org_user, sponsorship_factory, link_factory):
+    """ Task should not update registrar link counts if dry_run is True """
     organization = org_user.organizations.first()
     registrar = organization.registrar
-    link_factory(
-        created_by=org_user,
-        submitted_url="http://example.com",
-        organization=organization,
-    )
+    sponsored_folder = sponsorship_factory(user=org_user, registrar=registrar).folders.first()
+    link_factory(created_by=org_user, submitted_url="http://example.com", organization=organization)
+    sponsored = link_factory(created_by=org_user, submitted_url="http://example.com/sponsored")
+    sponsored.move_to_folder_for_user(sponsored_folder, org_user)
     registrar.link_count = 99
-    registrar.save(update_fields=['link_count'])
+    registrar.sponsored_link_count = 99
+    registrar.save(update_fields=['link_count', 'sponsored_link_count'])
 
     ctx = Context()
     count = reconcile_registrar_link_counts(ctx, dry_run=True)
@@ -133,17 +123,14 @@ def test_reconcile_registrar_link_counts_dry_run_does_not_write(org_user, link_f
     registrar.refresh_from_db()
     assert count >= 1
     assert registrar.link_count == 99
+    assert registrar.sponsored_link_count == 99
 
 
 def test_link_count_do_not_increment_after_saving_a_deleted_link(org_user, link_factory):
     """ Re-saving a user-deleted link must not count it as a new link """
     organization = org_user.organizations.first()
     registrar = organization.registrar
-    link = link_factory(
-        created_by=org_user,
-        submitted_url="http://example.com",
-        organization=organization,
-    )
+    link = link_factory(created_by=org_user, submitted_url="http://example.com", organization=organization)
     org_user.refresh_from_db()
     organization.refresh_from_db()
     registrar.refresh_from_db()
