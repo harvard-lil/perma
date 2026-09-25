@@ -38,7 +38,7 @@
 #   WACZ_BUCKET                  S3 bucket for WACZs (STORAGES["secondary"]).
 #   AWS_ACCESS_KEY_ID            Optional. Static S3 credentials, as the Salt
 #   AWS_SECRET_ACCESS_KEY        hosts use. Omit both to use the task role.
-#   CELERY_BROKER_URL            The existing broker (CloudAMQP).
+#   CELERY_BROKER_URL            The existing broker (Redis, on ElastiCache).
 #   CACHE_LOCATION               Redis URL for Django's cache.
 #   STRIPE_PAYMENTS_APP_INTERNAL_URL   perma-payments, from inside the VPC.
 #   STRIPE_PAYMENTS_APP_EXTERNAL_URL   perma-payments, as browsers reach it.
@@ -141,8 +141,11 @@ if "AWS_ACCESS_KEY_ID" in config:
         STORAGES[_storage]["OPTIONS"]["secret_key"] = config["AWS_SECRET_ACCESS_KEY"]  # noqa: F405
     del _storage
 
-# Celery. The broker tunables are the Salt template's, per
-# https://www.cloudamqp.com/docs/celery.html
+# Celery. The broker is Redis. The tunables are the Salt template's, which
+# took them from https://www.cloudamqp.com/docs/celery.html for a CloudAMQP
+# broker; the heartbeat setting has no effect on Redis. Redis redelivers a
+# message that is unacknowledged after the visibility timeout (Celery's
+# default, one hour), which bounds how long an acks_late task may run or wait.
 CELERY_BROKER_URL = config["CELERY_BROKER_URL"]
 CELERY_BROKER_CONNECTION_TIMEOUT = 30
 CELERY_BROKER_HEARTBEAT = None
