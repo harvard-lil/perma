@@ -389,7 +389,7 @@ Because the entry bundles use Vue's `esm-bundler` build, `webpack.config.js`
 sets `optimization.nodeEnv` explicitly. Webpack 5 no longer shims Node globals,
 so without it every page using the Vue app dies on `process is not defined`.
 
-Compiled bundles (`perma_web/static/bundles/` and `perma_web/webpack-stats.json`) are build output, but they are still committed: the Salt hosts deploy from a checkout and never build. `perma_web/frontend_assets.py` rebuilds them when their inputs change, and `d invoke run` and `d pytest` call it; `d invoke dev.build-frontend` runs it by hand. CI on the Salt branches commits the rebuilt copies as it always has, and the container image ignores all of it and compiles its own during the build. Once Salt no longer deploys Perma these files leave the repository.
+Compiled bundles (`perma_web/static/bundles/` and `perma_web/webpack-stats.json`) are build output and are not committed. `perma_web/frontend_assets.py` rebuilds them when their inputs change, and `d invoke run` and `d pytest` call it; `d invoke dev.build-frontend` runs it by hand. The container image ignores any local build and compiles its own in the Dockerfile's `assets` stage.
 
 
 

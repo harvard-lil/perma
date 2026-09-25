@@ -178,6 +178,8 @@ class Link(DeletableModel):
             models.Index(fields=['-creation_timestamp', 'guid']),
             models.Index(fields=['submitted_url_surt']),
             GinIndex(OpClass(Upper('guid'), name='gin_trgm_ops'), name='guid_case_insensitive_idx'),
+            # Personal links, for LinkUser.links_remaining_in_period.
+            models.Index(fields=['created_by', 'creation_timestamp'], condition=Q(organization=None), name='perma_link_personal_idx'),
         ]
 
     DISCOVERABLE_FILTER = Q(is_unlisted=False, is_private=False)

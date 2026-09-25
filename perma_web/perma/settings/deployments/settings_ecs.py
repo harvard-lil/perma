@@ -70,6 +70,9 @@
 #   PERMA_VERSION                Short commit hash, stamped into the image at
 #                                build time (Dockerfile ARG). Not in APP_CONFIG
 #                                because it belongs to the image, not the tier.
+#   PERMA_STATEMENT_TIMEOUT      Optional. Postgres statement_timeout for this
+#                                process's connections, e.g. "60s". Set by
+#                                gunicorn_config.py for web workers only.
 import ast
 import json
 import os
@@ -101,6 +104,9 @@ DATABASES["default"]["OPTIONS"] = {  # noqa: F405
     "sslrootcert": os.path.join(SERVICES_DIR, "aws", "global-bundle.pem"),  # noqa: F405
     "connect_timeout": 60,
 }
+# Set by gunicorn_config.py for the web server only; see there.
+if "PERMA_STATEMENT_TIMEOUT" in os.environ:
+    DATABASES["default"]["OPTIONS"]["options"] = f"-c statement_timeout={os.environ['PERMA_STATEMENT_TIMEOUT']}"  # noqa: F405
 
 # Email
 DEFAULT_FROM_EMAIL = config["DEFAULT_FROM_EMAIL"]
