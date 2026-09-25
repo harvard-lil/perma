@@ -195,6 +195,9 @@ class LoggingAPIClient(APIClient):
     def get(self, *args, **kwargs):
         return super(LoggingAPIClient, self).get(*args, **kwargs, secure=True)
     @log_api_call
+    def head(self, *args, **kwargs):
+        return super(LoggingAPIClient, self).head(*args, **kwargs, secure=True)
+    @log_api_call
     def post(self, *args, **kwargs):
         return super(LoggingAPIClient, self).post(*args, **kwargs, secure=True)
     @log_api_call

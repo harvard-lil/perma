@@ -402,7 +402,7 @@ class AuthenticatedLinkDownloadView(BaseView):
         if link.replacement_link_id:
             base_url = reverse_api_view_relative('archives_download', kwargs={'guid': link.replacement_link_id})
             return HttpResponseRedirect(f"{base_url}?file_format={file_format}")
-        return stream_archive_if_permissible(link, request.user, file_format=file_format)
+        return stream_archive_if_permissible(link, request.user, file_format=file_format, head=request.method == "HEAD")
 
 
 # /folders/:parent_id/archives/:guid
