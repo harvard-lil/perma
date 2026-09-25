@@ -132,11 +132,10 @@ RUN useradd -m -r perma && chown -R perma /perma
 COPY --chown=perma:perma perma_web/ ./
 COPY --chown=perma:perma services/ /perma/services/
 
-# Add the bundles just built. The tracked copies the Salt hosts deploy from
-# never reach this stage: .dockerignore excludes perma_web/static/bundles and
-# webpack-stats.json from the build context, so the only bundles in the image
-# are the ones the assets stage compiled. This is what makes the shipped image
-# self-contained.
+# Add the bundles just built. .dockerignore excludes perma_web/static/bundles
+# and webpack-stats.json from the build context, so a developer's local build
+# never reaches this stage and the only bundles in the image are the ones the
+# assets stage compiled.
 COPY --from=assets --chown=perma:perma /perma/perma_web/static/bundles ./static/bundles
 COPY --from=assets --chown=perma:perma /perma/perma_web/webpack-stats.json ./webpack-stats.json
 
