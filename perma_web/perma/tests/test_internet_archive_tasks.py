@@ -20,6 +20,7 @@ from perma.celery_tasks import (
     confirm_files_uploaded_to_internet_archive_item,
     delete_link_from_daily_item,
     ia_confirmation_interval,
+    ia_rate_limit_countdown,
     queue_file_uploaded_confirmation_tasks,
     upload_link_to_internet_archive,
 )
@@ -484,3 +485,53 @@ def test_s3_reads_spill_to_disk_above_the_memory_limit():
             assert f.file._rolled
     finally:
         storage.delete(name)
+
+
+def _overloaded_session():
+    session = Mock()
+    session.get_s3_load_info.return_value = (True, _s3_details())
+    return session
+
+
+@pytest.mark.django_db
+def test_rate_limited_upload_retries_after_a_delay(complete_link):
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_overloaded_session()),
+        patch("perma.celery_tasks.ia_rate_limit_countdown", return_value=42) as countdown,
+        patch.object(upload_link_to_internet_archive, "apply_async") as apply_async,
+        patch.object(upload_link_to_internet_archive, "delay") as delay,
+    ):
+        upload_link_to_internet_archive.run(complete_link.guid, 3, 1)
+
+    countdown.assert_called_once_with(3)
+    apply_async.assert_called_once_with((complete_link.guid, 4, 1), countdown=42)
+    delay.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_rate_limited_deletion_retries_after_a_delay(complete_link):
+    perma_item = _daily_item(complete_link)
+    InternetArchiveFile.objects.create(
+        item=perma_item,
+        link=complete_link,
+        status="confirmed_present",
+    )
+
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_overloaded_session()),
+        patch("perma.celery_tasks.ia_rate_limit_countdown", return_value=42),
+        patch.object(delete_link_from_daily_item, "apply_async") as apply_async,
+        patch.object(delete_link_from_daily_item, "delay") as delay,
+    ):
+        delete_link_from_daily_item.run(complete_link.guid)
+
+    apply_async.assert_called_once_with((complete_link.guid, 1), countdown=42)
+    delay.assert_not_called()
+
+
+@pytest.mark.parametrize("attempts, low, high", [(0, 15, 30), (2, 60, 120), (1_000, 300, 600)])
+def test_rate_limit_countdown_doubles_up_to_the_maximum(settings, attempts, low, high):
+    settings.INTERNET_ARCHIVE_RATE_LIMIT_RETRY_BASE_DELAY = 30
+    settings.INTERNET_ARCHIVE_RATE_LIMIT_RETRY_MAX_DELAY = 600
+
+    assert low <= ia_rate_limit_countdown(attempts) <= high
