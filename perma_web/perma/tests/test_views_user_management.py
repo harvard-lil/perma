@@ -2356,3 +2356,19 @@ class UserManagementViewsTestCase(PermaTestCase):
         # NUL / other control characters must not reach Postgres or cause a 500
         self.submit_form('password_reset', data={'email': 'test\x00user@example.com'})
         self.assertEqual(len(mail.outbox), 0)
+
+
+def test_password_reset_completes_when_the_session_token_is_gone():
+    from unittest.mock import Mock
+    from perma.views.user_management import PasswordResetConfirmView
+
+    request = RequestFactory().post('/')
+    request.session = {}
+    view = PasswordResetConfirmView()
+    view.setup(request)
+    form = Mock()
+
+    response = view.form_valid(form)
+    form.save.assert_called_once()
+    assert response.status_code == 302
+    assert response.url == reverse('password_reset_complete')

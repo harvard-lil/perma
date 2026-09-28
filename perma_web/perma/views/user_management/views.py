@@ -4,7 +4,7 @@ from typing import NotRequired, TypedDict
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm
 from django.forms import Form
@@ -1514,6 +1514,22 @@ def limited_login(request, template_name='registration/login.html',
 
 
     return auth_views.LoginView.as_view(template_name=template_name, redirect_field_name=redirect_field_name, authentication_form=LoginForm, extra_context=extra_context, redirect_authenticated_user=True)(request)
+
+
+class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
+    """
+    Django's view deletes the reset token from the session after saving the new
+    password, and raises KeyError if the token is already gone. That has been
+    seen in production (PERMA-30T in Sentry) without an identified cause; the
+    password is saved by then, so the user is sent on to the completion page.
+    """
+    def form_valid(self, form):
+        user = form.save()
+        self.request.session.pop(auth_views.INTERNAL_RESET_SESSION_TOKEN, None)
+        if self.post_reset_login:
+            auth_login(self.request, user, self.post_reset_login_backend)
+        # skip Django's form_valid, which this replaces, for FormView's redirect
+        return super(auth_views.PasswordResetConfirmView, self).form_valid(form)
 
 
 def reset_password(request):
