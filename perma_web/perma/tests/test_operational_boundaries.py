@@ -63,13 +63,10 @@ def test_s3_storage_uploads_to_local_minio_with_required_checksums_only():
 
 
 @pytest.mark.parametrize('release', ['perma@test-release', None])
-def test_sentry_initialization_uses_only_the_configured_values(monkeypatch, release):
-    if release is None:
-        monkeypatch.delenv('SENTRY_RELEASE', raising=False)
-    else:
-        monkeypatch.setenv('SENTRY_RELEASE', release)
+def test_sentry_initialization_uses_only_the_configured_values(release):
     settings = {
         'USE_SENTRY': True,
+        'SENTRY_RELEASE': release or '',
         'SENTRY_ENVIRONMENT': 'test',
         'SENTRY_DSN': 'https://public@example.invalid/1',
         'SENTRY_TRACES_SAMPLE_RATE': 0.25,
@@ -87,7 +84,6 @@ def test_sentry_initialization_uses_only_the_configured_values(monkeypatch, rele
         'release': release,
         'dsn': 'https://public@example.invalid/1',
         'integrations': sentry_init.call_args.kwargs['integrations'],
-        'enable_tracing': True,
         'traces_sample_rate': 0.25,
         'send_default_pii': False,
     }

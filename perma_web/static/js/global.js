@@ -4,7 +4,21 @@ if (settings.USE_SENTRY) {
   Sentry.init({
     dsn: settings.SENTRY_DSN,
     environment: settings.SENTRY_ENVIRONMENT,
-    denyUrls: ['^https\:\/\/' + settings.PLAYBACK_HOST + '\/.*$'],
+    release: settings.SENTRY_RELEASE || undefined,
+    // Report errors from Perma's own scripts: not from browser extensions,
+    // the playback host, or copies of a page saved and opened from disk.
+    // Strings match as substrings.
+    allowUrls: [window.location.origin + '/'].concat(
+      /^https?:\/\//.test(settings.STATIC_URL) ? [settings.STATIC_URL] : []
+    ),
+    ignoreErrors: [
+      // Outlook's Safe Links scanner, visiting links in email
+      'Object Not Found Matching Id',
+      // browser extensions messaging their own background pages; Perma's
+      // scripts make no such calls
+      'Could not establish connection. Receiving end does not exist.',
+      'Invalid call to runtime.sendMessage(). Tab not found.',
+    ],
 
     // Set tracesSampleRate to 1.0 to capture 100%
     // of transactions for performance monitoring.

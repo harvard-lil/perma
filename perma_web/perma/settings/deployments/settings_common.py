@@ -671,6 +671,8 @@ SENTRY_DSN = ''
 SENTRY_ENVIRONMENT = 'dev'
 SENTRY_TRACES_SAMPLE_RATE = 1.0
 SENTRY_SEND_DEFAULT_PII = False
+# set in the image; see the Dockerfile
+SENTRY_RELEASE = os.environ.get('SENTRY_RELEASE', '')
 
 # Before deployment, we suppress the addition of new capture jobs when this file
 # is present, or when the flag `manage.py deployment_sentinel set` stores in the
@@ -699,6 +701,7 @@ TEMPLATE_VISIBLE_SETTINGS = (
     'SENTRY_DSN',
     'SENTRY_ENVIRONMENT',
     'SENTRY_TRACES_SAMPLE_RATE',
+    'SENTRY_RELEASE',
     'PLAYBACK_HOST'
 )
 
