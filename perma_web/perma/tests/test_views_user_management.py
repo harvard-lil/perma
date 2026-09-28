@@ -7,9 +7,11 @@ from random import random, getrandbits
 import re
 
 from bs4 import BeautifulSoup
+import pytest
 from datetime import datetime, timezone
 from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
+from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.conf import settings
@@ -17,7 +19,9 @@ from django.db import IntegrityError, connection
 from django.test import override_settings
 from django.test.utils import CaptureQueriesContext
 from django.test.client import RequestFactory
+from django.utils.encoding import force_bytes
 from django.utils.html import escape
+from django.utils.http import urlsafe_base64_encode
 
 from perma.models import LinkUser, Organization, Registrar, Sponsorship, UserOrganizationAffiliation
 from perma.tests.utils import PermaTestCase
@@ -2358,17 +2362,28 @@ class UserManagementViewsTestCase(PermaTestCase):
         self.assertEqual(len(mail.outbox), 0)
 
 
-def test_password_reset_completes_when_the_session_token_is_gone():
-    from unittest.mock import Mock
-    from perma.views.user_management import PasswordResetConfirmView
 
-    request = RequestFactory().post('/')
-    request.session = {}
-    view = PasswordResetConfirmView()
-    view.setup(request)
-    form = Mock()
+@pytest.mark.django_db
+def test_a_logged_in_user_can_reset_their_own_password(client, link_user):
+    """
+    Saving the new password makes simple_history read request.user, which
+    fails the session's password-hash check and flushes the session, reset
+    token included (PERMA-30T). The reset should still complete.
+    """
+    client.force_login(link_user)
+    uidb64 = urlsafe_base64_encode(force_bytes(link_user.pk))
+    token = default_token_generator.make_token(link_user)
+    reset_url = reverse('password_reset_confirm', args=[uidb64, token])
 
-    response = view.form_valid(form)
-    form.save.assert_called_once()
+    response = client.get(reset_url, secure=True)
+    response = client.post(response.url, {'new_password1': 'Anewpass1', 'new_password2': 'Anewpass1'}, secure=True)
+
     assert response.status_code == 302
     assert response.url == reverse('password_reset_complete')
+    link_user.refresh_from_db()
+    assert link_user.check_password('Anewpass1')
+    # changing the password ends the session, as it does for any other session of this user
+    assert '_auth_user_id' not in client.session
+    # and the emailed link is spent
+    response = client.get(reset_url, secure=True)
+    assert b'This activation/reset link is invalid' in response.content

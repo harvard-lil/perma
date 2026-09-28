@@ -1519,9 +1519,14 @@ def limited_login(request, template_name='registration/login.html',
 class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
     """
     Django's view deletes the reset token from the session after saving the new
-    password, and raises KeyError if the token is already gone. That has been
-    seen in production (PERMA-30T in Sentry) without an identified cause; the
-    password is saved by then, so the user is sent on to the completion page.
+    password, and raises KeyError if the token is already gone.
+
+    It is gone when the browser is logged in as the user whose password is being
+    reset: saving the user makes simple_history read request.user to record who
+    made the change, and Django's session check, finding the password hash
+    changed, flushes the session, reset token included. The password is saved
+    by then and the session is logged out, as any other session of that user
+    would be, so the user is sent on to the completion page.
     """
     def form_valid(self, form):
         user = form.save()
