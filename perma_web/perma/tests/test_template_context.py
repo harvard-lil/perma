@@ -21,7 +21,6 @@ def test_js_config_exposes_the_expected_template_settings():
         "SENTRY_ENVIRONMENT": settings.SENTRY_ENVIRONMENT,
         "SENTRY_TRACES_SAMPLE_RATE": settings.SENTRY_TRACES_SAMPLE_RATE,
         "SENTRY_RELEASE": settings.SENTRY_RELEASE,
-        "PLAYBACK_HOST": settings.PLAYBACK_HOST,
     }
 
     for name, value in expected_values.items():

@@ -5,7 +5,7 @@ import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vites
 // resolves to nothing real; global.js's Sentry.init call is mocked below anyway, so no event
 // could ever leave the process even if the DSN were dialed.
 const FAKE_DSN = 'https://examplePublicKey@o0.ingest.sentry.io/0'
-const PLAYBACK_HOST = 'perma-archives.org'
+const RELEASE = 'perma@abc1234'
 
 const djangoSettings = (overrides = {}) => ({
   API_VERSION: 1,
@@ -16,7 +16,7 @@ const djangoSettings = (overrides = {}) => ({
   SENTRY_DSN: FAKE_DSN,
   SENTRY_ENVIRONMENT: 'test',
   SENTRY_TRACES_SAMPLE_RATE: 0.5,
-  PLAYBACK_HOST,
+  SENTRY_RELEASE: RELEASE,
   ...overrides,
 })
 
@@ -61,10 +61,14 @@ describe('global.js Sentry configuration contract', () => {
     expect(initMock).toHaveBeenCalledWith({
       dsn: FAKE_DSN,
       environment: 'test',
-      // The source's `\:` and `\/` are not real regex escapes in a JS string literal - they
-      // collapse to plain `:` and `/`, so the resulting denyUrls entry is a literal string
-      // (not a RegExp), which matters a great deal - see spec/vitest/sentry-sdk.spec.js.
-      denyUrls: [`^https://${PLAYBACK_HOST}/.*$`],
+      release: RELEASE,
+      // strings, which the SDK matches as substrings: see spec/vitest/sentry-sdk.spec.js
+      allowUrls: [`${window.location.origin}/`],
+      ignoreErrors: [
+        'Object Not Found Matching Id',
+        'Could not establish connection. Receiving end does not exist.',
+        'Invalid call to runtime.sendMessage(). Tab not found.',
+      ],
       tracesSampleRate: 0.5,
     })
   })
@@ -78,14 +82,24 @@ describe('global.js Sentry configuration contract', () => {
     expect(initMock).not.toHaveBeenCalled()
   })
 
-  it('interpolates PLAYBACK_HOST into denyUrls verbatim, including hosts with regex metacharacters', async () => {
-    globalThis.settings = djangoSettings({ PLAYBACK_HOST: 'perma-archives.test' })
+  it('leaves the release unset when the image has none', async () => {
+    globalThis.settings = djangoSettings({ SENTRY_RELEASE: '' })
     globalThis.api_path = '/api/v1'
 
     await import('../../static/js/global.js')
 
-    expect(initMock).toHaveBeenCalledWith(
-      expect.objectContaining({ denyUrls: ['^https://perma-archives.test/.*$'] }),
-    )
+    expect(initMock.mock.calls[0][0].release).toBeUndefined()
+  })
+
+  it('also allows STATIC_URL when static files come from another host', async () => {
+    globalThis.settings = djangoSettings({ STATIC_URL: 'https://static.example.test/static/' })
+    globalThis.api_path = '/api/v1'
+
+    await import('../../static/js/global.js')
+
+    expect(initMock.mock.calls[0][0].allowUrls).toEqual([
+      `${window.location.origin}/`,
+      'https://static.example.test/static/',
+    ])
   })
 })
