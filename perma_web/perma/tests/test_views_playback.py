@@ -52,6 +52,17 @@ def test_regular_archive(user, client, complete_link, request):
     check_memento_headers(link, response)
 
 
+def test_memento_headers_are_ascii_for_non_ascii_urls(client, complete_link_factory):
+    # U+2028 is not a control character, so it survives remove_control_characters.
+    link = complete_link_factory({"submitted_url": "https://example.com/labour-standards-\u2028in-law/"})
+
+    response = get_playback(client, link.guid)
+    header = response.headers['link']
+    assert '<https://example.com/labour-standards-%E2%80%A8in-law/>; rel=original,' in header
+    assert header.isascii()
+    assert "\n" not in header
+
+
 def test_regular_archive_with_wacz(client, complete_link_factory):
     link = complete_link_factory({"wacz_size": 1})
 
