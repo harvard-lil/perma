@@ -392,6 +392,10 @@ def capture_with_scoop(capture_job):
         poll_network_errors = 0
         while True:
             if poll_network_errors > settings.SCOOP_POLL_NETWORK_ERROR_LIMIT:
+                logger.error(
+                    "Gave up polling Scoop for %s after %s network errors.",
+                    capture_job.link_id, poll_network_errors,
+                )
                 raise HaltCaptureException
 
             time.sleep(settings.SCOOP_POLL_FREQUENCY)
