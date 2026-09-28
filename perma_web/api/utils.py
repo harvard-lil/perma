@@ -221,8 +221,8 @@ def _is_unexpected_url_character(char):
     return category[0] == "C" or category in ("Zl", "Zp")
 
 
-# URL punctuation that passes through excerpts unencoded; nothing here is
-# special in HTML (no <, >, quotes or backtick)
+# URL punctuation that passes through excerpts unencoded; none of it can open
+# an HTML tag or end a quoted attribute (no <, >, quotes or backtick)
 EXCERPT_SAFE_CHARACTERS = "-._~:/?#[]@!$&()*+,;=%"
 
 
