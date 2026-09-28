@@ -89,7 +89,7 @@ urlpatterns = [
     re_path(r'^password/reset/?$', user_management.reset_password, name='password_reset'),
     re_path(
         r'^password/reset/(?P<uidb64>.+)/(?P<token>.+)/?$',
-        auth_views.PasswordResetConfirmView.as_view(
+        user_management.PasswordResetConfirmView.as_view(
             form_class=SetPasswordForm,
             template_name='registration/password_reset_confirm.html'
         ),
