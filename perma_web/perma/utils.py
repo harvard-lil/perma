@@ -1,6 +1,8 @@
 from collections import OrderedDict, namedtuple
 from contextlib import contextmanager, redirect_stdout
 import csv
+from dataclasses import dataclass
+import dataclasses
 from datetime import datetime, timedelta
 from datetime import timezone as tz
 from functools import reduce, wraps
@@ -1130,6 +1132,19 @@ def safe_get_response_json(response):
         data = {}
     return data
 
+@dataclass(frozen=True)
+class ScoopAPI:
+    """
+        A Scoop API instance: where to send requests, and the key to send.
+
+        Error reporting records the local variables of each stack frame, and
+        reads into tuples element by element, so a (url, key) tuple would put
+        the key in every report from the capture path. This repr leaves it out.
+    """
+    root: str
+    key: str = dataclasses.field(repr=False)
+
+
 def current_scoop_api():
     """
         Which Scoop API to use, as of right now.
@@ -1144,22 +1159,22 @@ def current_scoop_api():
     """
     if waffle.switch_is_active('use_beta_capture_api'):
         if settings.BETA_SCOOP_API_URL and settings.BETA_SCOOP_API_KEY:
-            return settings.BETA_SCOOP_API_URL, settings.BETA_SCOOP_API_KEY
+            return ScoopAPI(settings.BETA_SCOOP_API_URL, settings.BETA_SCOOP_API_KEY)
         logger.warning("The 'use_beta_capture_api' is on, but configuration is absent. Using standard API.")
-    return settings.SCOOP_API_URL, settings.SCOOP_API_KEY
+    return ScoopAPI(settings.SCOOP_API_URL, settings.SCOOP_API_KEY)
 
 
 def send_to_scoop(method, path, valid_if, json=None, stream=False, timeout=10, api=None):
-    api_root, api_key = api if api else current_scoop_api()
+    api = api or current_scoop_api()
 
     # Make the request
     try:
         response = requests.request(
             method,
-            api_root + path,
+            api.root + path,
             json=json,
             headers={
-                "Access-Key": api_key,
+                "Access-Key": api.key,
                 "User-Agent": settings.SCOOP_API_USERAGENT
             },
             timeout=timeout,
