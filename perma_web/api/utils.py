@@ -213,12 +213,25 @@ def get_mime_type(file_name):
     file_extension = file_name.rsplit('.', 1)[-1].lower()
     return file_extension_lookup.get(file_extension)
 
-def url_is_invalid_unicode(url_string):
-    """ Check for unicode control characters in URL """
-    for x in str(url_string):
-        if unicodedata.category(x)[0] == "C":
-            return True
-    return False
+def _is_unexpected_url_character(char):
+    # Unicode control characters, and the line and paragraph separators
+    # (U+2028, U+2029) that copying a URL out of a PDF can leave behind
+    category = unicodedata.category(char)
+    return category[0] == "C" or category in ("Zl", "Zp")
+
+
+def unexpected_url_character_excerpt(url_string, context=20):
+    """
+    The text around the first character in the URL that can't be part of the
+    address the user meant, with each such character shown as ⍰; or None.
+    """
+    url_string = str(url_string)
+    for i, char in enumerate(url_string):
+        if _is_unexpected_url_character(char):
+            start, end = max(0, i - context), i + context + 1
+            excerpt = "".join("⍰" if _is_unexpected_url_character(c) else c for c in url_string[start:end])
+            return f"{'…' if start else ''}{excerpt}{'…' if end < len(url_string) else ''}"
+    return None
 
 def reverse_api_view(viewname, *args, **kwargs):
     # Requires request as a kwarg.

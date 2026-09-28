@@ -78,9 +78,23 @@ class LinkValidationTestCase(LinkValidationMixin, ApiResourceTestCase):
                            data={'url': ']http://example.com'})
 
     def test_should_reject_bad_unicode_url(self):
-        self.rejected_post(self.list_url,
-                           user=self.org_user,
-                           data={'url': 'https://www.ntanet.org/some-article.pdf\x00'})
+        response = self.rejected_post(self.list_url,
+                                      user=self.org_user,
+                                      data={'url': 'https://www.ntanet.org/some-article.pdf\x00'})
+        self.assertEqual(
+            self.deserialize(response)['url'],
+            'This URL contains an unexpected character at "…org/some-article.pdf⍰". Retype that part of the URL and try again.',
+        )
+
+    def test_should_reject_line_separator_in_url(self):
+        # left behind when a URL that wrapped in a PDF is copied
+        response = self.rejected_post(self.list_url,
+                                      user=self.org_user,
+                                      data={'url': 'https://www.washingtonpost.com/\u2028health/2021/02/13/covid/'})
+        self.assertEqual(
+            self.deserialize(response)['url'],
+            'This URL contains an unexpected character at "….washingtonpost.com/⍰health/2021/02/13/co…". Retype that part of the URL and try again.',
+        )
 
     @override_settings(RESOURCE_LOAD_TIMEOUT=0.25) # only wait 1/4 second before giving up
     def test_should_reject_unresolvable_domain_url(self):
