@@ -20,7 +20,7 @@ def test_js_config_exposes_the_expected_template_settings():
         "SENTRY_DSN": settings.SENTRY_DSN,
         "SENTRY_ENVIRONMENT": settings.SENTRY_ENVIRONMENT,
         "SENTRY_TRACES_SAMPLE_RATE": settings.SENTRY_TRACES_SAMPLE_RATE,
-        "PLAYBACK_HOST": settings.PLAYBACK_HOST,
+        "SENTRY_RELEASE": settings.SENTRY_RELEASE,
     }
 
     for name, value in expected_values.items():

@@ -15,13 +15,12 @@ def post_process_settings(settings):
 
         sentry_sdk.init(
             environment=settings['SENTRY_ENVIRONMENT'],
-            release=os.environ.get('SENTRY_RELEASE') or None,
+            release=settings['SENTRY_RELEASE'] or None,
             dsn=settings['SENTRY_DSN'],
             integrations=[
                 DjangoIntegration(),
                 CeleryIntegration(),
             ],
-            enable_tracing=True,
 
             # Set traces_sample_rate to 1.0 to capture 100%
             # of transactions for performance monitoring.

@@ -1,11 +1,21 @@
+import Module from 'node:module'
 import * as Sentry from '@sentry/browser'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+
+// global.js calls Sentry.init; record the options it builds instead, so the tests below can
+// run Perma's own configuration through the real SDK with a fake transport.
+const { recordedOptions } = vi.hoisted(() => ({ recordedOptions: [] }))
+vi.mock('@sentry/browser', async (importOriginal) => {
+  const real = await importOriginal()
+  return { ...real, init: (options) => { recordedOptions.push(options) } }
+})
 
 // A DSN of the standard Sentry shape (public key + ingest host + numeric project id) that
 // resolves to nothing real; every test below also supplies its own no-op transport, so no
 // event can ever leave the process even if the DSN were dialed.
 const FAKE_DSN = 'https://examplePublicKey@o0.ingest.sentry.io/0'
 const PLAYBACK_HOST = 'perma-archives.org'
+const OWN_SCRIPT = () => `${window.location.origin}/static/bundles/global.js`
 
 // Envelope shape is [header, [[itemHeader, itemPayload], ...]]; pull out the first itemPayload
 // tagged as an event, ignoring any other item types the SDK may add.
@@ -23,13 +33,18 @@ describe('Sentry SDK behavior contract (real @sentry/browser, fake transport)', 
     flush: () => Promise.resolve(true),
   })
 
-  const initSentry = (denyUrls) => {
+  let actualInit
+  beforeAll(async () => {
+    actualInit = (await vi.importActual('@sentry/browser')).init
+  })
+
+  const initSentry = (options = {}) => {
     envelopes = []
-    return Sentry.init({
+    return actualInit({
       dsn: FAKE_DSN,
       environment: 'test',
-      denyUrls,
       tracesSampleRate: 0.5,
+      ...options,
       transport: makeFakeTransport(),
     })
   }
@@ -42,7 +57,7 @@ describe('Sentry SDK behavior contract (real @sentry/browser, fake transport)', 
 
   describe('envelope and event shape', () => {
     beforeEach(() => {
-      client = initSentry([`^https://${PLAYBACK_HOST}/.*$`])
+      client = initSentry()
     })
 
     it('transmits nothing over a real network channel - the fake transport is the only sink', async () => {
@@ -80,74 +95,73 @@ describe('Sentry SDK behavior contract (real @sentry/browser, fake transport)', 
     })
   })
 
-  describe('denyUrls filtering mechanism (RegExp pattern)', () => {
-    // Sentry's InboundFilters integration only regex-tests denyUrls entries that are actual
-    // RegExp instances (see the string-vs-regex test below); use one here to isolate and pin
-    // the filtering mechanism itself, independent of Perma's own (string) configuration.
-    beforeEach(() => {
-      client = initSentry([new RegExp(`^https://${PLAYBACK_HOST}/.*$`)])
+  describe("Perma's filters, as global.js builds them", () => {
+    let permaOptions
+
+    beforeAll(async () => {
+      // global.js also `require()`s 'bootstrap-js/*', which bypasses Vite's resolver; see
+      // sentry-init.spec.js.
+      const originalRequire = Module.prototype.require
+      Module.prototype.require = function (request, ...rest) {
+        if (request.startsWith('bootstrap-js/')) return {}
+        return originalRequire.call(this, request, ...rest)
+      }
+      globalThis.settings = {
+        API_VERSION: 1, STATIC_URL: '/static/', MEDIA_URL: '/media/', DEBUG: false,
+        USE_SENTRY: true, SENTRY_DSN: FAKE_DSN, SENTRY_ENVIRONMENT: 'test',
+        SENTRY_TRACES_SAMPLE_RATE: 0.5, SENTRY_RELEASE: 'perma@abc1234',
+      }
+      globalThis.api_path = '/api/v1'
+      try {
+        await import('../../static/js/global.js')
+      } finally {
+        Module.prototype.require = originalRequire
+        delete globalThis.settings
+        delete globalThis.api_path
+      }
+      permaOptions = recordedOptions.at(-1)
     })
 
-    it('drops an event whose innermost stack frame targets the playback host', async () => {
+    beforeEach(() => {
+      client = initSentry(permaOptions)
+    })
+
+    const captureFrom = async (filename, value = 'probe') => {
       Sentry.captureEvent({
-        exception: {
-          values: [{
-            type: 'Error',
-            value: 'from playback iframe',
-            stacktrace: { frames: [{ filename: `https://${PLAYBACK_HOST}/embed/replay.js`, function: 'boot' }] },
-          }],
-        },
+        exception: { values: [{ type: 'Error', value, stacktrace: { frames: [{ filename, function: 'boot' }] } }] },
       })
       await Sentry.flush(1000)
+    }
 
+    it("keeps an event from Perma's own scripts", async () => {
+      await captureFrom(OWN_SCRIPT())
+      expect(envelopes).toHaveLength(1)
+      expect(eventPayload(envelopes[0]).release).toBe('perma@abc1234')
+    })
+
+    it.each([
+      ['the playback host', `https://${PLAYBACK_HOST}/embed/replay.js`],
+      ['a browser extension', 'chrome-extension://abcdefghijklmnop/content.js'],
+      ['a Safari app extension', '/Applications/PayPal%20Honey.app/Contents/Resources/Honey.safariextension/h0.js'],
+      ['a page saved and opened from disk', 'file:///Users/someone/Downloads/Perma.html'],
+    ])('drops an event from %s', async (_, filename) => {
+      await captureFrom(filename)
       expect(envelopes).toHaveLength(0)
     })
 
-    it("does not drop an ordinary event from Perma's own origin", async () => {
-      Sentry.captureEvent({
-        exception: {
-          values: [{
-            type: 'Error',
-            value: 'from perma app code',
-            stacktrace: { frames: [{ filename: 'https://perma.cc/static/js/global.js', function: 'boot' }] },
-          }],
-        },
-      })
+    it('keeps an event with no stack trace, which allowUrls cannot place', async () => {
+      Sentry.captureEvent({ exception: { values: [{ type: 'UnhandledRejection', value: 'no frames' }] } })
       await Sentry.flush(1000)
-
       expect(envelopes).toHaveLength(1)
     })
-  })
 
-  describe("Perma's actual denyUrls value, as literally constructed by global.js (string, not RegExp)", () => {
-    beforeEach(() => {
-      client = initSentry([`^https://${PLAYBACK_HOST}/.*$`])
-    })
-
-    // Sentry 7.108.0's InboundFilters integration (@sentry/core inboundfilters.js ->
-    // @sentry/utils isMatchingPattern) only regex-tests denyUrls entries that are RegExp
-    // instances; a string entry is matched with plain `value.includes(pattern)`. global.js
-    // builds denyUrls as a string that *looks* like a regex
-    // (`'^https\:\/\/' + PLAYBACK_HOST + '\/.*$'`, which is `'^https://HOST/.*$'` once JS
-    // string-literal escaping is applied - see sentry-init.spec.js), so it never appears as a
-    // literal substring of any real URL. This is not a JSDOM artifact: the exact same
-    // non-filtering happens in a real browser, confirmed by calling the integration's
-    // processEvent directly outside of any stack-parsing path. This test pins that current,
-    // surprising reality so an upgrade that starts (or ever stops) compiling string denyUrls
-    // into regexes shows up as a visible behavior change here, in either direction.
-    it('does not filter a matching playback-host event, because the pattern is a string, not a RegExp', async () => {
-      Sentry.captureEvent({
-        exception: {
-          values: [{
-            type: 'Error',
-            value: 'from playback iframe, via the literal config string',
-            stacktrace: { frames: [{ filename: `https://${PLAYBACK_HOST}/embed/replay.js`, function: 'boot' }] },
-          }],
-        },
-      })
-      await Sentry.flush(1000)
-
-      expect(envelopes).toHaveLength(1)
+    it.each([
+      'Non-Error promise rejection captured with value: Object Not Found Matching Id:2, MethodName:update, ParamCount:4',
+      'Could not establish connection. Receiving end does not exist.',
+      'Invalid call to runtime.sendMessage(). Tab not found.',
+    ])('drops %s', async (message) => {
+      await captureFrom(OWN_SCRIPT(), message)
+      expect(envelopes).toHaveLength(0)
     })
   })
 })
