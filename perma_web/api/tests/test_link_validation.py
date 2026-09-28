@@ -86,6 +86,15 @@ class LinkValidationTestCase(LinkValidationMixin, ApiResourceTestCase):
             'This URL contains an unexpected character at "…org/some-article.pdf⍰". Retype that part of the URL and try again.',
         )
 
+    def test_rejected_url_excerpt_is_percent_encoded(self):
+        response = self.rejected_post(self.list_url,
+                                      user=self.org_user,
+                                      data={'url': 'https://ex.com/é"<b>\u2028\u202e\'`x'})
+        self.assertEqual(
+            self.deserialize(response)['url'],
+            'This URL contains an unexpected character at "https://ex.com/%C3%A9%22%3Cb%3E⍰⍰%27%60x". Retype that part of the URL and try again.',
+        )
+
     def test_should_reject_line_separator_in_url(self):
         # left behind when a URL that wrapped in a PDF is copied
         response = self.rejected_post(self.list_url,

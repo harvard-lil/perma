@@ -3,6 +3,7 @@ from collections import OrderedDict
 from collections.abc import Mapping
 from functools import wraps
 import json
+from urllib.parse import quote
 
 from django.conf import settings
 from django.http import Http404
@@ -220,16 +221,27 @@ def _is_unexpected_url_character(char):
     return category[0] == "C" or category in ("Zl", "Zp")
 
 
+# URL punctuation that passes through excerpts unencoded; nothing here is
+# special in HTML (no <, >, quotes or backtick)
+EXCERPT_SAFE_CHARACTERS = "-._~:/?#[]@!$&()*+,;=%"
+
+
 def unexpected_url_character_excerpt(url_string, context=20):
     """
     The text around the first character in the URL that can't be part of the
     address the user meant, with each such character shown as ⍰; or None.
+
+    Everything else in the excerpt is percent-encoded, so the excerpt is plain
+    ASCII URL text plus ⍰ and …, whatever the submitted string contained.
     """
     url_string = str(url_string)
     for i, char in enumerate(url_string):
         if _is_unexpected_url_character(char):
             start, end = max(0, i - context), i + context + 1
-            excerpt = "".join("⍰" if _is_unexpected_url_character(c) else c for c in url_string[start:end])
+            excerpt = "".join(
+                "⍰" if _is_unexpected_url_character(c) else quote(c, safe=EXCERPT_SAFE_CHARACTERS)
+                for c in url_string[start:end]
+            )
             return f"{'…' if start else ''}{excerpt}{'…' if end < len(url_string) else ''}"
     return None
 
