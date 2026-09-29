@@ -181,4 +181,26 @@ def test_unrecognised_scoop_failures_are_reported(pending_capture_job_factory, c
     job = pending_capture_job_factory()
     tag_scoop_failure(job, {**ECS_FAILURE, "stdout_logs": "something else went wrong"})
     assert not job.link.tags.exists()
-    assert any(r.levelname == "ERROR" and "failed" in r.getMessage() for r in caplog.records)
+    errors = [r for r in caplog.records if r.levelname == "ERROR"]
+    assert len(errors) == 1
+    # The template is constant, so reports group by it rather than by capture.
+    assert errors[0].msg == "Scoop capture of %s failed at step: %s"
+    assert errors[0].id_capture == ECS_FAILURE["id_capture"]
+
+
+@pytest.mark.parametrize("poll_data, step", [
+    ({"scoop_capture_summary": {"steps": [
+        {"name": "Out-of-browser detection and capture of non-web resource", "outcome": "completed"},
+        {"name": "Wait for initial page load", "outcome": "failed"},
+    ]}}, "Wait for initial page load"),
+    # Without Scoop's summary, the capture controller's account of the steps.
+    ({"scoop_capture_summary": None, "capture_facts": {"sandbox": {"steps": [
+        ["Out-of-browser detection and capture of non-web resource", 4504, "completed"],
+        ["Wait for initial page load", 88, "failed"],
+    ]}}}, "Wait for initial page load"),
+    ({"scoop_capture_summary": None}, None),
+])
+def test_the_failed_scoop_step_is_found(poll_data, step):
+    from perma.celery_tasks import failed_scoop_step
+
+    assert failed_scoop_step(poll_data) == step

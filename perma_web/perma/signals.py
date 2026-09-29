@@ -1,9 +1,9 @@
 from django.dispatch import receiver
-from django.db.models import expressions
+from django.db.models import F, expressions
 from django.db.models.signals import pre_save
 from simple_history import signals
 
-from .models import Link, Registrar
+from .models import Link, LinkUser, Organization, Registrar
 
 
 @receiver(pre_save, sender=Link)
@@ -12,26 +12,15 @@ def update_link_count(sender, instance, **kwargs):
 
     def decrement_organization_link_counts(link):
         """ minus one from user's organization and associated registrar """
-        if link.organization:
-            organization = link.organization
-            registrar = organization.registrar
-
-            if organization.link_count > 0:
-                organization.link_count -= 1
-                organization.save(update_fields=["link_count"])
-            if registrar.link_count > 0:
-                registrar.link_count -= 1
-                registrar.save(update_fields=["link_count"])
+        if link.organization_id:
+            Organization.objects.filter(pk=link.organization_id, link_count__gt=0).update(link_count=F('link_count') - 1)
+            Registrar.objects.filter(pk=link.organization.registrar_id, link_count__gt=0).update(link_count=F('link_count') - 1)
 
     def increment_organization_link_counts(link):
         """ plus one to user's organization and associated registrar """
-        if link.organization:
-            organization = link.organization
-            registrar = organization.registrar
-            organization.link_count += 1
-            organization.save(update_fields=["link_count"])
-            registrar.link_count += 1
-            registrar.save(update_fields=["link_count"])
+        if link.organization_id:
+            Organization.objects.filter(pk=link.organization_id).update(link_count=F('link_count') + 1)
+            Registrar.objects.filter(pk=link.organization.registrar_id).update(link_count=F('link_count') + 1)
 
     try:
         incoming_link = instance
@@ -40,24 +29,21 @@ def update_link_count(sender, instance, **kwargs):
         if existing_link.user_deleted and incoming_link.user_deleted:
             return
 
-        organization_changed = existing_link.organization != incoming_link.organization
+        organization_changed = existing_link.organization_id != incoming_link.organization_id
         if organization_changed:
             decrement_organization_link_counts(existing_link)
 
         if incoming_link.user_deleted and not existing_link.user_deleted:
-            if existing_link.created_by.link_count > 0:
-                existing_link.created_by.link_count -= 1
-                existing_link.created_by.save(update_fields=["link_count"])
+            LinkUser.objects.filter(pk=existing_link.created_by_id, link_count__gt=0).update(link_count=F('link_count') - 1)
             decrement_organization_link_counts(existing_link)
             Registrar.adjust_sponsored_link_count(existing_link._sponsored_by_id(), None)
 
-        if incoming_link.organization and organization_changed:
+        if incoming_link.organization_id and organization_changed:
             increment_organization_link_counts(incoming_link)
 
     except sender.DoesNotExist:
         # new link, let's add it to the user, org and registrar counts
-        incoming_link.created_by.link_count += 1
-        incoming_link.created_by.save(update_fields=["link_count"])
+        LinkUser.objects.filter(pk=incoming_link.created_by_id).update(link_count=F('link_count') + 1)
         increment_organization_link_counts(incoming_link)
 
 
