@@ -34,8 +34,7 @@ def update_link_count(sender, instance, **kwargs):
             decrement_organization_link_counts(existing_link)
 
         if incoming_link.user_deleted and not existing_link.user_deleted:
-            if existing_link.created_by_id:
-                LinkUser.objects.filter(pk=existing_link.created_by_id, link_count__gt=0).update(link_count=F('link_count') - 1)
+            LinkUser.objects.filter(pk=existing_link.created_by_id, link_count__gt=0).update(link_count=F('link_count') - 1)
             decrement_organization_link_counts(existing_link)
             Registrar.adjust_sponsored_link_count(existing_link._sponsored_by_id(), None)
 
@@ -44,8 +43,7 @@ def update_link_count(sender, instance, **kwargs):
 
     except sender.DoesNotExist:
         # new link, let's add it to the user, org and registrar counts
-        if incoming_link.created_by_id:
-            LinkUser.objects.filter(pk=incoming_link.created_by_id).update(link_count=F('link_count') + 1)
+        LinkUser.objects.filter(pk=incoming_link.created_by_id).update(link_count=F('link_count') + 1)
         increment_organization_link_counts(incoming_link)
 
 
