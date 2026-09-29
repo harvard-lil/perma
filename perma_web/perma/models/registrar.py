@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
+from django.db.models import F
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from model_utils import FieldTracker
@@ -78,15 +79,10 @@ class Registrar(CustomerModel):
             return
 
         if old_sponsored_by_id:
-            registrar = Registrar.objects.get(pk=old_sponsored_by_id)
-            if registrar.sponsored_link_count > 0:
-                registrar.sponsored_link_count -= 1
-                registrar.save(update_fields=['sponsored_link_count'])
+            Registrar.objects.filter(pk=old_sponsored_by_id, sponsored_link_count__gt=0).update(sponsored_link_count=F('sponsored_link_count') - 1)
 
         if new_sponsored_by_id:
-            registrar = Registrar.objects.get(pk=new_sponsored_by_id)
-            registrar.sponsored_link_count += 1
-            registrar.save(update_fields=['sponsored_link_count'])
+            Registrar.objects.filter(pk=new_sponsored_by_id).update(sponsored_link_count=F('sponsored_link_count') + 1)
 
     def save(self, *args, **kwargs):
         from .folder import Folder
