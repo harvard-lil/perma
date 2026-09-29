@@ -7,6 +7,7 @@ from django.conf import settings
 from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
+from django.utils.encoding import iri_to_uri
 from django.urls import reverse
 from django.views.decorators.cache import cache_control
 
@@ -161,6 +162,9 @@ def single_permalink(request, guid):
         url = link.submitted_url[:500]
         # strip control characters from url, if somehow they slipped in prior to https://github.com/harvard-lil/perma/commit/272b3a79d94a795142940281c9444b45c24a05db
         url = remove_control_characters(url)
+        # percent-encode anything outside ASCII, such as U+2028; otherwise Django MIME-encodes the whole header,
+        # folding it across lines, and gunicorn refuses to send it
+        url = iri_to_uri(url)
         response['Link'] = str(
             LinkHeader([
                 Rel(url, rel='original'),

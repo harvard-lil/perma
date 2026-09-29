@@ -19,7 +19,7 @@ import pytest
 from django.test import override_settings
 from waffle.testutils import override_switch
 
-from perma.utils import current_scoop_api, send_to_scoop
+from perma.utils import ScoopAPI, current_scoop_api, send_to_scoop
 
 STANDARD = {"SCOOP_API_URL": "https://standard.example/", "SCOOP_API_KEY": "standard-key"}
 BETA = {"BETA_SCOOP_API_URL": "https://beta.example/", "BETA_SCOOP_API_KEY": "beta-key"}
@@ -29,16 +29,16 @@ BETA = {"BETA_SCOOP_API_URL": "https://beta.example/", "BETA_SCOOP_API_KEY": "be
 @override_settings(**STANDARD, **BETA)
 def test_the_switch_chooses_the_beta_api():
     with override_switch("use_beta_capture_api", active=True):
-        assert current_scoop_api() == ("https://beta.example/", "beta-key")
+        assert current_scoop_api() == ScoopAPI("https://beta.example/", "beta-key")
     with override_switch("use_beta_capture_api", active=False):
-        assert current_scoop_api() == ("https://standard.example/", "standard-key")
+        assert current_scoop_api() == ScoopAPI("https://standard.example/", "standard-key")
 
 
 @pytest.mark.django_db
 @override_settings(**STANDARD, BETA_SCOOP_API_URL=None, BETA_SCOOP_API_KEY=None)
 def test_the_switch_falls_back_when_the_beta_api_is_not_configured():
     with override_switch("use_beta_capture_api", active=True):
-        assert current_scoop_api() == ("https://standard.example/", "standard-key")
+        assert current_scoop_api() == ScoopAPI("https://standard.example/", "standard-key")
 
 
 def call_send_to_scoop(api):
@@ -55,7 +55,7 @@ def call_send_to_scoop(api):
 @override_settings(**STANDARD, **BETA)
 def test_a_pinned_capture_keeps_its_instance_when_the_switch_flips():
     api = current_scoop_api()
-    assert api == ("https://standard.example/", "standard-key")
+    assert api == ScoopAPI("https://standard.example/", "standard-key")
 
     # The operator flips mid-capture. The poll must still go where the capture
     # was started, not to the instance that has never heard of this job.
@@ -114,3 +114,12 @@ def test_the_capture_path_resolves_the_instance_exactly_once():
                 resolutions += 1
 
     assert resolutions == 1
+
+
+@pytest.mark.django_db
+@override_settings(**STANDARD)
+def test_the_key_is_left_out_of_the_repr():
+    """Error reports record local variables by repr; the key must not be among them."""
+    api = current_scoop_api()
+    assert "standard-key" not in repr(api)
+    assert "https://standard.example/" in repr(api)

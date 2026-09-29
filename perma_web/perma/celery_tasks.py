@@ -10,6 +10,7 @@ import tempfile
 import time
 from datetime import datetime, timedelta
 import redis
+import sentry_sdk
 import socket
 from celery import shared_task
 from celery.exceptions import SoftTimeLimitExceeded
@@ -321,7 +322,40 @@ def tag_scoop_failure(capture_job, poll_data):
         logger.warning(f"{capture_job.link_id}: Scoop failed without logs ({poll_data['id_capture']}).")
         capture_job.link.tags.add('scoop-silent-failure')
     else:
-        logger.error(f"Scoop capture of {capture_job.link_id} failed: {poll_data}")
+        failed_step = failed_scoop_step(poll_data)
+        controller = (poll_data.get('capture_facts') or {}).get('controller') or {}
+        with sentry_sdk.new_scope() as scope:
+            # One issue per failing step, rather than one per capture
+            scope.fingerprint = ['scoop-capture-failed', failed_step or 'no failed step']
+            scope.set_tag('scoop.failed_step', failed_step or 'none')
+            for tag, value in (('scoop.exit_code', controller.get('capture_exit_code')),
+                               ('scoop.stop_code', controller.get('stop_code'))):
+                if value is not None:
+                    scope.set_tag(tag, value)
+            logger.error(
+                "Scoop capture of %s failed at step: %s",
+                capture_job.link_id, failed_step,
+                extra={'id_capture': poll_data.get('id_capture'), 'poll_data': poll_data},
+            )
+
+
+def failed_scoop_step(poll_data):
+    """
+    The name of the step Scoop was on when the capture failed, or None.
+
+    Scoop's own summary lists its steps with their outcomes; the capture
+    controller's `capture_facts` repeats them, and is present when the summary
+    is not.
+    """
+    summary_steps = (poll_data.get('scoop_capture_summary') or {}).get('steps') or []
+    for step in summary_steps:
+        if step.get('outcome') == 'failed':
+            return step.get('name')
+    sandbox_steps = ((poll_data.get('capture_facts') or {}).get('sandbox') or {}).get('steps') or []
+    for step in sandbox_steps:
+        if step[-1] == 'failed':
+            return step[0]
+    return None
 
 
 def record_capture_facts(capture_job, poll_data):
@@ -392,6 +426,10 @@ def capture_with_scoop(capture_job):
         poll_network_errors = 0
         while True:
             if poll_network_errors > settings.SCOOP_POLL_NETWORK_ERROR_LIMIT:
+                logger.error(
+                    "Gave up polling Scoop for %s after %s network errors.",
+                    capture_job.link_id, poll_network_errors,
+                )
                 raise HaltCaptureException
 
             time.sleep(settings.SCOOP_POLL_FREQUENCY)

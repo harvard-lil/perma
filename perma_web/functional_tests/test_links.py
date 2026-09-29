@@ -5,6 +5,11 @@ from playwright.sync_api import expect
 
 two_minutes = 120 * 1000
 
+# A fixed page LIL publishes for capture tests (harvard-lil/example-lil-tools);
+# its content never changes at this path.
+CAPTURE_TARGET_URL = "https://example.lil.tools/v1/"
+CAPTURE_TARGET_TITLE = "LIL Example Page"
+
 
 def create_link(page):
     """
@@ -17,17 +22,18 @@ def create_link(page):
     """
     url_field = page.locator('#rawUrl')
     url_field.focus()
-    url_field.type("https://example.com/")
+    url_field.type(CAPTURE_TARGET_URL)
     page.locator('#addlink').click()
     page.wait_for_url(re.compile('/[A-Za-z0-9]{4}-[A-Za-z0-9]{4}$'), timeout=two_minutes)
 
 
-def check_example_playback(page):
-    expect(page).to_have_title('Perma | Example Domain')
+def check_playback(page, title):
+    """The archive plays back a page whose title and <h1> are both `title`."""
+    expect(page).to_have_title(f'Perma | {title}')
     expect(page.frame_locator('.archive-iframe')
                .frame_locator('iframe')
                .frame_locator('iframe')
-               .locator('h1')).to_contain_text("Example Domain")
+               .locator('h1')).to_contain_text(title)
 
 
 @pytest.mark.uses_storage
@@ -39,7 +45,7 @@ def test_create_link_wacz_playback(page, user, log_in_user) -> None:
     """
     log_in_user(page, user)
     create_link(page)
-    check_example_playback(page)
+    check_playback(page, CAPTURE_TARGET_TITLE)
 
     # Verify we are seing a WACZ playback, not a WARC playback
     assert ".warc.gz?" not in page.content()
@@ -53,7 +59,8 @@ def test_warc_playback(page, user, log_in_user, urls) -> None:
     """
     log_in_user(page, user)
     page.goto(urls.perma_link_with_warc)
-    check_example_playback(page)
+    # the fixture WARC is a capture of example.com
+    check_playback(page, "Example Domain")
 
     # Verify we are seing a WARC playback, not a WACZ playback
     assert ".warc.gz?" in page.content()

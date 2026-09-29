@@ -12,6 +12,7 @@ from django.http import (HttpResponse,JsonResponse,
 from django.shortcuts import render, redirect
 from django.views.decorators.cache import cache_control
 from django.utils import timezone
+from django.utils.encoding import iri_to_uri
 
 from ..utils import (if_anonymous, ratelimit_ip_key,
     memento_data_for_url, url_with_qs_and_hash)
@@ -80,7 +81,8 @@ def timegate(request, url):
     response['Vary'] = 'accept-datetime'
     response['Link'] = str(
         LinkHeader([
-            Rel(data['original_uri'], rel='original'),
+            # a header must be ASCII: see the Link header in playback.single_permalink
+            Rel(iri_to_uri(data['original_uri']), rel='original'),
             Rel(data['timegate_uri'], rel='timegate'),
             Rel(data['timemap_uri']['link_format'], rel='timemap', type='application/link-format'),
             Rel(data['timemap_uri']['json_format'], rel='timemap', type='application/json'),
