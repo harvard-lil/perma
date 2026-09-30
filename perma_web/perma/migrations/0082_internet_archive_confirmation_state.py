@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='internetarchivefile',
             name='status',
-            field=models.CharField(blank=True, choices=[('upload_attempted', 'upload_attempted'), ('upload_submitted', 'upload_submitted'), ('upload_unconfirmed', 'upload_unconfirmed'), ('upload_failed', 'upload_failed'), ('confirmed_present', 'confirmed_present'), ('deletion_attempted', 'deletion_attempted'), ('deletion_submitted', 'deletion_submitted'), ('deletion_failed', 'deletion_failed'), ('confirmed_absent', 'confirmed_absent')], db_index=True, help_text='upload_unconfirmed: IA accepted the upload, but the file did not appear with the expected metadata within INTERNET_ARCHIVE_UPLOAD_CONFIRMATION_MAX_AGE, so we stopped checking. upload_failed, deletion_failed: INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE attempts ended without a result, so we stopped trying. All three need a human.', max_length=19, null=True),
+            field=models.CharField(blank=True, choices=[('upload_attempted', 'upload_attempted'), ('upload_submitted', 'upload_submitted'), ('upload_unconfirmed', 'upload_unconfirmed'), ('upload_failed', 'upload_failed'), ('confirmed_present', 'confirmed_present'), ('deletion_attempted', 'deletion_attempted'), ('deletion_submitted', 'deletion_submitted'), ('deletion_failed', 'deletion_failed'), ('confirmed_absent', 'confirmed_absent')], db_index=True, max_length=19, null=True),
         ),
         migrations.AlterField(
             model_name='internetarchiveitem',

@@ -154,13 +154,18 @@ class InternetArchiveFile(models.Model):
     link = models.ForeignKey("Link", on_delete=models.DO_NOTHING, related_name='internet_archive_files')
     item = models.ForeignKey("InternetArchiveItem", on_delete=models.CASCADE, related_name='internet_archive_files')
 
+    # Statuses that end the pipeline's work on a file and need a human:
+    # - upload_unconfirmed: IA accepted the upload, but the file did not appear with the
+    #   expected metadata within INTERNET_ARCHIVE_UPLOAD_CONFIRMATION_MAX_AGE, so we
+    #   stopped checking.
+    # - upload_failed, deletion_failed: INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE attempts
+    #   ended without a result, so we stopped trying.
     status = models.CharField(
         max_length=19,
         null=True,
         blank=True,
         choices=((s, s) for s in ('upload_attempted', 'upload_submitted', 'upload_unconfirmed', 'upload_failed', 'confirmed_present', 'deletion_attempted', 'deletion_submitted', 'deletion_failed', 'confirmed_absent')),
         db_index=True,
-        help_text="upload_unconfirmed: IA accepted the upload, but the file did not appear with the expected metadata within INTERNET_ARCHIVE_UPLOAD_CONFIRMATION_MAX_AGE, so we stopped checking. upload_failed, deletion_failed: INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE attempts ended without a result, so we stopped trying. All three need a human."
     )
     status_updated = models.DateTimeField(null=True, blank=True, help_text="When status was last saved, even if unchanged: an upload retry saves 'upload_attempted' again.")
     attempts = models.IntegerField(default=0, db_default=0, help_text="How many times the current upload or deletion has been started: 1 when it begins, plus 1 each time it is taken up again after going stale. A task's own retries are not counted.")
