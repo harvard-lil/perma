@@ -568,7 +568,9 @@ INTERNET_ARCHIVE_RETRY_FOR_CONFIRMATION_CONNECTION_ERROR = 3
 # 250 MB. The gap between the two leaves time to re-queue after the soft limit.
 INTERNET_ARCHIVE_UPLOAD_SOFT_TIME_LIMIT = 900
 INTERNET_ARCHIVE_UPLOAD_TIME_LIMIT = 1020
-INTERNET_ARCHIVE_UPLOAD_MAX_TIMEOUTS = 3
+# After this many soft time limits the task stops re-queuing itself; the upload
+# producer queues the link again once its attempt is stale.
+INTERNET_ARCHIVE_UPLOAD_MAX_TIMEOUTS = 2
 # An upload or deletion attempt not saved again within this long is no longer
 # counted in InternetArchiveItem.tasks_in_progress: its task has ended without
 # recording a result. A stale upload attempt is queued for upload again.
