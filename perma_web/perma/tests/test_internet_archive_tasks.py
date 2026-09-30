@@ -25,6 +25,7 @@ from perma.celery_tasks import (
     ia_confirmation_interval,
     ia_rate_limit_countdown,
     queue_file_uploaded_confirmation_tasks,
+    queue_internet_archive_deletions,
     upload_link_to_internet_archive,
 )
 from perma.models import InternetArchiveFile, InternetArchiveItem, Link
@@ -536,7 +537,7 @@ def test_rate_limited_deletion_retries_after_a_delay(complete_link):
     ):
         delete_link_from_daily_item.run(complete_link.guid)
 
-    apply_async.assert_called_once_with((complete_link.guid, 1), countdown=42)
+    apply_async.assert_called_once_with((complete_link.guid, 1), countdown=42, headers=CLAIMED)
     delay.assert_not_called()
 
 
@@ -652,7 +653,7 @@ def _deletion_raising(link, error):
 def test_rate_limited_deletion_http_error_retries_after_a_delay(complete_link):
     apply_async, delay = _deletion_raising(complete_link, _http_error(503))
 
-    apply_async.assert_called_once_with((complete_link.guid, 1), countdown=42)
+    apply_async.assert_called_once_with((complete_link.guid, 1), countdown=42, headers=CLAIMED)
     delay.assert_not_called()
 
 
@@ -660,8 +661,7 @@ def test_rate_limited_deletion_http_error_retries_after_a_delay(complete_link):
 def test_deletion_http_error_counts_as_an_attempt(complete_link):
     apply_async, delay = _deletion_raising(complete_link, _http_error(500))
 
-    delay.assert_called_once_with(complete_link.guid, 1)
-    apply_async.assert_not_called()
+    apply_async.assert_called_once_with((complete_link.guid, 1), countdown=None, headers=CLAIMED)
 
 
 @pytest.mark.django_db
@@ -974,3 +974,74 @@ def test_upload_task_leaves_a_failed_upload_alone(complete_link):
 
     session.get_s3_load_info.assert_not_called()
     assert InternetArchiveFile.objects.get(link=complete_link).status == "upload_failed"
+
+
+def _private(link):
+    Link.objects.filter(pk=link.pk).update(is_private=True)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("status", ["deletion_attempted", "deletion_submitted"])
+def test_deletion_task_leaves_a_deletion_held_by_another_task_alone(complete_link, status):
+    _file_with_status(_daily_item(complete_link), complete_link, status)
+    session = _fake_session(Mock())
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        delete_link_from_daily_item.run(complete_link.guid)
+
+    session.get_s3_load_info.assert_not_called()
+    assert InternetArchiveFile.objects.get(link=complete_link).status == status
+
+
+@pytest.mark.django_db
+def test_deletion_retry_reclaims_its_own_attempt(complete_link):
+    InternetArchiveFile.objects.create(item=_daily_item(complete_link), link=complete_link, status="confirmed_present")
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_overloaded_session()),
+        patch.object(delete_link_from_daily_item, "apply_async") as apply_async,
+    ):
+        delete_link_from_daily_item.run(complete_link.guid)
+    retry_args = apply_async.call_args.args[0]
+    retry_headers = apply_async.call_args.kwargs["headers"]
+
+    ia_file = Mock()
+    ia_file.delete.return_value = SimpleNamespace(status_code=204, text="")
+    ia_item = Mock()
+    ia_item.get_file.return_value = ia_file
+    session = _fake_session(ia_item)
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        # a duplicate message for the same link, arriving while the retry waits
+        delete_link_from_daily_item.run(complete_link.guid)
+        ia_file.delete.assert_not_called()
+
+        delete_link_from_daily_item.push_request(**retry_headers)
+        try:
+            delete_link_from_daily_item.run(*retry_args)
+        finally:
+            delete_link_from_daily_item.pop_request()
+
+    ia_file.delete.assert_called_once()
+    perma_file = InternetArchiveFile.objects.get(link=complete_link)
+    assert (perma_file.status, perma_file.attempts) == ("deletion_submitted", 1)
+
+
+@pytest.mark.django_db
+def test_deletion_queueing_skips_deletions_in_progress_and_gives_up_after_max_attempts(complete_link_factory, caplog):
+    present, running, stale, exhausted, public = [complete_link_factory() for _ in range(5)]
+    perma_item = _daily_item(present)
+    for link in (present, running, stale, exhausted):
+        _private(link)
+    _file_with_status(perma_item, present, "confirmed_present")
+    _file_with_status(perma_item, public, "confirmed_present")
+    _file_with_status(perma_item, running, "deletion_attempted")
+    _stale(_file_with_status(perma_item, stale, "deletion_attempted"), 1)
+    exhausted_file = _file_with_status(perma_item, exhausted, "deletion_attempted")
+    _stale(exhausted_file, settings.INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE)
+
+    with patch.object(delete_link_from_daily_item, "delay") as delay:
+        queue_internet_archive_deletions.run()
+
+    assert {c.args[0] for c in delay.call_args_list} == {present.guid, stale.guid}
+    exhausted_file.refresh_from_db()
+    assert exhausted_file.status == "deletion_failed"
+    assert f"Please investigate {exhausted.guid}" in caplog.text

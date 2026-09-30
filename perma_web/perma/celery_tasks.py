@@ -25,7 +25,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 from django.core.files.storage import storages
 from django.core.mail import mail_admins
-from django.db.models import F, Q
+from django.db.models import Exists, F, OuterRef, Q
 from django.db.models.functions import Now
 from django.conf import settings
 from django.utils import timezone
@@ -1117,17 +1117,17 @@ def confirm_file_uploaded_to_internet_archive(file_id, attempts=0, connection_er
     logger.info(f"Ignored per-file upload confirmation for InternetArchiveFile {file_id}: uploads are now confirmed by item.")
 
 
-@shared_task(acks_late=True)
-def delete_link_from_daily_item(link_guid, attempts=0):
+@shared_task(bind=True, acks_late=True)
+def delete_link_from_daily_item(self, link_guid, attempts=0):
+    """
+    This task deletes a link's WARC from its "daily" Internet Archive item. Like
+    upload_link_to_internet_archive, it proceeds only if it can claim the deletion
+    (see InternetArchiveFile.claim_deletion), and its retries pass on the claim in
+    the IA_CLAIM_HEADER message header.
+    """
     perma_file = InternetArchiveFile.objects.select_related('item').get(link_id=link_guid, item__span__isempty=False)
     perma_item = perma_file.item
     identifier = perma_item.identifier
-
-    def retry_deletion(attempt_count, countdown=None):
-        if countdown:
-            delete_link_from_daily_item.apply_async((link_guid, attempt_count), countdown=countdown)
-        else:
-            delete_link_from_daily_item.delay(link_guid, attempt_count)
 
     if perma_file.status == 'confirmed_absent':
         logger.info(f"The daily InternetArchiveFile for {link_guid} is already confirmed absent from {identifier}.")
@@ -1137,17 +1137,28 @@ def delete_link_from_daily_item(link_guid, attempts=0):
         # Use the error log, assuming this will happen rarely or never.
         logger.error(f"Please investigate the status of {link_guid}: our records indicate an upload attempt is in progress, but a deletion was attempted in the meantime.")
         return
-    elif perma_file.status in ['deletion_attempted', 'deletion_submitted']:
-        logger.info(f"Potentially redundant attempt to delete {link_guid} from {identifier}: if this message recurs, please look into its status.")
-    elif perma_file.status == 'confirmed_present':
-        logger.info(f"Deleting {link_guid} from {identifier}.")
-    else:
+    elif perma_file.status == 'deletion_submitted':
+        logger.info(f"Not deleting {link_guid} from {identifier}: our records indicate the deletion has been submitted and awaits confirmation.")
+        return
+    elif perma_file.status == 'deletion_failed':
+        logger.info(f"Not deleting {link_guid} from {identifier}: earlier attempts failed and it awaits a human (status 'deletion_failed').")
+        return
+    elif perma_file.status not in ['deletion_attempted', 'confirmed_present']:
         logger.warning(f"Not deleting {link_guid} from {identifier}: task not implemented for InternetArchiveFiles with status '{perma_file.status}'.")
         return
 
-    # Record that we are attempting a deletion
-    perma_file.status = 'deletion_attempted'
-    perma_file.save(update_fields=['status'])
+    # Record that we are attempting a deletion, if no other task is
+    claim = InternetArchiveFile.claim_deletion(identifier, link_guid, self.request.get(IA_CLAIM_HEADER))
+    if not claim:
+        logger.info(f"Not deleting {link_guid} from {identifier}: another task is attempting the deletion.")
+        return
+    if perma_file.status == 'confirmed_present':
+        logger.info(f"Deleting {link_guid} from {identifier}.")
+    else:
+        logger.info(f"Potentially redundant attempt to delete {link_guid} from {identifier}: if this message recurs, please look into its status.")
+
+    def retry_deletion(attempt_count, countdown=None):
+        retry_ia_task(delete_link_from_daily_item, (link_guid, attempt_count), claim, countdown)
 
     # Make sure we aren't exceeding rate limits
     ia_session = get_ia_session()
@@ -1374,13 +1385,18 @@ def queue_file_deleted_confirmation_tasks(limit=100):
 def queue_internet_archive_deletions(limit=None):
     """
     Queue deletion tasks for any currently-ineligible Links that were eligible
-    when daily IA items were initially created...and so were uploaded.
+    when daily IA items were initially created...and so were uploaded, or whose
+    earlier deletion attempt went stale.
 
     (Don't limit by creation date: this is expected to be a small number.)
     """
+    daily_files = InternetArchiveFile.objects.filter(item__span__isempty=False)
+    give_up_on_exhausted_ia_attempts(daily_files, 'deletion_attempted', 'deletion_failed')
     to_delete = Link.objects.ineligible_for_ia().filter(
-        internet_archive_items__span__isempty=False,
-        internet_archive_files__status__in=['confirmed_present', 'deletion_attempted']
+        Exists(daily_files.filter(
+            Q(status='confirmed_present') | InternetArchiveFile.retryable_stale_attempt('deletion_attempted'),
+            link_id=OuterRef('guid'),
+        ))
     )[:limit]
 
     # Queue the tasks

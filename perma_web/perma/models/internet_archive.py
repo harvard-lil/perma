@@ -286,6 +286,15 @@ class InternetArchiveFile(models.Model):
             pass
         return cls._claim(item_id, link_id, 'upload_attempted', ['confirmed_absent'], claim)
 
+    @classmethod
+    def claim_deletion(cls, item_id, link_id, claim=None):
+        """
+        The deletion counterpart of claim_upload: mark the file 'deletion_attempted'
+        for the calling task if it is 'confirmed_present' or its deletion attempt is
+        stale, or if `claim` is the claim of its current attempt.
+        """
+        return cls._claim(item_id, link_id, 'deletion_attempted', ['confirmed_present'], claim)
+
     WARC_FILENAME = '{guid}.warc.gz'
 
     @classmethod
