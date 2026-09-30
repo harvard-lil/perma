@@ -584,7 +584,9 @@ INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER = timedelta(hours=1)
 # intervals. Files not confirmed within the max age become 'upload_unconfirmed'.
 INTERNET_ARCHIVE_CONFIRMATION_BACKOFF_FACTOR = 0.25
 INTERNET_ARCHIVE_CONFIRMATION_MAX_INTERVAL = timedelta(hours=6)
-INTERNET_ARCHIVE_CONFIRMATION_PENDING_TASKS_INTERVAL = timedelta(minutes=15)
+# Files awaiting confirmation hold their item's upload slots (the producer's
+# daily_limit), so while uploads flow, this interval paces each item's uploads.
+INTERNET_ARCHIVE_CONFIRMATION_PENDING_TASKS_INTERVAL = timedelta(minutes=5)
 INTERNET_ARCHIVE_CONFIRMATION_BLOCKED_TASKS_INTERVAL = timedelta(hours=6)
 INTERNET_ARCHIVE_UPLOAD_CONFIRMATION_MAX_AGE = timedelta(days=7)
 # Other
