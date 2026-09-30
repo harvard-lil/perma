@@ -473,6 +473,19 @@ jobs:
           tag: ${{ inputs.environment }}-latest
           replace-existing: 'true'
 
+      # The web container alone, without the tunnel connector, which
+      # `just fleet console <tier>-perma-web` copies (lil-terraform
+      # modules/lil-ecs-standalone-task). No service runs it. Pinned once the
+      # rollout and migration succeeded, so consoles reach the release only
+      # when the services run it, and after the placeholder above so a failure
+      # here cannot hold that back.
+      - name: Pin the web standalone task to the deployed image
+        uses: harvard-lil/lil-actions/ecs-register-task-def@main
+        with:
+          task-definition-family: ${{ env.WEB_SERVICE }}-standalone
+          container-name: ${{ env.WEB_SERVICE }}
+          image-uri: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}@${{ inputs.image-digest }}
+
       # Lifted whenever migrations either succeeded or never ran, which covers
       # every failure above this point: a rollout that failed leaves the
       # previous tasks serving (minimum healthy 100%) or the circuit breaker's
