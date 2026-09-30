@@ -1719,7 +1719,10 @@ def ia_file_state():
             Q(fresh, status__in=['upload_attempted', 'deletion_attempted'])
         )),
         attempted_fresh=Count('pk', filter=Q(fresh, status='upload_attempted')),
-        attempted_stale=Count('pk', filter=Q(status='upload_attempted') & ~fresh),
+        # Attempts saved before status_updated existed (mostly Salt-era strays) are
+        # counted apart from attempts that went stale since, so as not to mask them.
+        attempted_stale=Count('pk', filter=Q(status='upload_attempted', status_updated__lt=stale_before)),
+        attempted_legacy=Count('pk', filter=Q(status='upload_attempted', status_updated__isnull=True)),
         submitted=Count('pk', filter=Q(status='upload_submitted')),
         submitted_over_24h=Count('pk', filter=Q(status='upload_submitted', status_updated__lt=now - timedelta(hours=24))),
         oldest_submitted=Min('status_updated', filter=Q(status='upload_submitted')),

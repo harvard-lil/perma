@@ -257,23 +257,24 @@ def test_state_counts_files_and_pending_links(complete_link_factory, events):
     stale_age = settings.INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER + timedelta(minutes=1)
     _file_with_status(perma_item, links[0], "upload_attempted")
     _file_with_status(perma_item, links[1], "upload_attempted", None)
+    _file_with_status(perma_item, links[4], "upload_attempted", stale_age)
     _file_with_status(perma_item, links[2], "upload_submitted", timedelta(hours=30))
     _file_with_status(perma_item, links[3], "upload_failed")
-    _file_with_status(perma_item, links[4], "confirmed_present", stale_age)
-    # links[5] has no file: pending; links[1] is a stale attempt: pending too
+    # links[5] has no file: pending; links[1] and links[4] are stale attempts: pending too
     date_string = links[0].creation_timestamp.strftime("%Y-%m-%d")
 
     _run_producer(session=_overloaded_session(), date_string=date_string)
 
     [state] = _states(events)
     assert {k: state[k] for k in (
-        "in_flight_derived", "attempted_fresh", "attempted_stale", "submitted", "submitted_over_24h", "failed_upload",
-        "in_flight_stored", "pending_recent_total", "pending_oldest_day_age_days",
+        "in_flight_derived", "attempted_fresh", "attempted_stale", "attempted_legacy", "submitted", "submitted_over_24h",
+        "failed_upload", "in_flight_stored", "pending_recent_total", "pending_oldest_day_age_days",
     )} == {
-        "in_flight_derived": 2, "attempted_fresh": 1, "attempted_stale": 1, "submitted": 1, "submitted_over_24h": 1,
-        "failed_upload": 1, "in_flight_stored": 2, "pending_recent_total": 2, "pending_oldest_day_age_days": 0,
+        "in_flight_derived": 2, "attempted_fresh": 1, "attempted_stale": 1, "attempted_legacy": 1, "submitted": 1,
+        "submitted_over_24h": 1, "failed_upload": 1, "in_flight_stored": 2, "pending_recent_total": 3,
+        "pending_oldest_day_age_days": 0,
     }
-    assert state["pending_by_day"] == {date_string: 2}
+    assert state["pending_by_day"] == {date_string: 3}
     assert 29.9 < state["oldest_submitted_hours"] < 30.1
 
 
