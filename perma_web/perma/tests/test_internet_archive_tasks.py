@@ -60,10 +60,27 @@ def _daily_item(link):
     )
 
 
-def _fake_session(ia_item):
-    session = Mock()
+# Responses from IA's metadata read API, recorded 2026-09-30 with public GETs
+# (daily_perma_cc_2026-09-28 and an identifier that does not exist), and the
+# extended error shape documented at https://archive.org/developers/md-read.html
+PENDING_TASKS_READ = {"result": True}
+TASKS_READ = {"result": [
+    {"task_id": 5673426558, "cmd": "derive.php", "priority": 0, "wait_admin": 1, "color": "blue", "status": "running"},
+    {"task_id": 5673505920, "cmd": "book_op.php", "priority": 0, "wait_admin": 0, "color": "green", "status": "queued"},
+]}
+MISSING_ITEM_READ = {"error": "Couldn't get 'pending_tasks' for item perma_nonexistent_item_zzq_20260930"}
+NO_TASKS_READ = {"error": "Couldn't get 'tasks' for item daily_perma_cc_2026-09-25"}
+
+
+def _extended_error(errcode):
+    return {"errcode": errcode, "error": "extended error"}
+
+
+def _fake_session(ia_item, metadata_part=PENDING_TASKS_READ):
+    session = Mock(protocol="https:", host="archive.org")
     session.get_s3_load_info.return_value = (False, _s3_details())
     session.get_item.return_value = ia_item
+    session.get.return_value.json.return_value = metadata_part
     return session
 
 
@@ -174,7 +191,7 @@ def test_upload_confirmation_checks_all_of_an_items_files_with_one_fetch(complet
     with patch("perma.celery_tasks.get_ia_session", return_value=session):
         confirm_files_uploaded_to_internet_archive_item.run(perma_item.identifier)
 
-    session.get_item.assert_called_once_with(perma_item.identifier)
+    session.get_item.assert_called_once_with(perma_item.identifier, request_kwargs={"params": {"extended_err": 1}})
     present_file.refresh_from_db()
     missing_file.refresh_from_db()
     perma_item.refresh_from_db()
@@ -1287,3 +1304,38 @@ def test_a_plain_slowdown_is_still_a_rate_limit(complete_link):
     apply_async, delay = _upload_raising(complete_link, error)
 
     apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=42, headers=CLAIMED)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("part_read, full_read_errcode, checked", [
+    (PENDING_TASKS_READ, None, True),
+    (MISSING_ITEM_READ, None, True),
+    (_extended_error(101), None, False),
+    (_extended_error(102), None, False),
+    (PENDING_TASKS_READ, 106, False),
+])
+def test_upload_confirmation_waits_while_ia_metadata_is_not_ready(complete_link, caplog, part_read, full_read_errcode, checked):
+    caplog.set_level(logging.INFO)
+    perma_item = _daily_item(complete_link)
+    perma_file = _submitted_file(perma_item, complete_link, age=timedelta(minutes=20))
+    ia_item = _ia_item([_ia_file_entry(complete_link)])
+    if full_read_errcode:
+        ia_item.item_metadata["errcode"] = full_read_errcode
+    session = _fake_session(ia_item, part_read)
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        confirm_files_uploaded_to_internet_archive_item.run(perma_item.identifier)
+
+    assert session.get.call_args.args[0] == f"https://archive.org/metadata/{perma_item.identifier}/pending_tasks"
+    assert session.get.call_args.kwargs["params"] == {"extended_err": 1}
+    perma_file.refresh_from_db()
+    perma_item.refresh_from_db()
+    if checked:
+        assert perma_file.status == "confirmed_present"
+        session.get_item.assert_called_once_with(perma_item.identifier, request_kwargs={"params": {"extended_err": 1}})
+    else:
+        assert perma_file.status == "upload_submitted"
+        assert "Not checking uploads to" in caplog.text
+        assert perma_item.next_confirmation_check - timezone.now() > settings.INTERNET_ARCHIVE_CONFIRMATION_PENDING_TASKS_INTERVAL - timedelta(minutes=1)
+        if not full_read_errcode:
+            session.get_item.assert_not_called()

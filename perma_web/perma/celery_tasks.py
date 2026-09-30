@@ -1079,6 +1079,43 @@ def queue_file_uploaded_confirmation_tasks(limit=None):
     logger.info(f"Queued the file upload confirmation task for {queued} InternetArchiveItem{pluralize(queued)}.")
 
 
+# Extended errors from IA's metadata read API (https://archive.org/developers/md-read.html)
+# that mean the item's metadata is not available, or not current, yet
+IA_METADATA_NOT_READY_ERRORS = {
+    101: "item creation is pending",
+    102: "the item is unavailable (data nodes offline or not responding)",
+    106: "unbalanced locations (metadata served from a secondary copy)",
+    400: "inaccurate lookahead (queued metadata changes cannot all be applied)",
+}
+
+
+def read_ia_metadata_part(ia_session, identifier, part):
+    """
+    Read one field of an IA item's metadata record, such as pending_tasks or tasks,
+    with extended errors. Returns the decoded response: {"result": ...} when the
+    field is present, {"error": ...} when it is not (for example, an item with no
+    tasks), and {"errcode": ..., "error": ...} for an extended error.
+    """
+    response = ia_session.get(
+        f'{ia_session.protocol}//{ia_session.host}/metadata/{identifier}/{part}',
+        params={'extended_err': 1},
+        timeout=12,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def ia_metadata_not_ready(metadata_response):
+    """
+    A description of the extended error in a metadata read response, if it means the
+    metadata is not ready (IA_METADATA_NOT_READY_ERRORS), else None.
+    """
+    errcode = metadata_response.get('errcode') if isinstance(metadata_response, dict) else None
+    if errcode in IA_METADATA_NOT_READY_ERRORS:
+        return f"extended error {errcode}, {IA_METADATA_NOT_READY_ERRORS[errcode]}"
+    return None
+
+
 def ia_file_metadata_mismatch(ia_file, link):
     """
     Describe how a file listed in an IA item's metadata differs from what we uploaded
@@ -1128,11 +1165,21 @@ def confirm_files_uploaded_to_internet_archive_item(identifier):
 
     ia_session = get_ia_session()
     try:
-        ia_item = ia_session.get_item(identifier)
-    except METADATA_READ_ERRORS as e:
+        # A small read first: if IA reports that the item's metadata is not ready,
+        # don't fetch all of it, or judge files against a record that may be stale.
+        not_ready = ia_metadata_not_ready(read_ia_metadata_part(ia_session, identifier, 'pending_tasks'))
+        if not not_ready:
+            ia_item = ia_session.get_item(identifier, request_kwargs={'params': {'extended_err': 1}})
+            not_ready = ia_metadata_not_ready(ia_item.item_metadata)
+    except METADATA_READ_ERRORS + (requests.exceptions.JSONDecodeError,) as e:
         # Sometimes, requests to retrieve the metadata of an IA Item time out or fail.
         # The item remains due, so the next scheduled run will check it again.
         logger.info(f"Could not retrieve IA Item {identifier} to confirm uploads: {type(e).__name__}.")
+        return
+    if not_ready:
+        perma_item.next_confirmation_check = timezone.now() + settings.INTERNET_ARCHIVE_CONFIRMATION_PENDING_TASKS_INTERVAL
+        perma_item.save(update_fields=['next_confirmation_check'])
+        logger.info(f"Not checking uploads to {identifier} yet: IA reports {not_ready}.")
         return
 
     now = timezone.now()
