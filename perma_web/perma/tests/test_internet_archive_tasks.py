@@ -915,3 +915,62 @@ def test_upload_queueing_waits_when_ia_load_is_unknown(complete_link):
     session.get_s3_load_info.return_value = (True, {})
 
     _producer_run(complete_link, session).assert_not_called()
+
+
+def _stale(perma_file, attempts):
+    InternetArchiveFile.objects.filter(pk=perma_file.pk).update(
+        attempts=attempts,
+        status_updated=timezone.now() - settings.INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER - timedelta(minutes=1),
+    )
+
+
+@pytest.mark.django_db
+def test_claims_count_attempts_but_not_retries(complete_link):
+    perma_item = _daily_item(complete_link)
+
+    def attempts():
+        return InternetArchiveFile.objects.get(link=complete_link).attempts
+
+    claim = InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid)
+    assert attempts() == 1
+    InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid, claim)
+    assert attempts() == 1
+
+    _stale(InternetArchiveFile.objects.get(link=complete_link), 1)
+    InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid)
+    assert attempts() == 2
+
+    InternetArchiveFile.objects.filter(link=complete_link).update(status="confirmed_absent", attempts=4)
+    InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid)
+    assert attempts() == 1
+
+
+@pytest.mark.django_db
+def test_upload_queueing_gives_up_on_a_file_after_max_attempts(complete_link_factory, caplog):
+    retried, exhausted = complete_link_factory(), complete_link_factory()
+    perma_item = _daily_item(retried)
+    max_attempts = settings.INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE
+    retried_file = InternetArchiveFile.objects.create(item=perma_item, link=retried, status="upload_attempted")
+    exhausted_file = InternetArchiveFile.objects.create(item=perma_item, link=exhausted, status="upload_attempted")
+    _stale(retried_file, max_attempts - 1)
+    _stale(exhausted_file, max_attempts)
+
+    delay = _producer_run(retried, _fake_session(Mock()))
+
+    delay.assert_called_once_with(retried.guid)
+    exhausted_file.refresh_from_db()
+    assert exhausted_file.status == "upload_failed"
+    assert f"Please investigate {exhausted.guid}" in caplog.text
+    assert f"attempted {max_attempts} times" in caplog.text
+
+
+@pytest.mark.django_db
+def test_upload_task_leaves_a_failed_upload_alone(complete_link):
+    _file_with_status(_daily_item(complete_link), complete_link, "upload_failed")
+    session = _upload_session()
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        upload_link_to_internet_archive.run(complete_link.guid)
+
+    session.get_s3_load_info.assert_not_called()
+    assert InternetArchiveFile.objects.get(link=complete_link).status == "upload_failed"

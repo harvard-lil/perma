@@ -90,12 +90,12 @@ class LinkQuerySet(QuerySet):
         # Get all Links we think should have been uploaded to IA,
         # and then filter out the ones that have already been uploaded
         # to a "daily" item, or that are being uploaded now. A Link whose
-        # upload attempt has gone stale (see InternetArchiveFile.stale_upload_attempt)
+        # upload attempt has gone stale (see InternetArchiveFile.retryable_stale_attempt)
         # is pending again.
         uploaded_or_in_progress = InternetArchiveFile.objects.filter(
             link_id=OuterRef('guid')
         ).exclude(
-            InternetArchiveFile.stale_upload_attempt()
+            InternetArchiveFile.retryable_stale_attempt()
         )
         if date_string > "2022-10-03":
             # No links created after 2022-10-03 were uploaded to IA as individual Items:

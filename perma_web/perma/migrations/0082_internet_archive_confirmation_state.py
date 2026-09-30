@@ -16,6 +16,11 @@ class Migration(migrations.Migration):
             field=models.DateTimeField(blank=True, help_text="When status was last saved, even if unchanged: an upload retry saves 'upload_attempted' again.", null=True),
         ),
         migrations.AddField(
+            model_name='internetarchivefile',
+            name='attempts',
+            field=models.IntegerField(db_default=0, default=0, help_text="How many times the current upload or deletion has been started: 1 when it begins, plus 1 each time it is taken up again after going stale. A task's own retries are not counted."),
+        ),
+        migrations.AddField(
             model_name='internetarchiveitem',
             name='next_confirmation_check',
             field=models.DateTimeField(blank=True, help_text='Uploads to this item awaiting confirmation are not checked again before this time.', null=True),
@@ -23,7 +28,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='internetarchivefile',
             name='status',
-            field=models.CharField(blank=True, choices=[('upload_attempted', 'upload_attempted'), ('upload_submitted', 'upload_submitted'), ('upload_unconfirmed', 'upload_unconfirmed'), ('confirmed_present', 'confirmed_present'), ('deletion_attempted', 'deletion_attempted'), ('deletion_submitted', 'deletion_submitted'), ('confirmed_absent', 'confirmed_absent')], db_index=True, help_text='upload_unconfirmed: IA accepted the upload, but the file did not appear with the expected metadata within INTERNET_ARCHIVE_UPLOAD_CONFIRMATION_MAX_AGE, so we stopped checking. Needs a human.', max_length=19, null=True),
+            field=models.CharField(blank=True, choices=[('upload_attempted', 'upload_attempted'), ('upload_submitted', 'upload_submitted'), ('upload_unconfirmed', 'upload_unconfirmed'), ('upload_failed', 'upload_failed'), ('confirmed_present', 'confirmed_present'), ('deletion_attempted', 'deletion_attempted'), ('deletion_submitted', 'deletion_submitted'), ('deletion_failed', 'deletion_failed'), ('confirmed_absent', 'confirmed_absent')], db_index=True, help_text='upload_unconfirmed: IA accepted the upload, but the file did not appear with the expected metadata within INTERNET_ARCHIVE_UPLOAD_CONFIRMATION_MAX_AGE, so we stopped checking. upload_failed, deletion_failed: INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE attempts ended without a result, so we stopped trying. All three need a human.', max_length=19, null=True),
         ),
         migrations.AlterField(
             model_name='internetarchiveitem',

@@ -764,6 +764,9 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
         elif perma_file.status == 'upload_submitted':
             logger.info(f"Not uploading {link_guid} to {identifier}: our records indicate it has been submitted and awaits confirmation.")
             return
+        elif perma_file.status == 'upload_failed':
+            logger.info(f"Not uploading {link_guid} to {identifier}: earlier attempts failed and it awaits a human (status 'upload_failed').")
+            return
         elif perma_file.status not in ['upload_attempted', 'confirmed_absent']:
             logger.warning(f"Not uploading {link_guid} to {identifier}: task not implemented for InternetArchiveFiles with status '{perma_file.status}'.")
             return
@@ -1398,11 +1401,32 @@ def queue_internet_archive_deletions(limit=None):
     logger.info(f"Queued { len(queued) } links for deletion ({queued[0]} through {queued[-1]}).")
 
 
+def give_up_on_exhausted_ia_attempts(files, attempting='upload_attempted', failed='upload_failed'):
+    """
+    Mark `failed`, with an error log for each, those of these files whose stale
+    `attempting` attempt has already been started INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE
+    times, so that they are not queued again.
+    """
+    exhausted = files.filter(
+        InternetArchiveFile.stale_attempt(attempting),
+        attempts__gte=settings.INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE,
+    )
+    for pk, link_id, item_id, attempts in exhausted.values_list('pk', 'link_id', 'item_id', 'attempts'):
+        logger.error(f"Please investigate {link_id} (IA Item {item_id}): {attempting.split('_')[0]} attempted {attempts} times without a result, so marked {failed} and no longer retrying.")
+        InternetArchiveFile.objects.filter(pk=pk, status=attempting).update(status=failed, status_updated=timezone.now())
+
+
 def queue_internet_archive_uploads_for_date(date_string, limit=100):
     """
     Queue upload tasks for all currently-eligible Links created on a given day,
-    if we have not yet attempted to upload them to a "daily" Item.
+    if we have not yet attempted to upload them to a "daily" Item, or if an
+    earlier attempt went stale.
     """
+    identifier = InternetArchiveItem.DAILY_IDENTIFIER.format(
+        prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX,
+        date_string=date_string
+    )
+    give_up_on_exhausted_ia_attempts(InternetArchiveFile.objects.filter(item_id=identifier))
 
     # force the query to evaluate so we can time it, and use a strategy that
     # lets us test whether any links were found and iterate through the queryset,
@@ -1425,10 +1449,6 @@ def queue_internet_archive_uploads_for_date(date_string, limit=100):
         return len(queued)
     else:
         logger.info(f"Found no links to upload in {query_ended - query_started} seconds.")
-        identifier = InternetArchiveItem.DAILY_IDENTIFIER.format(
-            prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX,
-            date_string=date_string
-        )
         try:
             item = InternetArchiveItem.objects.get(identifier=identifier)
             # Don't mark an item complete if it's yesterday's

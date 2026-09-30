@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import DateTimeRangeField
 from django.contrib.postgres.indexes import GistIndex
 from django.db import IntegrityError, models, transaction
-from django.db.models import Count, OuterRef, Q, Subquery, Sum
+from django.db.models import Case, Count, F, OuterRef, Q, Subquery, Sum, Value, When
 from django.db.models.functions import Coalesce
 from django.template.defaultfilters import truncatechars
 from django.urls import reverse
@@ -158,11 +158,12 @@ class InternetArchiveFile(models.Model):
         max_length=19,
         null=True,
         blank=True,
-        choices=((s, s) for s in ('upload_attempted', 'upload_submitted', 'upload_unconfirmed', 'confirmed_present', 'deletion_attempted', 'deletion_submitted', 'confirmed_absent')),
+        choices=((s, s) for s in ('upload_attempted', 'upload_submitted', 'upload_unconfirmed', 'upload_failed', 'confirmed_present', 'deletion_attempted', 'deletion_submitted', 'deletion_failed', 'confirmed_absent')),
         db_index=True,
-        help_text="upload_unconfirmed: IA accepted the upload, but the file did not appear with the expected metadata within INTERNET_ARCHIVE_UPLOAD_CONFIRMATION_MAX_AGE, so we stopped checking. Needs a human."
+        help_text="upload_unconfirmed: IA accepted the upload, but the file did not appear with the expected metadata within INTERNET_ARCHIVE_UPLOAD_CONFIRMATION_MAX_AGE, so we stopped checking. upload_failed, deletion_failed: INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE attempts ended without a result, so we stopped trying. All three need a human."
     )
     status_updated = models.DateTimeField(null=True, blank=True, help_text="When status was last saved, even if unchanged: an upload retry saves 'upload_attempted' again.")
+    attempts = models.IntegerField(default=0, db_default=0, help_text="How many times the current upload or deletion has been started: 1 when it begins, plus 1 each time it is taken up again after going stale. A task's own retries are not counted.")
 
     cached_size = models.IntegerField(null=True, blank=True, default=None)
 
@@ -218,17 +219,50 @@ class InternetArchiveFile(models.Model):
         )
 
     @classmethod
-    def stale_upload_attempt(cls):
+    def stale_attempt(cls, status='upload_attempted'):
         """
-        A Q matching upload attempts that are not in flight: not saved again within
-        INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER, or saved before status_updated was
-        recorded at all. Their tasks were killed, gave up, or were lost from the
-        queue, so the link should be queued for upload again.
+        A Q matching upload (or deletion) attempts that are not in flight: not saved
+        again within INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER, or saved before
+        status_updated was recorded at all. Their tasks were killed, gave up, or
+        were lost from the queue.
         """
         stale_before = timezone.now() - settings.INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER
-        return Q(status='upload_attempted') & (
+        return Q(status=status) & (
             Q(status_updated__lt=stale_before) | Q(status_updated__isnull=True)
         )
+
+    @classmethod
+    def retryable_stale_attempt(cls, status='upload_attempted'):
+        """
+        A stale attempt that should be queued again: one started fewer than
+        INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE times.
+        """
+        return cls.stale_attempt(status) & Q(attempts__lt=settings.INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE)
+
+    @classmethod
+    def _claim(cls, item_id, link_id, attempting, starting_from, claim):
+        """
+        Set an existing file's status to `attempting` if it is in one of the
+        `starting_from` statuses (a new attempt), in a stale `attempting` status
+        (the attempt taken up again), or in `attempting` saved at exactly `claim`
+        (the same attempt, retried). Returns the new claim, or None.
+        """
+        restart = Q(status__in=starting_from)
+        whens = [When(restart, then=Value(1))]
+        claimable = restart | cls.stale_attempt(attempting)
+        if claim:
+            retried = Q(status=attempting, status_updated=datetime.fromisoformat(claim))
+            whens.append(When(retried, then=F('attempts')))
+            claimable |= retried
+        now = timezone.now()
+        claimed = cls.objects.filter(
+            claimable, item_id=item_id, link_id=link_id
+        ).update(
+            status=attempting,
+            status_updated=now,
+            attempts=Case(*whens, default=F('attempts') + 1),
+        )
+        return now.isoformat() if claimed else None
 
     @classmethod
     def claim_upload(cls, item_id, link_id, claim=None):
@@ -246,21 +280,11 @@ class InternetArchiveFile(models.Model):
         """
         try:
             with transaction.atomic():
-                perma_file = cls.objects.create(item_id=item_id, link_id=link_id, status='upload_attempted')
+                perma_file = cls.objects.create(item_id=item_id, link_id=link_id, status='upload_attempted', attempts=1)
             return perma_file.status_updated.isoformat()
         except IntegrityError:
             pass
-
-        claimable = Q(status='confirmed_absent') | cls.stale_upload_attempt()
-        if claim:
-            claimable |= Q(status='upload_attempted', status_updated=datetime.fromisoformat(claim))
-        now = timezone.now()
-        claimed = cls.objects.filter(
-            claimable, item_id=item_id, link_id=link_id
-        ).update(
-            status='upload_attempted', status_updated=now
-        )
-        return now.isoformat() if claimed else None
+        return cls._claim(item_id, link_id, 'upload_attempted', ['confirmed_absent'], claim)
 
     WARC_FILENAME = '{guid}.warc.gz'
 

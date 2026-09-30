@@ -578,6 +578,11 @@ INTERNET_ARCHIVE_UPLOAD_MAX_TIMEOUTS = 2
 # recording a result. A stale upload attempt is queued for upload again.
 # Must be longer than INTERNET_ARCHIVE_UPLOAD_TIME_LIMIT.
 INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER = timedelta(hours=1)
+# A file whose upload or deletion has gone stale this many times is marked
+# 'upload_failed' or 'deletion_failed' and left for a human. Each attempt has its
+# own retries (above), and attempts are at least INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER
+# apart, so reaching this takes repeated failures over hours.
+INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE = 5
 # Upload confirmation. An item is checked again after its newest pending file's
 # age times the backoff factor, bounded by the max interval; items with IA tasks
 # queued or running, or stopped in error or paused, wait at least the longer
