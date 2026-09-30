@@ -772,17 +772,21 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
             return
 
     # Record that we are attempting an upload, if no other task is
+    retrying = bool(self.request.get(IA_CLAIM_HEADER))
     claim = InternetArchiveFile.claim_upload(identifier, link_guid, self.request.get(IA_CLAIM_HEADER))
     if not claim:
         logger.info(f"Not uploading {link_guid} to {identifier}: another task is attempting the upload.")
         return
-    if not perma_file:
+    previous_status = perma_file.status if perma_file else None
+    perma_file = InternetArchiveFile.objects.get(item_id=identifier, link_id=link_guid)
+    if retrying:
+        logger.info(f"Retrying upload of {link_guid} to {identifier} (attempts {attempts}, timeouts {timeouts}).")
+    elif previous_status is None:
         logger.info(f"Uploading {link_guid} to {identifier}.")
-    elif perma_file.status == 'confirmed_absent':
+    elif previous_status == 'confirmed_absent':
         logger.info(f"Uploading {link_guid} (previously deleted) to {identifier}.")
     else:
-        logger.info(f"Potentially redundant attempt to upload {link_guid} to {identifier}: if this message recurs, please look into its status.")
-    perma_file = InternetArchiveFile.objects.get(item_id=identifier, link_id=link_guid)
+        logger.info(f"Re-attempting stale upload of {link_guid} to {identifier} (attempt {perma_file.attempts} of {settings.INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE}).")
 
     # Attempt the upload
 
@@ -912,6 +916,7 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
             # because of our volume. Since we cannot create the Item in an advance preparatory step
             # without a lot of engineering work on our end, we simply live with these errors, and
             # re-queue the failed attempts, without considering it a failed attempt.
+            logger.info(f"Re-queued 'upload_link_to_internet_archive' for {link_guid} after an IA bucket lock: {error_string.strip()[:120]}")
             retry_upload(attempts, timeouts)
             return
         elif ia_error_is_rate_limit(e):
@@ -1148,14 +1153,18 @@ def delete_link_from_daily_item(self, link_guid, attempts=0):
         return
 
     # Record that we are attempting a deletion, if no other task is
+    retrying = bool(self.request.get(IA_CLAIM_HEADER))
     claim = InternetArchiveFile.claim_deletion(identifier, link_guid, self.request.get(IA_CLAIM_HEADER))
     if not claim:
         logger.info(f"Not deleting {link_guid} from {identifier}: another task is attempting the deletion.")
         return
-    if perma_file.status == 'confirmed_present':
+    if retrying:
+        logger.info(f"Retrying deletion of {link_guid} from {identifier} (attempts {attempts}).")
+    elif perma_file.status == 'confirmed_present':
         logger.info(f"Deleting {link_guid} from {identifier}.")
     else:
-        logger.info(f"Potentially redundant attempt to delete {link_guid} from {identifier}: if this message recurs, please look into its status.")
+        perma_file.refresh_from_db(fields=['attempts'])
+        logger.info(f"Re-attempting stale deletion of {link_guid} from {identifier} (attempt {perma_file.attempts} of {settings.INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE}).")
 
     def retry_deletion(attempt_count, countdown=None):
         retry_ia_task(delete_link_from_daily_item, (link_guid, attempt_count), claim, countdown)
@@ -1553,8 +1562,9 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
         s3_is_overloaded, s3_details = get_ia_session().get_s3_load_info(
             access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY
         )
+        logger.info(f"IA load before queuing: {s3_details}.")
         if s3_is_overloaded or ia_perma_task_limit_approaching(s3_details) or ia_global_task_limit_approaching(s3_details):
-            logger.warning(f"Skipped the queuing of file upload tasks: IA is at or near its task limits: {s3_details}.")
+            logger.warning("Skipped the queuing of file upload tasks: IA is at or near its task limits.")
             return
 
         total_queued = 0

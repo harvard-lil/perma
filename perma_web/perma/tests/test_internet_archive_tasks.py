@@ -1065,3 +1065,43 @@ def test_upload_queueing_does_not_mark_an_item_complete_during_an_upload_attempt
     queue_internet_archive_uploads_for_date(date_string)
     perma_item.refresh_from_db()
     assert perma_item.complete
+
+
+@pytest.mark.django_db
+def test_upload_logs_distinguish_retries_from_stale_attempts(complete_link, caplog):
+    caplog.set_level(logging.INFO)
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_overloaded_session()),
+        patch.object(upload_link_to_internet_archive, "apply_async") as apply_async,
+    ):
+        upload_link_to_internet_archive.run(complete_link.guid)
+        assert f"Uploading {complete_link.guid} to " in caplog.text
+
+        upload_link_to_internet_archive.push_request(**apply_async.call_args.kwargs["headers"])
+        try:
+            upload_link_to_internet_archive.run(*apply_async.call_args.args[0])
+        finally:
+            upload_link_to_internet_archive.pop_request()
+        assert f"Retrying upload of {complete_link.guid} to " in caplog.text
+        assert "(attempts 1, timeouts 0)." in caplog.text
+
+        _stale(InternetArchiveFile.objects.get(link=complete_link), 1)
+        upload_link_to_internet_archive.run(complete_link.guid)
+    assert f"Re-attempting stale upload of {complete_link.guid} to " in caplog.text
+    assert f"(attempt 2 of {settings.INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE})." in caplog.text
+
+
+@pytest.mark.django_db
+def test_upload_logs_bucket_lock_retries(complete_link, caplog):
+    caplog.set_level(logging.INFO)
+    _upload_raising(complete_link, _http_error(503, "Failed to get necessary short term bucket lock"))
+
+    assert f"Re-queued 'upload_link_to_internet_archive' for {complete_link.guid} after an IA bucket lock: " in caplog.text
+
+
+@pytest.mark.django_db
+def test_upload_queueing_logs_ia_load_every_run(complete_link, caplog):
+    caplog.set_level(logging.INFO)
+    _producer_run(complete_link, _fake_session(Mock()))
+
+    assert "IA load before queuing: {'detail': " in caplog.text
