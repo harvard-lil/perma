@@ -4,6 +4,7 @@ import itertools
 import redis
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db.models import Count
 from django.db.models.expressions import RawSQL
 from django.http import JsonResponse
@@ -12,6 +13,9 @@ from django.utils import timezone
 
 from perma.models import LinkUser, Link, Capture, CaptureJob, InternetArchiveItem
 from perma.utils import get_complete_ia_rate_limiting_info, user_passes_test_or_403
+
+
+IA_RATE_LIMITS_CACHE_KEY = 'admin-stats-ia-rate-limits'
 
 
 @user_passes_test_or_403(lambda user: user.is_staff)
@@ -164,7 +168,12 @@ def stats(request, stat_type=None):
         }
 
     elif stat_type == 'rate_limits':
-        out = get_complete_ia_rate_limiting_info()
+        # This makes one call to IA's load endpoint per item with tasks in flight,
+        # and the stats page asks for it every 15 seconds while the pane is open.
+        out = cache.get(IA_RATE_LIMITS_CACHE_KEY)
+        if out is None:
+            out = get_complete_ia_rate_limiting_info()
+            cache.set(IA_RATE_LIMITS_CACHE_KEY, out, settings.INTERNET_ARCHIVE_RATE_LIMITS_STATS_CACHE_SECONDS)
         out["inflight"] = InternetArchiveItem.inflight_task_count()
 
         r = redis.from_url(settings.CELERY_BROKER_URL)
