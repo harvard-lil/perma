@@ -151,6 +151,15 @@ CELERY_BROKER_CONNECTION_TIMEOUT = 30
 CELERY_BROKER_HEARTBEAT = None
 CELERY_WORKER_SEND_TASK_EVENTS = False
 CELERY_RESULT_BACKEND = None
+# Soft shutdown, for workers whose task definition sets REMAP_SIGTERM=SIGQUIT
+# (read by Celery from the environment at import, so it cannot be set here). On
+# SIGTERM such a worker stops taking work, gives running tasks this long to
+# finish, then cancels them and returns their messages, and any held for a
+# countdown, to the queue. It is under ECS's 120-second stop timeout, after which
+# ECS kills the container and running acks_late tasks wait for the visibility
+# timeout instead. Workers without REMAP_SIGTERM keep Celery's warm shutdown.
+CELERY_WORKER_SOFT_SHUTDOWN_TIMEOUT = 90
+CELERY_WORKER_ENABLE_SOFT_SHUTDOWN_ON_IDLE = True
 
 # The beat schedule differs by tier, as it does in the Salt template: staging
 # does not sync subscriptions or talk to the Internet Archive.
