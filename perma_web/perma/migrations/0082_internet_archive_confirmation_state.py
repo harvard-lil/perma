@@ -30,6 +30,11 @@ class Migration(migrations.Migration):
             name='claim',
             field=models.CharField(blank=True, help_text='Identifies the task attempting the current upload or deletion: the id of the task message that started it.', max_length=255, null=True),
         ),
+        migrations.AddField(
+            model_name='internetarchiveitem',
+            name='ia_tasks_blocked_since',
+            field=models.DateTimeField(blank=True, help_text='When a check first saw IA tasks for this item in error or paused, until a check sees none. The upload producer queues no uploads to the item meanwhile.', null=True),
+        ),
         migrations.AlterField(
             model_name='internetarchivefile',
             name='status',

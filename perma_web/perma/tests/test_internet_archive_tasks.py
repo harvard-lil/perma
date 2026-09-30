@@ -1339,3 +1339,66 @@ def test_upload_confirmation_waits_while_ia_metadata_is_not_ready(complete_link,
         assert perma_item.next_confirmation_check - timezone.now() > settings.INTERNET_ARCHIVE_CONFIRMATION_PENDING_TASKS_INTERVAL - timedelta(minutes=1)
         if not full_read_errcode:
             session.get_item.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_upload_queueing_holds_back_items_with_blocked_ia_tasks(complete_link, caplog):
+    caplog.set_level(logging.INFO)
+    perma_item = _daily_item(complete_link)
+    InternetArchiveItem.objects.filter(pk=perma_item.pk).update(ia_tasks_blocked_since=timezone.now())
+
+    _producer_run(complete_link, _fake_session(Mock())).assert_not_called()
+    assert f"Held back uploads to IA Items with IA tasks in error or paused: {perma_item.identifier}." in caplog.text
+
+    InternetArchiveItem.objects.filter(pk=perma_item.pk).update(ia_tasks_blocked_since=None)
+    _producer_run(complete_link, _fake_session(Mock())).assert_called_once_with(complete_link.guid)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("tasks, blocked", [
+    ([{"cmd": "archive.php", "wait_admin": 2}], True),
+    ([{"cmd": "archive.php", "wait_admin": "9"}], True),
+    ([{"cmd": "archive.php", "wait_admin": 1}], False),
+    ([], False),
+])
+def test_upload_confirmation_records_blocked_ia_tasks(complete_link_factory, tasks, blocked):
+    confirmed, pending = complete_link_factory(), complete_link_factory()
+    perma_item = _daily_item(confirmed)
+    InternetArchiveItem.objects.filter(pk=perma_item.pk).update(ia_tasks_blocked_since=None if blocked else timezone.now())
+    _submitted_file(perma_item, confirmed, age=timedelta(minutes=20))
+    _submitted_file(perma_item, pending, age=timedelta(minutes=20))
+    session = _fake_session(_ia_item([_ia_file_entry(confirmed)], tasks=tasks))
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        confirm_files_uploaded_to_internet_archive_item.run(perma_item.identifier)
+
+    perma_item.refresh_from_db()
+    assert (perma_item.ia_tasks_blocked_since is not None) == blocked
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("tasks_read, still_blocked", [
+    ({"result": [{"task_id": 1, "cmd": "archive.php", "wait_admin": 2, "color": "red", "status": "error"}]}, True),
+    (TASKS_READ, False),
+    (NO_TASKS_READ, False),
+])
+def test_items_held_back_are_rechecked_until_their_ia_tasks_clear(complete_link, tasks_read, still_blocked):
+    perma_item = _daily_item(complete_link)
+    InternetArchiveItem.objects.filter(pk=perma_item.pk).update(ia_tasks_blocked_since=timezone.now())
+    redis_client = fakeredis.FakeStrictRedis()
+    with (
+        patch("perma.celery_tasks.redis.from_url", return_value=redis_client),
+        patch.object(confirm_files_uploaded_to_internet_archive_item, "delay") as delay,
+    ):
+        queue_file_uploaded_confirmation_tasks.run()
+    delay.assert_called_once_with(perma_item.identifier)
+
+    session = _fake_session(Mock(), tasks_read)
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        confirm_files_uploaded_to_internet_archive_item.run(perma_item.identifier)
+
+    assert session.get.call_args.args[0] == f"https://archive.org/metadata/{perma_item.identifier}/tasks"
+    session.get_item.assert_not_called()
+    perma_item.refresh_from_db()
+    assert (perma_item.ia_tasks_blocked_since is not None) == still_blocked
+    assert (perma_item.next_confirmation_check is not None) == still_blocked

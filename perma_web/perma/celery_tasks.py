@@ -1055,8 +1055,16 @@ def queue_file_uploaded_confirmation_tasks(limit=None):
         logger.info(f"Skipped the queuing of file upload confirmation tasks: {tasks_in_ia_readonly_queue} task{pluralize(tasks_in_ia_readonly_queue)} in the ia-readonly queue.")
         return
 
+    # Items with uploads awaiting confirmation, and items held back because of IA
+    # tasks in error or paused, which are checked until those tasks clear. Two
+    # indexed lookups: combined with OR, they would read the whole item table.
+    candidates = set(
+        InternetArchiveFile.objects.filter(status='upload_submitted').values_list('item_id', flat=True).distinct()
+    ) | set(
+        InternetArchiveItem.objects.filter(ia_tasks_blocked_since__isnull=False).values_list('identifier', flat=True)
+    )
     identifiers = InternetArchiveItem.objects.filter(
-        identifier__in=InternetArchiveFile.objects.filter(status='upload_submitted').values('item_id')
+        identifier__in=candidates
     ).filter(
         Q(next_confirmation_check__isnull=True) | Q(next_confirmation_check__lte=Now())
     ).exclude(
@@ -1129,6 +1137,30 @@ def ia_file_metadata_mismatch(ia_file, link):
     return None
 
 
+def ia_tasks_blocked(ia_tasks):
+    """
+    Whether any of the tasks IA lists for an item is in error or paused (wait_admin
+    2 or 9, https://archive.org/developers/tasks.html). IA processes an item's tasks
+    in order, so the item's later tasks, including our uploads, wait on it.
+    """
+    return any(str(task.get('wait_admin')) in ('2', '9') for task in ia_tasks)
+
+
+def record_ia_tasks_blocked(perma_item, ia_tasks, now):
+    """
+    Set or clear perma_item.ia_tasks_blocked_since from the tasks IA lists for it,
+    without saving. Returns whether it changed.
+    """
+    blocked = ia_tasks_blocked(ia_tasks)
+    if blocked and not perma_item.ia_tasks_blocked_since:
+        perma_item.ia_tasks_blocked_since = now
+        return True
+    if not blocked and perma_item.ia_tasks_blocked_since:
+        perma_item.ia_tasks_blocked_since = None
+        return True
+    return False
+
+
 def ia_confirmation_interval(newest_pending_age, ia_tasks):
     """
     How long to wait before checking an IA item again, given the age of its most
@@ -1140,7 +1172,7 @@ def ia_confirmation_interval(newest_pending_age, ia_tasks):
         newest_pending_age * settings.INTERNET_ARCHIVE_CONFIRMATION_BACKOFF_FACTOR,
         settings.INTERNET_ARCHIVE_CONFIRMATION_MAX_INTERVAL
     )
-    if any(str(task.get('wait_admin')) in ('2', '9') for task in ia_tasks):
+    if ia_tasks_blocked(ia_tasks):
         interval = max(interval, settings.INTERNET_ARCHIVE_CONFIRMATION_BLOCKED_TASKS_INTERVAL)
     elif ia_tasks:
         interval = max(interval, settings.INTERNET_ARCHIVE_CONFIRMATION_PENDING_TASKS_INTERVAL)
@@ -1159,11 +1191,32 @@ def confirm_files_uploaded_to_internet_archive_item(identifier):
     """
     perma_item = InternetArchiveItem.objects.get(identifier=identifier)
     pending = list(perma_item.internet_archive_files.filter(status='upload_submitted').select_related('link'))
-    if not pending:
+    if not pending and not perma_item.ia_tasks_blocked_since:
         logger.info(f"No uploads to {identifier} awaiting confirmation.")
         return
 
     ia_session = get_ia_session()
+    if not pending:
+        # Held back for IA tasks in error or paused: only see whether they have cleared.
+        try:
+            tasks_read = read_ia_metadata_part(ia_session, identifier, 'tasks')
+        except METADATA_READ_ERRORS + (requests.exceptions.JSONDecodeError,) as e:
+            logger.info(f"Could not read IA tasks for {identifier}: {type(e).__name__}.")
+            return
+        if ia_metadata_not_ready(tasks_read):
+            return
+        # an item with no tasks has no 'tasks' field: the read answers with an error
+        ia_tasks = (tasks_read.get('result') if isinstance(tasks_read, dict) else None) or []
+        now = timezone.now()
+        record_ia_tasks_blocked(perma_item, ia_tasks, now)
+        perma_item.next_confirmation_check = now + settings.INTERNET_ARCHIVE_CONFIRMATION_PENDING_TASKS_INTERVAL if perma_item.ia_tasks_blocked_since else None
+        perma_item.save(update_fields=['ia_tasks_blocked_since', 'next_confirmation_check'])
+        if perma_item.ia_tasks_blocked_since:
+            logger.info(f"IA tasks for {identifier} are still in error or paused; uploads to it stay held back.")
+        else:
+            logger.info(f"IA tasks for {identifier} are no longer in error or paused; uploads to it resume.")
+        return
+
     try:
         # A small read first: if IA reports that the item's metadata is not ready,
         # don't fetch all of it, or judge files against a record that may be stale.
@@ -1229,6 +1282,8 @@ def confirm_files_uploaded_to_internet_archive_item(identifier):
     else:
         perma_item.next_confirmation_check = None
     update_fields = ['next_confirmation_check']
+    if record_ia_tasks_blocked(perma_item, ia_tasks, now):
+        update_fields.append('ia_tasks_blocked_since')
 
     if confirmed:
         # If this is the first confirmed upload to this IA item,
@@ -1256,7 +1311,7 @@ def confirm_files_uploaded_to_internet_archive_item(identifier):
         summary += f", next check at {perma_item.next_confirmation_check.isoformat()}"
     blocked_tasks = [str(t.get('cmd')) for t in ia_tasks if str(t.get('wait_admin')) in ('2', '9')]
     if blocked_tasks:
-        summary += f"; IA tasks in error or paused: {', '.join(blocked_tasks)}"
+        summary += f"; IA tasks in error or paused: {', '.join(blocked_tasks)}; uploads to it held back"
     logger.info(f"{summary}.")
 
 
@@ -1750,6 +1805,7 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
 
         total_queued = 0
         queued = []
+        held_back = []
         for day in date_range(start, end, timedelta(days=1)):
             if total_queued < to_queue:
                 date_string = day.strftime('%Y-%m-%d')
@@ -1767,6 +1823,11 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
                         # if this day is already complete, skip it, and move on to the
                         # next day in the range
                         continue
+                    if item.ia_tasks_blocked_since:
+                        # IA has tasks for this item in error or paused; new uploads would
+                        # wait behind them (see ia_tasks_blocked)
+                        held_back.append(identifier)
+                        continue
                     in_flight_for_this_day = item.tasks_in_progress
                 except InternetArchiveItem.DoesNotExist:
                     in_flight_for_this_day = 0
@@ -1779,6 +1840,8 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
             else:
                 break
 
+        if held_back:
+            logger.info(f"Held back uploads to IA Items with IA tasks in error or paused: {', '.join(held_back)}.")
         if total_queued:
             logger.info(f"Prepared to upload {total_queued} links to internet archive across {len(queued)} days: {', '.join(queued)}.")
             return {'decision': 'queued', 'queued': total_queued, **ia_load}
@@ -1893,7 +1956,10 @@ def record_ia_state(broker, run):
     state = {'decision': run['decision'], 'queued': run.get('queued', 0)}
     for compute in (
         ia_file_state,
-        lambda: {'in_flight_stored': InternetArchiveItem.inflight_task_count() or 0},
+        lambda: {
+            'in_flight_stored': InternetArchiveItem.inflight_task_count() or 0,
+            'items_blocked_by_ia_tasks': InternetArchiveItem.objects.filter(ia_tasks_blocked_since__isnull=False).count(),
+        },
         ia_pending_state,
     ):
         try:

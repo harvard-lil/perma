@@ -16,6 +16,7 @@ from celery.exceptions import SoftTimeLimitExceeded
 from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
+from django.utils import timezone
 
 from perma.celery_tasks import (
     IA_STATE_CACHE_KEY,
@@ -27,7 +28,7 @@ from perma.celery_tasks import (
     queue_internet_archive_deletions,
     upload_link_to_internet_archive,
 )
-from perma.models import InternetArchiveFile, Link
+from perma.models import InternetArchiveFile, InternetArchiveItem, Link
 from perma.tests.test_internet_archive_tasks import (
     _daily_item,
     _fake_session,
@@ -328,3 +329,13 @@ def test_giving_up_on_a_deletion_confirmation_is_recorded(complete_link, events)
         confirm_file_deleted_from_daily_item.run(perma_file.id)
 
     assert _flows(events) == [{"kind": "deletion_unconfirmed", "n": 1}]
+
+
+@pytest.mark.django_db
+def test_state_counts_items_held_back_for_ia_tasks(complete_link, events):
+    perma_item = _daily_item(complete_link)
+    InternetArchiveItem.objects.filter(pk=perma_item.pk).update(ia_tasks_blocked_since=timezone.now())
+
+    _run_producer(date_string="1999-01-01")
+
+    assert _states(events)[0]["items_blocked_by_ia_tasks"] == 1
