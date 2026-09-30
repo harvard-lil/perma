@@ -26,6 +26,7 @@ from perma.celery_tasks import (
     ia_rate_limit_countdown,
     queue_file_uploaded_confirmation_tasks,
     queue_internet_archive_deletions,
+    queue_internet_archive_uploads_for_date,
     upload_link_to_internet_archive,
 )
 from perma.models import InternetArchiveFile, InternetArchiveItem, Link
@@ -1045,3 +1046,22 @@ def test_deletion_queueing_skips_deletions_in_progress_and_gives_up_after_max_at
     exhausted_file.refresh_from_db()
     assert exhausted_file.status == "deletion_failed"
     assert f"Please investigate {exhausted.guid}" in caplog.text
+
+
+@pytest.mark.django_db
+def test_upload_queueing_does_not_mark_an_item_complete_during_an_upload_attempt(complete_link):
+    perma_item = _daily_item(complete_link)
+    InternetArchiveItem.objects.filter(pk=perma_item.pk).update(
+        span=DateTimeTZRange(perma_item.span.lower - timedelta(days=10), perma_item.span.upper - timedelta(days=10))
+    )
+    perma_file = InternetArchiveFile.objects.create(item=perma_item, link=complete_link, status="upload_attempted")
+    date_string = complete_link.creation_timestamp.strftime("%Y-%m-%d")
+
+    queue_internet_archive_uploads_for_date(date_string)
+    perma_item.refresh_from_db()
+    assert not perma_item.complete
+
+    InternetArchiveFile.objects.filter(pk=perma_file.pk).update(status="upload_submitted")
+    queue_internet_archive_uploads_for_date(date_string)
+    perma_item.refresh_from_db()
+    assert perma_item.complete

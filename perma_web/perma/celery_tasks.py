@@ -1467,13 +1467,17 @@ def queue_internet_archive_uploads_for_date(date_string, limit=100):
         logger.info(f"Found no links to upload in {query_ended - query_started} seconds.")
         try:
             item = InternetArchiveItem.objects.get(identifier=identifier)
-            # Don't mark an item complete if it's yesterday's
-            if timezone.now() - item.span.lower > timedelta(days=3):
+            # Don't mark an item complete if it's yesterday's, or while any upload
+            # to it is being attempted: the producer skips complete items, so an
+            # attempt that failed after that would never be retried.
+            if timezone.now() - item.span.lower <= timedelta(days=3):
+                logger.info(f"Found no pending links for recent IA Item {item.identifier}; not marking complete.")
+            elif item.internet_archive_files.filter(status='upload_attempted').exists():
+                logger.info(f"Found no pending links for IA Item {item.identifier}, but uploads are still being attempted; not marking complete.")
+            else:
                 item.complete = True
                 item.save(update_fields=['complete'])
                 logger.info(f"Found no pending links: marked IA Item {item.identifier} complete.")
-            else:
-                logger.info(f"Found no pending links for recent IA Item {item.identifier}; not marking complete.")
         except InternetArchiveItem.DoesNotExist:
             logger.info(f"Found no pending links for {date_string}.")
         return 0
