@@ -77,6 +77,7 @@ class InternetArchiveItem(models.Model):
     complete = models.BooleanField(default=False, help_text="Has all the files it ought to have; has no files it ought not have.")
     last_derived = models.DateTimeField(null=True, blank=True)
     derive_required = models.BooleanField(default=False)
+    ia_creation_refused_at = models.DateTimeField(null=True, blank=True, help_text="When IA last refused to create this item, answering an upload as spam; cleared when IA accepts an upload to it. The upload producer sends only an occasional single upload to the item meanwhile.")
     ia_tasks_blocked_since = models.DateTimeField(null=True, blank=True, help_text="When a check first saw IA tasks for this item in error or paused, until a check sees none. The upload producer queues no uploads to the item meanwhile.")
     next_confirmation_check = models.DateTimeField(null=True, blank=True, help_text="Uploads to this item awaiting confirmation are not checked again before this time.")
 
@@ -88,6 +89,12 @@ class InternetArchiveItem(models.Model):
             # We are adding it via a SQL migration instead. See 0007_auto_20221024_2049.py
             # models.Index(IsEmpty('span'), 'identifier', name='empty_span_idx'),
             GistIndex(fields=['span']),
+            # the few items IA refused to create
+            models.Index(
+                fields=['ia_creation_refused_at'],
+                condition=Q(ia_creation_refused_at__isnull=False),
+                name='perma_iaitem_refused_idx',
+            ),
             # the few items held back for IA tasks in error or paused
             models.Index(
                 fields=['ia_tasks_blocked_since'],

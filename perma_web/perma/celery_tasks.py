@@ -680,6 +680,16 @@ def ia_files_for_link(ia_files, guid):
     return [f.get('name') for f in ia_files if str(f.get('name', '')).startswith(prefix)]
 
 
+def perma_item_created(identifier):
+    """
+    Whether IA has accepted an upload to this item from us, so that it exists.
+    """
+    return InternetArchiveFile.objects.filter(
+        item_id=identifier,
+        status__in=['upload_submitted', 'upload_unconfirmed', 'confirmed_present', 'deletion_attempted', 'deletion_submitted', 'deletion_unconfirmed', 'deletion_failed', 'confirmed_absent'],
+    ).exists()
+
+
 class IAUploadIntegrityError(Exception):
     """IA reports receiving different bytes from those we uploaded."""
 
@@ -998,9 +1008,30 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
         # ('ServiceUnavailable', ('Please reduce your request rate.', '503 Service Unavailable'))
         # ('SlowDown', ('Please reduce your request rate.', '503 Slow Down'))
         error_string = str(e)
-        if ia_error_is_spam_flag(e):
-            # Retry with the rate-limit backoff, but count the attempt, so that a
-            # lasting flag ends in the usual give-up (see ia_error_is_spam_flag).
+        if ia_error_is_spam_flag(e) and not perma_item_created(identifier):
+            # IA refused to create the item (see ia_error_is_spam_flag). Hold the item
+            # back, and release this attempt without counting it: the file is stale at
+            # once, so the producer uploads it again once IA accepts an upload to the item.
+            response = getattr(e, 'response', None)
+            ia_metrics.flow('http_error', item=identifier, status=getattr(response, 'status_code', 0), reason='spam')
+            now = timezone.now()
+            first_refusal = InternetArchiveItem.objects.filter(
+                pk=identifier, ia_creation_refused_at__isnull=True
+            ).update(ia_creation_refused_at=now)
+            if first_refusal:
+                logger.error(f"Please investigate IA Item {identifier}: IA refused to create it, answering an upload of {link_guid} as spam ({error_string.strip()[:200]}). Uploads to it are held back; the producer will try one upload every {settings.INTERNET_ARCHIVE_CREATION_REFUSED_PROBE_INTERVAL} until IA accepts one.")
+            else:
+                InternetArchiveItem.objects.filter(pk=identifier).update(ia_creation_refused_at=now)
+                logger.warning(f"IA again refused to create IA Item {identifier}, answering an upload of {link_guid} as spam; uploads to it stay held back.")
+            InternetArchiveFile.objects.filter(pk=perma_file.pk, status='upload_attempted', claim=claim).update(
+                attempts=F('attempts') - 1,
+                status_updated=now - settings.INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER - timedelta(seconds=1),
+            )
+            return
+        elif ia_error_is_spam_flag(e):
+            # The item exists, so this is not a refusal to create it. Retry with the
+            # rate-limit backoff, counting the attempt, so that a lasting refusal ends
+            # in the usual give-up.
             logger.warning(f"Upload task for {link_guid} (IA Item {identifier}) refused by IA as spam ({error_string.strip()[:200]}). Will retry if allowed.")
             response = getattr(e, 'response', None)
             ia_metrics.flow('http_error', item=identifier, status=getattr(response, 'status_code', 0), reason='spam')
@@ -1056,6 +1087,8 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
 
     logger.info(f"Uploaded {link_guid} to {identifier}: confirmation pending.")
     ia_metrics.flow('upload_submitted', item=identifier)
+    if InternetArchiveItem.objects.filter(pk=identifier, ia_creation_refused_at__isnull=False).update(ia_creation_refused_at=None):
+        logger.info(f"IA accepted an upload to IA Item {identifier}, which it had refused to create; uploads to it resume.")
 
 
 @shared_task(acks_late=True)
@@ -1830,6 +1863,8 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
         total_queued = 0
         queued = []
         held_back = []
+        refused = []
+        probing = []
         for day in date_range(start, end, timedelta(days=1)):
             if total_queued < to_queue:
                 date_string = day.strftime('%Y-%m-%d')
@@ -1852,10 +1887,20 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
                         # wait behind them (see ia_tasks_blocked)
                         held_back.append(identifier)
                         continue
+                    day_limit = daily_limit
+                    if item.ia_creation_refused_at:
+                        # IA refused to create this item: send one upload to test whether
+                        # it still does, once a probe interval has passed
+                        if timezone.now() - item.ia_creation_refused_at < settings.INTERNET_ARCHIVE_CREATION_REFUSED_PROBE_INTERVAL:
+                            refused.append(identifier)
+                            continue
+                        day_limit = 1
+                        probing.append(identifier)
                     in_flight_for_this_day = item.tasks_in_progress
                 except InternetArchiveItem.DoesNotExist:
+                    day_limit = daily_limit
                     in_flight_for_this_day = 0
-                bucket_limit = min(daily_limit, to_queue - total_queued) - in_flight_for_this_day
+                bucket_limit = min(day_limit, to_queue - total_queued) - in_flight_for_this_day
                 if bucket_limit > 0:
                     count_queued = queue_internet_archive_uploads_for_date(date_string, bucket_limit)
                     if count_queued:
@@ -1866,6 +1911,10 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
 
         if held_back:
             logger.info(f"Held back uploads to IA Items with IA tasks in error or paused: {', '.join(held_back)}.")
+        if refused:
+            logger.info(f"Held back uploads to IA Items that IA refused to create: {', '.join(refused)}.")
+        if probing:
+            logger.info(f"Allowed one upload to test IA Items that IA refused to create: {', '.join(probing)}.")
         if total_queued:
             logger.info(f"Prepared to upload {total_queued} links to internet archive across {len(queued)} days: {', '.join(queued)}.")
             return {'decision': 'queued', 'queued': total_queued, **ia_load}
@@ -1983,6 +2032,7 @@ def record_ia_state(broker, run):
         lambda: {
             'in_flight_stored': InternetArchiveItem.inflight_task_count() or 0,
             'items_blocked_by_ia_tasks': InternetArchiveItem.objects.filter(ia_tasks_blocked_since__isnull=False).count(),
+            'items_refused_by_ia': InternetArchiveItem.objects.filter(ia_creation_refused_at__isnull=False).count(),
         },
         ia_pending_state,
     ):

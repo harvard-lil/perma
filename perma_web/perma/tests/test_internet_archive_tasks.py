@@ -1282,36 +1282,92 @@ NAMESPACE_409_TEXT = (
 )
 
 
+def _spam_503(text=SPAM_503_TEXT):
+    return requests.exceptions.HTTPError(text, response=SimpleNamespace(status_code=503, content=SPAM_503_BODY))
+
+
+def _item_exists_at_ia(link, link_factory):
+    # IA accepted an earlier upload to the link's item
+    _file_with_status(_daily_item(link), link_factory(), "confirmed_present")
+
+
 @pytest.mark.django_db
 @pytest.mark.parametrize("error", [
-    requests.exceptions.HTTPError(SPAM_503_TEXT, response=SimpleNamespace(status_code=503, content=SPAM_503_BODY)),
+    _spam_503(),
     # the flag found only in the response body
-    requests.exceptions.HTTPError(
-        " error uploading to item, Please reduce your request rate.",
-        response=SimpleNamespace(status_code=503, content=SPAM_503_BODY),
-    ),
+    _spam_503(" error uploading to item, Please reduce your request rate."),
 ])
-def test_spam_refusals_are_retried_with_backoff_as_counted_attempts(complete_link, error):
+def test_ia_refusing_to_create_an_item_holds_it_back_without_counting_an_attempt(complete_link_factory, caplog, error):
+    first, second = complete_link_factory(), complete_link_factory()
+
     with patch("perma.ia_metrics.flow") as flow:
-        apply_async, delay = _upload_raising(complete_link, error)
-
-    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=42, headers=CLAIMED)
-    delay.assert_not_called()
-    assert InternetArchiveFile.objects.get(link=complete_link).status == "upload_attempted"
-    flow.assert_any_call("http_error", item=ANY, status=503, reason="spam")
-    flow.assert_any_call("upload_retry", item=ANY, reason="spam")
-
-
-@pytest.mark.django_db
-def test_spam_refusals_stop_at_the_error_limit(complete_link):
-    error = requests.exceptions.HTTPError(SPAM_503_TEXT, response=SimpleNamespace(status_code=503, content=SPAM_503_BODY))
-
-    apply_async, delay = _upload_raising(complete_link, error, attempts=settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT - 1)
+        apply_async, delay = _upload_raising(first, error)
+        _upload_raising(second, error)
 
     apply_async.assert_not_called()
     delay.assert_not_called()
-    # left for the stale requeue and the per-file attempt cap
+    flow.assert_any_call("http_error", item=ANY, status=503, reason="spam")
+    item = InternetArchiveItem.objects.get(pk=InternetArchiveFile.objects.get(link=first).item_id)
+    assert item.ia_creation_refused_at is not None
+    for link in (first, second):
+        perma_file = InternetArchiveFile.objects.get(link=link)
+        assert (perma_file.status, perma_file.attempts) == ("upload_attempted", 0)
+        assert not InternetArchiveFile.in_flight().filter(pk=perma_file.pk).exists()
+    # one error for the item, not one per file
+    assert len([r for r in caplog.records if r.levelname == "ERROR" and "refused to create it" in r.getMessage()]) == 1
+    assert "IA again refused to create" in caplog.text
+
+
+@pytest.mark.django_db
+def test_spam_refusals_for_an_existing_item_are_counted_retries(complete_link, complete_link_factory):
+    _item_exists_at_ia(complete_link, complete_link_factory)
+
+    with patch("perma.ia_metrics.flow") as flow:
+        apply_async, delay = _upload_raising(complete_link, _spam_503())
+
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=42, headers=CLAIMED)
+    flow.assert_any_call("upload_retry", item=ANY, reason="spam")
+    item = InternetArchiveItem.objects.get(pk=InternetArchiveFile.objects.get(link=complete_link).item_id)
+    assert item.ia_creation_refused_at is None
+
+
+@pytest.mark.django_db
+def test_spam_refusals_for_an_existing_item_stop_at_the_error_limit(complete_link, complete_link_factory):
+    _item_exists_at_ia(complete_link, complete_link_factory)
+
+    apply_async, delay = _upload_raising(complete_link, _spam_503(), attempts=settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT - 1)
+
+    apply_async.assert_not_called()
     assert InternetArchiveFile.objects.get(link=complete_link).status == "upload_attempted"
+
+
+@pytest.mark.django_db
+def test_items_ia_refused_to_create_get_one_probe_upload_an_hour(complete_link_factory, caplog):
+    caplog.set_level(logging.INFO)
+    links = [complete_link_factory() for _ in range(3)]
+    perma_item = _daily_item(links[0])
+    refused_at = timezone.now() - timedelta(minutes=10)
+    InternetArchiveItem.objects.filter(pk=perma_item.pk).update(ia_creation_refused_at=refused_at)
+
+    _producer_run(links[0], _fake_session(Mock())).assert_not_called()
+    assert f"Held back uploads to IA Items that IA refused to create: {perma_item.identifier}." in caplog.text
+
+    InternetArchiveItem.objects.filter(pk=perma_item.pk).update(
+        ia_creation_refused_at=timezone.now() - settings.INTERNET_ARCHIVE_CREATION_REFUSED_PROBE_INTERVAL
+    )
+    probe = _producer_run(links[0], _fake_session(Mock()))
+    assert probe.call_count == 1
+    assert f"Allowed one upload to test IA Items that IA refused to create: {perma_item.identifier}." in caplog.text
+
+    # the probe goes through: IA created the item, and uploads to it resume
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_upload_session()),
+        patch.object(Link, "get_warc", return_value=nullcontext(BytesIO(b"warc"))),
+    ):
+        upload_link_to_internet_archive.run(probe.call_args.args[0])
+    perma_item.refresh_from_db()
+    assert perma_item.ia_creation_refused_at is None
+    assert _producer_run(links[0], _fake_session(Mock())).call_count == 2
 
 
 @pytest.mark.django_db
@@ -1456,3 +1512,27 @@ def test_deletion_is_confirmed_once_the_warc_and_its_derivatives_are_gone(comple
 
     perma_file.refresh_from_db()
     assert perma_file.status == ("confirmed_absent" if confirmed else "deletion_submitted")
+
+
+# IA's simulated SlowDown (x-archive-simulate-error: SlowDown), recorded 2026-09-30:
+# the same Code and Message as a real one, with its own Resource
+SIMULATED_SLOWDOWN_BODY = (
+    b"<Error><Code>SlowDown</Code><Message>Please reduce your request rate.</Message>"
+    b"<Resource>simulated error caused by x-(amz|archive)-simulate-error, try x-archive-simulate-error:help</Resource></Error>"
+)
+SIMULATED_SLOWDOWN_TEXT = (
+    " error uploading q6-slowdown-lib.warc.gz to perma-ia-apitest-20260930-32f62c-1, Please reduce your request rate. - "
+    "simulated error caused by x-(amz|archive)-simulate-error, try x-archive-simulate-error:help"
+)
+
+
+@pytest.mark.django_db
+def test_a_simulated_slowdown_takes_the_rate_limit_path(complete_link):
+    error = requests.exceptions.HTTPError(
+        SIMULATED_SLOWDOWN_TEXT, response=SimpleNamespace(status_code=503, content=SIMULATED_SLOWDOWN_BODY)
+    )
+    with patch("perma.ia_metrics.flow") as flow:
+        apply_async, delay = _upload_raising(complete_link, error)
+
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=42, headers=CLAIMED)
+    flow.assert_any_call("upload_retry", item=ANY, reason="rate_limit")

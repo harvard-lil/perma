@@ -10,9 +10,10 @@ class Migration(migrations.Migration):
     about 8,200 of perma_internetarchivefile's 9.5M rows in September 2026,
     nearly all of them stranded 'upload_attempted' files.
 
-    Also an index for the few InternetArchiveItems held back because IA lists
-    tasks for them in error or paused (ia_tasks_blocked_since), so that finding
-    them does not read the whole item table (2.6M rows, 2.9 GB).
+    Also indexes for the few InternetArchiveItems held back because IA lists
+    tasks for them in error or paused (ia_tasks_blocked_since) or refused to
+    create them (ia_creation_refused_at), so that finding them does not read
+    the whole item table (2.6M rows, 2.9 GB).
 
     Built concurrently so that writes to both tables continue during the builds,
     which read each whole table.
@@ -32,5 +33,9 @@ class Migration(migrations.Migration):
         AddIndexConcurrently(
             model_name='internetarchiveitem',
             index=models.Index(condition=models.Q(('ia_tasks_blocked_since__isnull', False)), fields=['ia_tasks_blocked_since'], name='perma_iaitem_blocked_idx'),
+        ),
+        AddIndexConcurrently(
+            model_name='internetarchiveitem',
+            index=models.Index(condition=models.Q(('ia_creation_refused_at__isnull', False)), fields=['ia_creation_refused_at'], name='perma_iaitem_refused_idx'),
         ),
     ]

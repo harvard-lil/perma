@@ -337,3 +337,13 @@ def test_state_counts_items_held_back_for_ia_tasks(complete_link, events):
     _run_producer(date_string="1999-01-01")
 
     assert _states(events)[0]["items_blocked_by_ia_tasks"] == 1
+
+
+@pytest.mark.django_db
+def test_state_counts_items_ia_refused_to_create(complete_link, events):
+    perma_item = _daily_item(complete_link)
+    InternetArchiveItem.objects.filter(pk=perma_item.pk).update(ia_creation_refused_at=timezone.now())
+
+    _run_producer(date_string="1999-01-01")
+
+    assert (_states(events)[0]["items_refused_by_ia"], _states(events)[0]["items_blocked_by_ia_tasks"]) == (1, 0)

@@ -35,6 +35,11 @@ class Migration(migrations.Migration):
             name='ia_tasks_blocked_since',
             field=models.DateTimeField(blank=True, help_text='When a check first saw IA tasks for this item in error or paused, until a check sees none. The upload producer queues no uploads to the item meanwhile.', null=True),
         ),
+        migrations.AddField(
+            model_name='internetarchiveitem',
+            name='ia_creation_refused_at',
+            field=models.DateTimeField(blank=True, help_text='When IA last refused to create this item, answering an upload as spam; cleared when IA accepts an upload to it. The upload producer sends only an occasional single upload to the item meanwhile.', null=True),
+        ),
         migrations.AlterField(
             model_name='internetarchivefile',
             name='status',

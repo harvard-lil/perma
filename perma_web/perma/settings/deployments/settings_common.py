@@ -603,6 +603,9 @@ INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER = timedelta(hours=1)
 # own retries (above), and attempts are at least INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER
 # apart, so reaching this takes repeated failures over hours.
 INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE = 5
+# After IA refuses to create a daily item (a 503 saying the upload "appears to be
+# spam"), the producer sends one upload to it at most this often, until IA accepts one.
+INTERNET_ARCHIVE_CREATION_REFUSED_PROBE_INTERVAL = timedelta(hours=1)
 # Upload confirmation. An item is checked again after its newest pending file's
 # age times the backoff factor, bounded by the max interval; items with IA tasks
 # queued or running, or stopped in error or paused, wait at least the longer
