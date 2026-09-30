@@ -577,6 +577,10 @@ INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT = None
 INTERNET_ARCHIVE_RATE_LIMIT_RETRY_BASE_DELAY = 30
 INTERNET_ARCHIVE_RATE_LIMIT_RETRY_MAX_DELAY = 600
 INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT = 2
+# The upload producer records the IA pipeline's state (perma.ia_metrics) each run;
+# each query for it may take this long, and /manage/stats shows it for this long.
+INTERNET_ARCHIVE_STATE_STATEMENT_TIMEOUT_MS = 5000
+INTERNET_ARCHIVE_STATE_CACHE_SECONDS = 15 * 60
 # How long /manage/stats reuses IA's rate-limit figures before asking IA again
 INTERNET_ARCHIVE_RATE_LIMITS_STATS_CACHE_SECONDS = 60
 INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED = False

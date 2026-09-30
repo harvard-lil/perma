@@ -302,8 +302,7 @@ def test_confirmation_queue_task_queues_each_due_item_once(complete_link_factory
     )
     _submitted_file(later_item, later_link)
 
-    redis_client = Mock()
-    redis_client.llen.return_value = 0
+    redis_client = fakeredis.FakeStrictRedis()
     with (
         patch("perma.celery_tasks.redis.from_url", return_value=redis_client),
         patch.object(confirm_files_uploaded_to_internet_archive_item, "delay") as delay,
@@ -378,8 +377,7 @@ def test_upload_queueing_ignores_an_inflated_counter(complete_link):
     perma_item.save()
     date_string = complete_link.creation_timestamp.strftime("%Y-%m-%d")
 
-    redis_client = Mock()
-    redis_client.llen.return_value = 0
+    redis_client = fakeredis.FakeStrictRedis()
     with (
         patch("perma.celery_tasks.redis.from_url", return_value=redis_client),
         patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(Mock())),
@@ -710,8 +708,7 @@ def test_upload_queueing_requeues_stale_attempts_but_leaves_complete_items_alone
     perma_item = _daily_item(complete_link)
     _file_with_status(perma_item, complete_link, "upload_attempted", None)
     date_string = complete_link.creation_timestamp.strftime("%Y-%m-%d")
-    redis_client = Mock()
-    redis_client.llen.return_value = 0
+    redis_client = fakeredis.FakeStrictRedis()
 
     def run_producer():
         with (
@@ -837,7 +834,7 @@ def test_upload_queueing_runs_one_at_a_time():
 
     with (
         patch("perma.celery_tasks.redis.from_url", return_value=broker),
-        patch("perma.celery_tasks.queue_internet_archive_uploads_for_date_range") as queue_uploads,
+        patch("perma.celery_tasks.queue_internet_archive_uploads_for_date_range", return_value={"decision": "nothing_pending"}) as queue_uploads,
     ):
         broker.set(IA_UPLOAD_QUEUING_LOCK, 1)
         conditionally_queue_internet_archive_uploads_for_date_range.run(None, None)
@@ -860,6 +857,7 @@ def test_upload_queueing_lock_outlasts_a_run():
 
     def check_lock(*args):
         assert 0 < broker.ttl(IA_UPLOAD_QUEUING_LOCK) <= settings.CELERY_TASK_TIME_LIMIT
+        return {"decision": "nothing_pending"}
 
     with (
         patch("perma.celery_tasks.redis.from_url", return_value=broker),
@@ -871,8 +869,7 @@ def test_upload_queueing_lock_outlasts_a_run():
 
 def _producer_run(link, session):
     date_string = link.creation_timestamp.strftime("%Y-%m-%d")
-    redis_client = Mock()
-    redis_client.llen.return_value = 0
+    redis_client = fakeredis.FakeStrictRedis()
     with (
         patch("perma.celery_tasks.redis.from_url", return_value=redis_client),
         patch("perma.celery_tasks.get_ia_session", return_value=session),

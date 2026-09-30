@@ -10,6 +10,7 @@ import random
 import tempfile
 import time
 from datetime import datetime, timedelta
+import psycopg2.errors
 import redis
 import sentry_sdk
 import socket
@@ -25,7 +26,9 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 from django.core.files.storage import storages
 from django.core.mail import mail_admins
-from django.db.models import Exists, F, OuterRef, Q
+from django.core.cache import cache
+from django.db import OperationalError, connection, transaction
+from django.db.models import Count, Exists, F, Min, OuterRef, Q
 from django.db.models.functions import Now
 from django.conf import settings
 from django.utils import timezone
@@ -1555,11 +1558,13 @@ def conditionally_queue_internet_archive_uploads_for_date_range(start_date_strin
     broker = redis.from_url(settings.CELERY_BROKER_URL)
     if not broker.set(IA_UPLOAD_QUEUING_LOCK, 1, nx=True, ex=settings.CELERY_TASK_TIME_LIMIT):
         logger.info("Skipped the queuing of file upload tasks: another run is in progress.")
+        record_ia_state(broker, {'decision': 'skip_lock'})
         return
     try:
-        queue_internet_archive_uploads_for_date_range(start_date_string, end_date_string, daily_limit, limit)
+        run = queue_internet_archive_uploads_for_date_range(start_date_string, end_date_string, daily_limit, limit)
     finally:
         broker.delete(IA_UPLOAD_QUEUING_LOCK)
+    record_ia_state(broker, run)
 
 
 def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_string, daily_limit=100, limit=None):
@@ -1571,11 +1576,13 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
     - there are submitted-but-as-of-yet-unfinished upload requests being processed by IA
     - there are not enough qualifying links in the date range
     - there are not enough qualifying links in the date range, while respecting daily_limit
+
+    Returns what the run decided, for record_ia_state.
     """
     tasks_in_ia_queue = redis.from_url(settings.CELERY_BROKER_URL).llen('ia')
     if tasks_in_ia_queue:
         logger.info(f"Skipped the queuing of file upload tasks: {tasks_in_ia_queue} task{pluralize(tasks_in_ia_queue)} in the ia queue.")
-        return
+        return {'decision': 'skip_queue_nonempty'}
 
     if not start_date_string:
         oldest_incomplete_daily_item_in_backlog = InternetArchiveItem.objects.filter(
@@ -1600,7 +1607,7 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
 
     if to_queue < 0:
         logger.error(f"Something is amiss with the IA upload process: InternetArchiveItem.inflight_task_count ({tasks_in_flight}) is larger than settings.INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS.")
-        return
+        return {'decision': 'skip_at_capacity'}
 
     if to_queue:
 
@@ -1610,9 +1617,10 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
             access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY
         )
         logger.info(f"IA load before queuing: {s3_details}.")
+        ia_load = {'s3_is_overloaded': s3_is_overloaded, 's3_details': s3_details}
         if s3_is_overloaded or ia_perma_task_limit_approaching(s3_details) or ia_global_task_limit_approaching(s3_details):
             logger.warning("Skipped the queuing of file upload tasks: IA is at or near its task limits.")
-            return
+            return {'decision': 'skip_ia_load', **ia_load}
 
         total_queued = 0
         queued = []
@@ -1647,11 +1655,134 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
 
         if total_queued:
             logger.info(f"Prepared to upload {total_queued} links to internet archive across {len(queued)} days: {', '.join(queued)}.")
-        else:
-            logger.info("Prepared to upload 0 links to internet archive: no pending links in range.")
+            return {'decision': 'queued', 'queued': total_queued, **ia_load}
+        logger.info("Prepared to upload 0 links to internet archive: no pending links in range.")
+        return {'decision': 'nothing_pending', **ia_load}
 
-    else:
-        logger.info("Skipped the queuing of file upload tasks: max tasks already in progress.")
+    logger.info("Skipped the queuing of file upload tasks: max tasks already in progress.")
+    return {'decision': 'skip_at_capacity'}
+
+
+IA_STATE_CACHE_KEY = 'ia-state'
+
+
+class IAStateQueryTimeout(Exception):
+    pass
+
+
+def bounded_ia_state_query(compute):
+    """
+    Run compute() in a transaction whose statements time out after
+    INTERNET_ARCHIVE_STATE_STATEMENT_TIMEOUT_MS, so that a slow query cannot hold
+    up the producer. Raises IAStateQueryTimeout if one does.
+    """
+    try:
+        with transaction.atomic():
+            with connection.cursor() as cursor:
+                cursor.execute("SET LOCAL statement_timeout = %s", [settings.INTERNET_ARCHIVE_STATE_STATEMENT_TIMEOUT_MS])
+            return compute()
+    except OperationalError as e:
+        if isinstance(e.__cause__, psycopg2.errors.QueryCanceled):
+            raise IAStateQueryTimeout from e
+        raise
+
+
+def ia_file_state():
+    """
+    Counts of files in each non-terminal status, and in the statuses that need a
+    human. A single query over rows served by the status index: a few thousand of
+    the table's millions.
+    """
+    now = timezone.now()
+    stale_before = now - settings.INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER
+    fresh = Q(status_updated__gte=stale_before)
+    counts = InternetArchiveFile.objects.filter(status__in=[
+        'upload_attempted', 'upload_submitted', 'upload_unconfirmed', 'upload_failed',
+        'deletion_attempted', 'deletion_submitted', 'deletion_failed',
+    ]).aggregate(
+        in_flight_derived=Count('pk', filter=(
+            Q(status__in=['upload_submitted', 'deletion_submitted']) |
+            Q(fresh, status__in=['upload_attempted', 'deletion_attempted'])
+        )),
+        attempted_fresh=Count('pk', filter=Q(fresh, status='upload_attempted')),
+        attempted_stale=Count('pk', filter=Q(status='upload_attempted') & ~fresh),
+        submitted=Count('pk', filter=Q(status='upload_submitted')),
+        submitted_over_24h=Count('pk', filter=Q(status='upload_submitted', status_updated__lt=now - timedelta(hours=24))),
+        oldest_submitted=Min('status_updated', filter=Q(status='upload_submitted')),
+        unconfirmed=Count('pk', filter=Q(status='upload_unconfirmed')),
+        failed_upload=Count('pk', filter=Q(status='upload_failed')),
+        failed_deletion=Count('pk', filter=Q(status='deletion_failed')),
+        deletion_attempted=Count('pk', filter=Q(status='deletion_attempted')),
+        deletion_submitted=Count('pk', filter=Q(status='deletion_submitted')),
+    )
+    oldest_submitted = counts.pop('oldest_submitted')
+    counts['oldest_submitted_hours'] = round((now - oldest_submitted).total_seconds() / 3600, 1) if oldest_submitted else 0
+    return counts
+
+
+def ia_pending_state():
+    """
+    Links pending upload for each daily item of the last 30 days not marked
+    complete (including days with no item yet). Older backlog shows up in the
+    file counts instead.
+    """
+    today = timezone.now().date()
+    days = [today - timedelta(days=n) for n in range(30)]
+    identifiers = {
+        InternetArchiveItem.DAILY_IDENTIFIER.format(
+            prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX,
+            date_string=day.strftime('%Y-%m-%d'),
+        ): day for day in days
+    }
+    complete = set(InternetArchiveItem.objects.filter(
+        identifier__in=identifiers, complete=True
+    ).values_list('identifier', flat=True))
+    pending_by_day = {}
+    for identifier, day in identifiers.items():
+        if identifier in complete:
+            continue
+        pending = Link.objects.ia_upload_pending(day.strftime('%Y-%m-%d'), limit=None).count()
+        if pending:
+            pending_by_day[day.strftime('%Y-%m-%d')] = pending
+    oldest = min(pending_by_day, default=None)
+    return {
+        'pending_recent_total': sum(pending_by_day.values()),
+        'pending_oldest_day_age_days': (today - datetime.strptime(oldest, '%Y-%m-%d').date()).days if oldest else 0,
+        'pending_by_day': dict(sorted(pending_by_day.items())),
+    }
+
+
+def record_ia_state(broker, run):
+    """
+    Emit one ia_state metrics line describing the IA pipeline after an upload
+    producer run, and keep it in the cache for /manage/stats. `run` is what the
+    run decided (see queue_internet_archive_uploads_for_date_range). Any group of
+    fields whose query times out is left out.
+    """
+    started = time.monotonic()
+    state = {'decision': run['decision'], 'queued': run.get('queued', 0)}
+    for compute in (
+        ia_file_state,
+        lambda: {'in_flight_stored': InternetArchiveItem.inflight_task_count() or 0},
+        ia_pending_state,
+    ):
+        try:
+            state.update(bounded_ia_state_query(compute))
+        except IAStateQueryTimeout:
+            logger.warning(f"Left fields out of the IA state: a query in {getattr(compute, '__name__', 'the in-flight count')} timed out.")
+    state['queue_ia'] = broker.llen('ia')
+    state['queue_ia_readonly'] = broker.llen('ia-readonly')
+    state['unacked'] = broker.hlen('unacked')
+    if 's3_details' in run:
+        detail = run['s3_details'].get('detail', {})
+        state['ia_over_limit'] = int(bool(run['s3_is_overloaded']))
+        if 'total_tasks_queued' in detail:
+            state['ia_total_tasks_queued'] = detail['total_tasks_queued']
+            state['ia_total_global_limit'] = detail['total_global_limit']
+    state['state_query_ms'] = round((time.monotonic() - started) * 1000)
+    ia_metrics.state(**state)
+    cache.set(IA_STATE_CACHE_KEY, {'state': state, 'recorded_at': time.time()}, settings.INTERNET_ARCHIVE_STATE_CACHE_SECONDS)
+    return state
 
 
 # WACZ CONVERSION

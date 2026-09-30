@@ -9,12 +9,18 @@ import json
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
+import fakeredis
 import pytest
 import requests
 from celery.exceptions import SoftTimeLimitExceeded
 from django.conf import settings
+from django.core.cache import cache
+from django.db import connection
 
 from perma.celery_tasks import (
+    IA_STATE_CACHE_KEY,
+    IA_UPLOAD_QUEUING_LOCK,
+    conditionally_queue_internet_archive_uploads_for_date_range,
     confirm_file_deleted_from_daily_item,
     confirm_files_uploaded_to_internet_archive_item,
     delete_link_from_daily_item,
@@ -164,3 +170,136 @@ def test_giving_up_records_a_failed_deletion(complete_link, events):
 
     assert _flows(events) == [{"kind": "deletion_failed", "n": 1}]
     assert InternetArchiveFile.objects.get(pk=perma_file.pk).status == "deletion_failed"
+
+
+def _states(events):
+    return [e for e in events if e["event"] == "ia_state"]
+
+
+def _run_producer(session=None, broker=None, date_string=None):
+    broker = broker or fakeredis.FakeStrictRedis()
+    with (
+        patch("perma.celery_tasks.redis.from_url", return_value=broker),
+        patch("perma.celery_tasks.get_ia_session", return_value=session or _fake_session(Mock())),
+        patch.object(upload_link_to_internet_archive, "delay"),
+    ):
+        conditionally_queue_internet_archive_uploads_for_date_range.run(date_string, date_string)
+
+
+@pytest.fixture
+def broker():
+    return fakeredis.FakeStrictRedis()
+
+
+@pytest.mark.django_db
+def test_state_after_queuing(complete_link, events):
+    _run_producer(date_string=complete_link.creation_timestamp.strftime("%Y-%m-%d"))
+
+    [state] = _states(events)
+    assert state["decision"] == "queued"
+    assert state["queued"] == 1
+    assert state["ia_total_tasks_queued"] == 0 and state["ia_total_global_limit"] == 1_000 and state["ia_over_limit"] == 0
+    assert isinstance(state["state_query_ms"], int)
+
+
+@pytest.mark.django_db
+def test_state_when_nothing_is_pending(events):
+    _run_producer(date_string="1999-01-01")
+
+    [state] = _states(events)
+    assert state["decision"] == "nothing_pending"
+    assert state["queued"] == 0
+
+
+@pytest.mark.django_db
+def test_state_when_ia_is_overloaded(complete_link, events):
+    _run_producer(session=_overloaded_session(), date_string=complete_link.creation_timestamp.strftime("%Y-%m-%d"))
+
+    [state] = _states(events)
+    assert (state["decision"], state["ia_over_limit"]) == ("skip_ia_load", 1)
+
+
+@pytest.mark.django_db
+def test_state_when_the_ia_queue_has_work(events, broker):
+    broker.rpush("ia", "message")
+
+    _run_producer(broker=broker, date_string="1999-01-01")
+
+    [state] = _states(events)
+    assert (state["decision"], state["queue_ia"]) == ("skip_queue_nonempty", 1)
+    assert "ia_over_limit" not in state
+
+
+@pytest.mark.django_db
+def test_state_at_capacity(events, settings):
+    settings.INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS = 0
+
+    _run_producer(date_string="1999-01-01")
+
+    assert _states(events)[0]["decision"] == "skip_at_capacity"
+
+
+@pytest.mark.django_db
+def test_state_when_another_run_holds_the_lock(events, broker):
+    broker.set(IA_UPLOAD_QUEUING_LOCK, 1)
+
+    _run_producer(broker=broker, date_string="1999-01-01")
+
+    [state] = _states(events)
+    assert state["decision"] == "skip_lock"
+    assert "in_flight_derived" in state
+
+
+@pytest.mark.django_db
+def test_state_counts_files_and_pending_links(complete_link_factory, events):
+    links = [complete_link_factory() for _ in range(6)]
+    perma_item = _daily_item(links[0])
+    stale_age = settings.INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER + timedelta(minutes=1)
+    _file_with_status(perma_item, links[0], "upload_attempted")
+    _file_with_status(perma_item, links[1], "upload_attempted", None)
+    _file_with_status(perma_item, links[2], "upload_submitted", timedelta(hours=30))
+    _file_with_status(perma_item, links[3], "upload_failed")
+    _file_with_status(perma_item, links[4], "confirmed_present", stale_age)
+    # links[5] has no file: pending; links[1] is a stale attempt: pending too
+    date_string = links[0].creation_timestamp.strftime("%Y-%m-%d")
+
+    _run_producer(session=_overloaded_session(), date_string=date_string)
+
+    [state] = _states(events)
+    assert {k: state[k] for k in (
+        "in_flight_derived", "attempted_fresh", "attempted_stale", "submitted", "submitted_over_24h", "failed_upload",
+        "in_flight_stored", "pending_recent_total", "pending_oldest_day_age_days",
+    )} == {
+        "in_flight_derived": 2, "attempted_fresh": 1, "attempted_stale": 1, "submitted": 1, "submitted_over_24h": 1,
+        "failed_upload": 1, "in_flight_stored": 2, "pending_recent_total": 2, "pending_oldest_day_age_days": 0,
+    }
+    assert state["pending_by_day"] == {date_string: 2}
+    assert 29.9 < state["oldest_submitted_hours"] < 30.1
+
+
+@pytest.mark.django_db
+def test_state_leaves_out_fields_whose_query_times_out(events, settings):
+    settings.INTERNET_ARCHIVE_STATE_STATEMENT_TIMEOUT_MS = 10
+
+    def slow():
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT pg_sleep(1)")
+        return {"pending_recent_total": 1}
+
+    with patch("perma.celery_tasks.ia_pending_state", slow):
+        _run_producer(date_string="1999-01-01")
+
+    [state] = _states(events)
+    assert "pending_recent_total" not in state
+    assert state["in_flight_derived"] == 0
+
+
+@pytest.mark.django_db
+def test_state_is_cached_for_the_stats_page(events):
+    cache.delete(IA_STATE_CACHE_KEY)
+
+    _run_producer(date_string="1999-01-01")
+
+    emitted = {k: v for k, v in _states(events)[0].items() if k not in ("ia_metrics", "event")}
+    assert cache.get(IA_STATE_CACHE_KEY)["state"] == emitted
+    cache.delete(IA_STATE_CACHE_KEY)
