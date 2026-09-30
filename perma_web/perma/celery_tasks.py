@@ -1423,7 +1423,10 @@ def queue_internet_archive_deletions(limit=None):
     except SoftTimeLimitExceeded:
         pass
 
-    logger.info(f"Queued { len(queued) } links for deletion ({queued[0]} through {queued[-1]}).")
+    if queued:
+        logger.info(f"Queued {len(queued)} links for deletion ({queued[0]} through {queued[-1]}).")
+    else:
+        logger.info("Queued 0 links for deletion.")
 
 
 def give_up_on_exhausted_ia_attempts(files, attempting='upload_attempted', failed='upload_failed'):

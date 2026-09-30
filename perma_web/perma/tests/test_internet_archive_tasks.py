@@ -1105,3 +1105,13 @@ def test_upload_queueing_logs_ia_load_every_run(complete_link, caplog):
     _producer_run(complete_link, _fake_session(Mock()))
 
     assert "IA load before queuing: {'detail': " in caplog.text
+
+
+@pytest.mark.django_db
+def test_deletion_queueing_with_nothing_to_delete(caplog):
+    caplog.set_level(logging.INFO)
+    with patch.object(delete_link_from_daily_item, "delay") as delay:
+        queue_internet_archive_deletions.run()
+
+    delay.assert_not_called()
+    assert "Queued 0 links for deletion." in caplog.text
