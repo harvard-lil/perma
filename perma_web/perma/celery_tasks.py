@@ -41,6 +41,7 @@ from perma.utils import (
     copy_file_data, date_range, deployment_pending, send_to_scoop, current_scoop_api,
     calculate_s3_etag,
     temporary_working_directory)
+from perma import ia_metrics
 from perma.email import send_staff_invited_new_user_email, send_user_email
 from perma.wsgi_utils import retry_on_exception
 
@@ -647,6 +648,28 @@ def ia_error_is_rate_limit(error):
     )
 
 
+def ia_rate_limit_reason(s3_is_overloaded, s3_details, check_bucket=True):
+    """
+    Which of IA's limits turned a task away, for metrics: IA's own over_limit flag
+    (or no usable answer), else the first of our margins that was reached.
+    """
+    if s3_is_overloaded:
+        return 'ia_over_limit'
+    if ia_global_task_limit_approaching(s3_details):
+        return 'global'
+    if ia_perma_task_limit_approaching(s3_details):
+        return 'accesskey'
+    if check_bucket and ia_bucket_task_limit_approaching(s3_details):
+        return 'bucket'
+    return None
+
+
+def record_ia_http_error(error, item):
+    response = getattr(error, 'response', None)
+    if isinstance(error, requests.exceptions.HTTPError) and response is not None:
+        ia_metrics.flow('http_error', item=item, status=response.status_code)
+
+
 def ia_rate_limit_countdown(attempts):
     """
     Seconds to wait before retrying an IA task that was turned away by rate limiting.
@@ -776,6 +799,7 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
     claim = InternetArchiveFile.claim_upload(identifier, link_guid, self.request.get(IA_CLAIM_HEADER))
     if not claim:
         logger.info(f"Not uploading {link_guid} to {identifier}: another task is attempting the upload.")
+        ia_metrics.flow('upload_claim_lost', item=identifier)
         return
     previous_status = perma_file.status if perma_file else None
     perma_file = InternetArchiveFile.objects.get(item_id=identifier, link_id=link_guid)
@@ -783,14 +807,18 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
         logger.info(f"Retrying upload of {link_guid} to {identifier} (attempts {attempts}, timeouts {timeouts}).")
     elif previous_status is None:
         logger.info(f"Uploading {link_guid} to {identifier}.")
+        ia_metrics.flow('upload_started', item=identifier)
     elif previous_status == 'confirmed_absent':
         logger.info(f"Uploading {link_guid} (previously deleted) to {identifier}.")
+        ia_metrics.flow('upload_started', item=identifier)
     else:
         logger.info(f"Re-attempting stale upload of {link_guid} to {identifier} (attempt {perma_file.attempts} of {settings.INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE}).")
+        ia_metrics.flow('upload_stale_reattempt', item=identifier, attempt=perma_file.attempts)
 
     # Attempt the upload
 
-    def retry_upload(attempt_count, timeout_count, countdown=None):
+    def retry_upload(attempt_count, timeout_count, reason, countdown=None):
+        ia_metrics.flow('upload_retry', item=identifier, reason=reason)
         retry_ia_task(upload_link_to_internet_archive, (link_guid, attempt_count, timeout_count), claim, countdown)
 
     # Make sure we aren't exceeding rate limits
@@ -805,12 +833,13 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
     if s3_is_overloaded or perma_task_limit_approaching or global_task_limit_approaching or bucket_task_limit_approaching:
         # This logging is noisy: we're not sure whether we want it or not, going forward.
         logger.warning(f"Skipped IA upload task for {link_guid} (IA Item {identifier}) due to rate limit: {s3_details}.")
+        ia_metrics.flow('rate_limited', item=identifier, limit=ia_rate_limit_reason(s3_is_overloaded, s3_details))
         retry = (
             not settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT or
             (settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT > attempts + 1)
         )
         if retry:
-            retry_upload(attempts + 1, timeouts, countdown=ia_rate_limit_countdown(attempts))
+            retry_upload(attempts + 1, timeouts, 'rate_limit', countdown=ia_rate_limit_countdown(attempts))
         else:
             msg = f"Not retrying IA upload task for {link_guid} (IA Item {identifier}): rate limit retry maximum reached."
             if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
@@ -821,12 +850,13 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
 
     def retry_after_error(e):
         logger.warning(f"Upload task for {link_guid} (IA Item {identifier}) encountered an unexpected error ({ str(e).strip() }). Will retry if allowed.")
+        record_ia_http_error(e, identifier)
         retry = (
             not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
             (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > attempts + 1)
         )
         if retry:
-            retry_upload(attempts + 1, timeouts)
+            retry_upload(attempts + 1, timeouts, 'http')
         else:
             msg = f"Not retrying IA upload task for {link_guid} (IA Item {identifier}, File {link.guid}): error retry maximum reached."
             if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
@@ -841,7 +871,7 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
         # Sometimes, requests to retrieve the metadata of an IA Item time out.
         # Retry later, without counting this as a failed attempt
         logger.info(f"Re-queued 'upload_link_to_internet_archive' for {link_guid} after a connection error.")
-        retry_upload(attempts, timeouts)
+        retry_upload(attempts, timeouts, 'connection')
         return
     except (requests.exceptions.HTTPError, requests.exceptions.ChunkedEncodingError) as e:
         retry_after_error(e)
@@ -882,7 +912,7 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
         )
         if retry:
             logger.info(f"Re-queued 'upload_link_to_internet_archive' for {link_guid} after SoftTimeLimitExceeded.")
-            retry_upload(attempts, timeouts + 1)
+            retry_upload(attempts, timeouts + 1, 'timeout')
         else:
             msg = f"Not retrying IA upload task for {link_guid} (IA Item {identifier}): timeout retry maximum reached."
             if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
@@ -894,7 +924,7 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
     except CONNECTION_ERRORS:
         # If Internet Archive is unavailable, retry later, without counting this as a failed attempt.
         logger.info(f"Re-queued 'upload_link_to_internet_archive' for {link_guid} after a connection error.")
-        retry_upload(attempts, timeouts)
+        retry_upload(attempts, timeouts, 'connection')
         return
 
     except (requests.exceptions.HTTPError, AssertionError) as e:
@@ -917,7 +947,7 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
             # without a lot of engineering work on our end, we simply live with these errors, and
             # re-queue the failed attempts, without considering it a failed attempt.
             logger.info(f"Re-queued 'upload_link_to_internet_archive' for {link_guid} after an IA bucket lock: {error_string.strip()[:120]}")
-            retry_upload(attempts, timeouts)
+            retry_upload(attempts, timeouts, 'bucket_lock')
             return
         elif ia_error_is_rate_limit(e):
             # This logging is noisy: we're not sure whether we want it or not, going forward.
@@ -927,7 +957,7 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
                 (settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT > attempts + 1)
             )
             if retry:
-                retry_upload(attempts + 1, timeouts, countdown=ia_rate_limit_countdown(attempts))
+                retry_upload(attempts + 1, timeouts, 'rate_limit', countdown=ia_rate_limit_countdown(attempts))
             else:
                 msg = f"Not retrying IA upload task for {link_guid} (IA Item {identifier}): rate limit retry maximum reached."
                 if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
@@ -944,6 +974,7 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
     perma_file.save(update_fields=['status'])
 
     logger.info(f"Uploaded {link_guid} to {identifier}: confirmation pending.")
+    ia_metrics.flow('upload_submitted', item=identifier)
 
 
 @shared_task(acks_late=True)
@@ -1044,6 +1075,7 @@ def confirm_files_uploaded_to_internet_archive_item(identifier):
     ia_files = {f.get('name'): f for f in ia_item.item_metadata.get('files', [])}
     confirmed = []
     still_pending = []
+    unconfirmed = 0
     for perma_file in pending:
         link = perma_file.link
         ia_file = ia_files.get(InternetArchiveFile.WARC_FILENAME.format(guid=link.guid))
@@ -1073,6 +1105,7 @@ def confirm_files_uploaded_to_internet_archive_item(identifier):
         if now - perma_file.status_updated >= settings.INTERNET_ARCHIVE_UPLOAD_CONFIRMATION_MAX_AGE:
             perma_file.status = 'upload_unconfirmed'
             perma_file.save(update_fields=['status'])
+            unconfirmed += 1
             logger.error(f"Please investigate the upload of {link.guid} to IA Item {identifier}: not confirmed {settings.INTERNET_ARCHIVE_UPLOAD_CONFIRMATION_MAX_AGE} after submission, so no longer checking. Last check: {mismatch}")
         else:
             still_pending.append(perma_file)
@@ -1102,6 +1135,10 @@ def confirm_files_uploaded_to_internet_archive_item(identifier):
 
     perma_item.save(update_fields=update_fields)
     InternetArchiveItem.refresh_tasks_in_progress(identifier)
+    if confirmed:
+        ia_metrics.flow('upload_confirmed', n=len(confirmed), item=identifier)
+    if unconfirmed:
+        ia_metrics.flow('upload_unconfirmed', n=unconfirmed, item=identifier)
 
     summary = f"Confirmed {len(confirmed)} upload{pluralize(len(confirmed))} to {identifier}; {len(still_pending)} still pending"
     if still_pending:
@@ -1157,16 +1194,19 @@ def delete_link_from_daily_item(self, link_guid, attempts=0):
     claim = InternetArchiveFile.claim_deletion(identifier, link_guid, self.request.get(IA_CLAIM_HEADER))
     if not claim:
         logger.info(f"Not deleting {link_guid} from {identifier}: another task is attempting the deletion.")
+        ia_metrics.flow('deletion_claim_lost', item=identifier)
         return
     if retrying:
         logger.info(f"Retrying deletion of {link_guid} from {identifier} (attempts {attempts}).")
     elif perma_file.status == 'confirmed_present':
         logger.info(f"Deleting {link_guid} from {identifier}.")
+        ia_metrics.flow('deletion_started', item=identifier)
     else:
         perma_file.refresh_from_db(fields=['attempts'])
         logger.info(f"Re-attempting stale deletion of {link_guid} from {identifier} (attempt {perma_file.attempts} of {settings.INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE}).")
 
-    def retry_deletion(attempt_count, countdown=None):
+    def retry_deletion(attempt_count, reason, countdown=None):
+        ia_metrics.flow('deletion_retry', item=identifier, reason=reason)
         retry_ia_task(delete_link_from_daily_item, (link_guid, attempt_count), claim, countdown)
 
     # Make sure we aren't exceeding rate limits
@@ -1185,7 +1225,7 @@ def delete_link_from_daily_item(self, link_guid, attempts=0):
             (settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT > attempts + 1)
         )
         if retry:
-            retry_deletion(attempts + 1, countdown=ia_rate_limit_countdown(attempts))
+            retry_deletion(attempts + 1, 'rate_limit', countdown=ia_rate_limit_countdown(attempts))
         else:
             msg = f"Not retrying IA deletion task for {link_guid} (IA Item {identifier}): rate limit retry maximum reached."
             if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
@@ -1196,12 +1236,13 @@ def delete_link_from_daily_item(self, link_guid, attempts=0):
 
     def retry_after_error(e):
         logger.warning(f"Deletion task for {link_guid} (IA Item {identifier}) encountered an unexpected error ({ str(e).strip() }). Will retry if allowed.")
+        record_ia_http_error(e, identifier)
         retry = (
             not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
             (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > attempts + 1)
         )
         if retry:
-            retry_deletion(attempts + 1)
+            retry_deletion(attempts + 1, 'connection' if isinstance(e, CONNECTION_ERRORS) else 'http')
         else:
             msg = f"Not retrying IA deletion task for {link_guid} (IA Item {identifier}, File {link_guid}): error retry maximum reached."
             if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
@@ -1217,7 +1258,7 @@ def delete_link_from_daily_item(self, link_guid, attempts=0):
         # Sometimes, requests to retrieve the metadata of an IA Item time out.
         # Retry later, without counting this as a failed attempt
         logger.info(f"Re-queued 'delete_link_from_daily_item' for {link_guid} after a connection error.")
-        retry_deletion(attempts)
+        retry_deletion(attempts, 'connection')
         return
     except (requests.exceptions.HTTPError, requests.exceptions.ChunkedEncodingError) as e:
         retry_after_error(e)
@@ -1255,7 +1296,7 @@ def delete_link_from_daily_item(self, link_guid, attempts=0):
                 (settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT > attempts + 1)
             )
             if retry:
-                retry_deletion(attempts + 1, countdown=ia_rate_limit_countdown(attempts))
+                retry_deletion(attempts + 1, 'rate_limit', countdown=ia_rate_limit_countdown(attempts))
             else:
                 msg = f"Not retrying IA deletion task for {link_guid} (IA Item {identifier}): rate limit retry maximum reached."
                 if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
@@ -1272,6 +1313,7 @@ def delete_link_from_daily_item(self, link_guid, attempts=0):
     perma_file.save(update_fields=['status'])
 
     logger.info(f"Requested deletion of {link_guid} from {identifier}: confirmation pending.")
+    ia_metrics.flow('deletion_submitted', item=identifier)
 
 
 @shared_task(acks_late=True)
@@ -1347,6 +1389,7 @@ def confirm_file_deleted_from_daily_item(file_id, attempts=0, connection_errors=
     ])
 
     logger.info(f"Confirmed deletion of {guid} from {perma_item.identifier}.")
+    ia_metrics.flow('deletion_confirmed', item=perma_item.identifier)
 
 
 @shared_task(acks_late=True)
@@ -1441,7 +1484,8 @@ def give_up_on_exhausted_ia_attempts(files, attempting='upload_attempted', faile
     )
     for pk, link_id, item_id, attempts in exhausted.values_list('pk', 'link_id', 'item_id', 'attempts'):
         logger.error(f"Please investigate {link_id} (IA Item {item_id}): {attempting.split('_')[0]} attempted {attempts} times without a result, so marked {failed} and no longer retrying.")
-        InternetArchiveFile.objects.filter(pk=pk, status=attempting).update(status=failed, status_updated=timezone.now())
+        if InternetArchiveFile.objects.filter(pk=pk, status=attempting).update(status=failed, status_updated=timezone.now()):
+            ia_metrics.flow(failed, item=item_id)
 
 
 def queue_internet_archive_uploads_for_date(date_string, limit=100):
