@@ -13,6 +13,7 @@ import uuid
 from datetime import datetime, timedelta
 import psycopg2.errors
 import redis
+from internetarchive.utils import get_md5
 import sentry_sdk
 import socket
 from celery import shared_task
@@ -652,6 +653,10 @@ def ia_error_is_rate_limit(error):
     )
 
 
+class IAUploadIntegrityError(Exception):
+    """IA reports receiving different bytes from those we uploaded."""
+
+
 def ia_rate_limit_reason(s3_is_overloaded, s3_details, check_bucket=True):
     """
     Which of IA's limits turned a task away, for metrics: IA's own over_limit flag
@@ -865,7 +870,7 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
                 logger.warning(msg)
         return
 
-    def retry_after_error(e):
+    def retry_after_error(e, reason='http'):
         logger.warning(f"Upload task for {link_guid} (IA Item {identifier}) encountered an unexpected error ({ str(e).strip() }). Will retry if allowed.")
         record_ia_http_error(e, identifier)
         retry = (
@@ -873,7 +878,7 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
             (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > attempts + 1)
         )
         if retry:
-            retry_upload(attempts + 1, timeouts, 'http')
+            retry_upload(attempts + 1, timeouts, reason)
         else:
             msg = f"Not retrying IA upload task for {link_guid} (IA Item {identifier}, File {link.guid}): error retry maximum reached."
             if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
@@ -907,6 +912,7 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
                 logger.info("Downloading archive from S3.")
                 copy_file_data(warc_file, temp_warc_file)
                 temp_warc_file.seek(0)
+            warc_md5 = get_md5(temp_warc_file)
 
             response = ia_item.upload_file(
                 body=temp_warc_file,
@@ -916,12 +922,20 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
                 access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
                 secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
                 queue_derive=False,
+                # send Content-MD5, so that IA can check what it received
+                verify=True,
                 retries=0,
                 retries_sleep=0,
                 verbose=False,
                 debug=False,
             )
             assert response.status_code == 200, f"IA returned {response.status_code}): {response.text}"
+            # IA's ETag for a PUT is the MD5 of the bytes it received
+            etag = (getattr(response, 'headers', None) or {}).get('ETag')
+            if etag is None:
+                logger.warning(f"IA sent no ETag for the upload of {link_guid} to {identifier}, so it could not be checked.")
+            elif etag.strip('"').lower() != warc_md5:
+                raise IAUploadIntegrityError(f"IA's ETag {etag} does not match the WARC's MD5 {warc_md5}.")
     except SoftTimeLimitExceeded:
         retry = (
             not settings.INTERNET_ARCHIVE_UPLOAD_MAX_TIMEOUTS or
@@ -942,6 +956,10 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
         # If Internet Archive is unavailable, retry later, without counting this as a failed attempt.
         logger.info(f"Re-queued 'upload_link_to_internet_archive' for {link_guid} after a connection error.")
         retry_upload(attempts, timeouts, 'connection')
+        return
+
+    except IAUploadIntegrityError as e:
+        retry_after_error(e, 'integrity')
         return
 
     except (requests.exceptions.HTTPError, AssertionError) as e:
@@ -965,6 +983,10 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
             # re-queue the failed attempts, without considering it a failed attempt.
             logger.info(f"Re-queued 'upload_link_to_internet_archive' for {link_guid} after an IA bucket lock: {error_string.strip()[:120]}")
             retry_upload(attempts, timeouts, 'bucket_lock')
+            return
+        elif "BadDigest" in error_string or "Content-MD5" in error_string:
+            # IA found that what it received does not match the Content-MD5 we sent
+            retry_after_error(e, 'integrity')
             return
         elif ia_error_is_rate_limit(e):
             # This logging is noisy: we're not sure whether we want it or not, going forward.

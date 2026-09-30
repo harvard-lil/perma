@@ -105,6 +105,7 @@ def test_upload_to_internet_archive_sends_expected_file_and_metadata(complete_li
         "access_key": settings.INTERNET_ARCHIVE_ACCESS_KEY,
         "secret_key": settings.INTERNET_ARCHIVE_SECRET_KEY,
         "queue_derive": False,
+        "verify": True,
         "retries": 0,
         "retries_sleep": 0,
         "verbose": False,
@@ -1201,3 +1202,43 @@ def test_a_message_delivered_again_resumes_its_own_attempt(complete_link, caplog
     assert f"Resuming interrupted upload of {complete_link.guid}" in caplog.text
     perma_file = InternetArchiveFile.objects.get(link=complete_link)
     assert (perma_file.status, perma_file.attempts) == ("upload_submitted", 1)
+
+
+WARC_MD5 = "4d0c73014e20c2cbc80523240f43ce0b"  # md5(b"warc")
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("etag", [f'"{WARC_MD5}"', f'"{WARC_MD5.upper()}"', WARC_MD5])
+def test_upload_checks_ias_etag_against_the_warcs_md5(complete_link, etag):
+    ia_item = Mock()
+    ia_item.upload_file.return_value = SimpleNamespace(status_code=200, text="", headers={"ETag": etag})
+
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(ia_item)),
+        patch.object(Link, "get_warc", return_value=nullcontext(BytesIO(b"warc"))),
+    ):
+        upload_link_to_internet_archive.run(complete_link.guid)
+
+    assert InternetArchiveFile.objects.get(link=complete_link).status == "upload_submitted"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("response, error", [
+    (SimpleNamespace(status_code=200, text="", headers={"ETag": '"0123456789abcdef0123456789abcdef"'}), None),
+    (None, _http_error(400, "The Content-MD5 you specified did not match what we received.")),
+])
+def test_upload_integrity_failures_count_as_attempts(complete_link, response, error):
+    ia_item = Mock()
+    ia_item.upload_file.return_value = response
+    ia_item.upload_file.side_effect = error
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(ia_item)),
+        patch.object(Link, "get_warc", return_value=nullcontext(BytesIO(b"warc"))),
+        patch.object(upload_link_to_internet_archive, "apply_async") as apply_async,
+        patch("perma.ia_metrics.flow") as flow,
+    ):
+        upload_link_to_internet_archive.run(complete_link.guid)
+
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=None, headers=CLAIMED)
+    flow.assert_any_call("upload_retry", item=ANY, reason="integrity")
+    assert InternetArchiveFile.objects.get(link=complete_link).status == "upload_attempted"
