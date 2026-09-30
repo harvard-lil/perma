@@ -5,6 +5,7 @@ from io import BytesIO
 from types import SimpleNamespace
 from unittest.mock import ANY, Mock, patch
 
+import fakeredis
 import pytest
 import requests
 from celery.exceptions import SoftTimeLimitExceeded
@@ -14,6 +15,7 @@ from django.utils import timezone
 from psycopg2.extras import DateTimeTZRange
 
 from perma.celery_tasks import (
+    IA_UPLOAD_QUEUING_LOCK,
     conditionally_queue_internet_archive_uploads_for_date_range,
     confirm_file_deleted_from_daily_item,
     confirm_file_uploaded_to_internet_archive,
@@ -810,3 +812,41 @@ def test_upload_retry_yields_to_a_task_that_reclaimed_its_stale_attempt(complete
         upload_link_to_internet_archive.run(complete_link.guid, 1, 0, old_claim)
 
     session.get_s3_load_info.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_upload_queueing_runs_one_at_a_time():
+    broker = fakeredis.FakeStrictRedis()
+
+    with (
+        patch("perma.celery_tasks.redis.from_url", return_value=broker),
+        patch("perma.celery_tasks.queue_internet_archive_uploads_for_date_range") as queue_uploads,
+    ):
+        broker.set(IA_UPLOAD_QUEUING_LOCK, 1)
+        conditionally_queue_internet_archive_uploads_for_date_range.run(None, None)
+        queue_uploads.assert_not_called()
+
+        broker.delete(IA_UPLOAD_QUEUING_LOCK)
+        conditionally_queue_internet_archive_uploads_for_date_range.run(None, None)
+        queue_uploads.assert_called_once()
+
+        # the lock is released even when a run fails
+        queue_uploads.side_effect = SoftTimeLimitExceeded
+        with pytest.raises(SoftTimeLimitExceeded):
+            conditionally_queue_internet_archive_uploads_for_date_range.run(None, None)
+    assert not broker.exists(IA_UPLOAD_QUEUING_LOCK)
+
+
+@pytest.mark.django_db
+def test_upload_queueing_lock_outlasts_a_run():
+    broker = fakeredis.FakeStrictRedis()
+
+    def check_lock(*args):
+        assert 0 < broker.ttl(IA_UPLOAD_QUEUING_LOCK) <= settings.CELERY_TASK_TIME_LIMIT
+
+    with (
+        patch("perma.celery_tasks.redis.from_url", return_value=broker),
+        patch("perma.celery_tasks.queue_internet_archive_uploads_for_date_range", side_effect=check_lock) as queue_uploads,
+    ):
+        conditionally_queue_internet_archive_uploads_for_date_range.run(None, None)
+    queue_uploads.assert_called_once()

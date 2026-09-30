@@ -1431,8 +1431,30 @@ def queue_internet_archive_uploads_for_date(date_string, limit=100):
         return 0
 
 
+IA_UPLOAD_QUEUING_LOCK = 'perma:ia-upload-queuing'
+
+
 @shared_task
 def conditionally_queue_internet_archive_uploads_for_date_range(start_date_string, end_date_string, daily_limit=100, limit=None):
+    """
+    Runs queue_internet_archive_uploads_for_date_range, unless another run is in progress.
+
+    A beat message delivered late can run alongside the next one, and both runs would
+    select and queue the same pending links. The lock expires after the task's hard
+    time limit, so it cannot expire while a run is still going, and a run that dies
+    without releasing it holds off later runs for at most that long.
+    """
+    broker = redis.from_url(settings.CELERY_BROKER_URL)
+    if not broker.set(IA_UPLOAD_QUEUING_LOCK, 1, nx=True, ex=settings.CELERY_TASK_TIME_LIMIT):
+        logger.info("Skipped the queuing of file upload tasks: another run is in progress.")
+        return
+    try:
+        queue_internet_archive_uploads_for_date_range(start_date_string, end_date_string, daily_limit, limit)
+    finally:
+        broker.delete(IA_UPLOAD_QUEUING_LOCK)
+
+
+def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_string, daily_limit=100, limit=None):
     """
     Queues up to settings.INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS links for upload to IA, spread over
     a number of days such that no more than `daily_limit` are ever queued for a particular day. May
