@@ -423,6 +423,14 @@ LOGGING['handlers'] = {
         'filters': ['ignore_503', 'require_debug_false'],
         'class': 'perma.reporter.CustomAdminEmailHandler'
     },
+    # IA metrics lines: the message alone, on the real stdout rather than the
+    # sys.stdout that Celery redirects into logging (see perma/ia_metrics.py)
+    'ia_metrics': {
+        'level': 'INFO',
+        'class': 'logging.StreamHandler',
+        'stream': 'ext://sys.__stdout__',
+        'formatter': 'bare',
+    },
     # log to file
     'file': {
         'level':'INFO',
@@ -466,12 +474,20 @@ LOGGING['loggers'] = {
     # show info for our invoke tasks
     'tasks': {
         'level': 'INFO'
-    }
+    },
+    'perma.ia_metrics': {
+        'level': 'INFO',
+        'handlers': ['ia_metrics'],
+        'propagate': False,
+    },
 }
 LOGGING['formatters'] = {
     **LOGGING['formatters'],
     'standard': {
         'format': '%(asctime)s [%(levelname)s] %(filename)s %(lineno)d: %(message)s'
+    },
+    'bare': {
+        'format': '%(message)s'
     },
 }
 
