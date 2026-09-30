@@ -657,9 +657,13 @@ def ia_error_is_spam_flag(error):
     """
     Whether IA refused an upload because it appears to be spam. IA sends a 503 with
     code SlowDown, the usual "Please reduce your request rate." message, and a
-    Resource saying the upload appears to be spam; internetarchive stops retrying
-    on that text too (jjjake/internetarchive#383). Uploaders report that retrying
-    the same item fails indefinitely (bibanon/tubeup#163).
+    Resource saying "Your upload of <item> from username <account> appears to be
+    spam. …". Other uploaders report the flag holding for an item indefinitely
+    (bibanon/tubeup#163), and internetarchive does not retry it
+    (jjjake/internetarchive#383). But in a test on 2026-09-30, ten parallel first
+    PUTs to a new item got four of these alongside bucket-lock errors, and all
+    four succeeded when retried two seconds later. So it is retried, with a
+    counted attempt, rather than treated as final.
     """
     response = getattr(error, 'response', None)
     content = getattr(response, 'content', None) or b''
@@ -985,16 +989,19 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
         # ('SlowDown', ('Please reduce your request rate.', '503 Slow Down'))
         error_string = str(e)
         if ia_error_is_spam_flag(e):
-            # IA answers an upload it has flagged as spam with a 503 SlowDown whose
-            # message also says "Please reduce your request rate.", but retrying does
-            # not help: the flag holds for the item (see ia_error_is_spam_flag).
-            logger.error(f"Please investigate {link_guid} (IA Item {identifier}): IA refused the upload as spam ({error_string.strip()[:200]}), so marked upload_failed and no longer retrying.")
+            # Retry with the rate-limit backoff, but count the attempt, so that a
+            # lasting flag ends in the usual give-up (see ia_error_is_spam_flag).
+            logger.warning(f"Upload task for {link_guid} (IA Item {identifier}) refused by IA as spam ({error_string.strip()[:200]}). Will retry if allowed.")
             response = getattr(e, 'response', None)
             ia_metrics.flow('http_error', item=identifier, status=getattr(response, 'status_code', 0), reason='spam')
-            if InternetArchiveFile.objects.filter(pk=perma_file.pk, status='upload_attempted', claim=claim).update(
-                status='upload_failed', status_updated=timezone.now()
-            ):
-                ia_metrics.flow('upload_failed', item=identifier)
+            retry = (
+                not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
+                (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > attempts + 1)
+            )
+            if retry:
+                retry_upload(attempts + 1, timeouts, 'spam', countdown=ia_rate_limit_countdown(attempts))
+            else:
+                logger.warning(f"Not retrying IA upload task for {link_guid} (IA Item {identifier}): error retry maximum reached after a spam refusal.")
             return
         elif ("The bucket namespace is shared" in error_string or
                 "Failed to get necessary short term bucket lock" in error_string or
@@ -1088,7 +1095,8 @@ def queue_file_uploaded_confirmation_tasks(limit=None):
 
 
 # Extended errors from IA's metadata read API (https://archive.org/developers/md-read.html)
-# that mean the item's metadata is not available, or not current, yet
+# that mean the item's metadata is not available, or not current, yet. IA does not
+# report every such case (see confirm_files_uploaded_to_internet_archive_item).
 IA_METADATA_NOT_READY_ERRORS = {
     101: "item creation is pending",
     102: "the item is unavailable (data nodes offline or not responding)",
@@ -1219,7 +1227,10 @@ def confirm_files_uploaded_to_internet_archive_item(identifier):
 
     try:
         # A small read first: if IA reports that the item's metadata is not ready,
-        # don't fetch all of it, or judge files against a record that may be stale.
+        # don't fetch all of it, or judge files against it. This catches only what IA
+        # reports: in a test on 2026-09-30, reads alternated between an item's primary
+        # and secondary copies with no extended error, so a file missing from a stale
+        # copy is simply found at a later check.
         not_ready = ia_metadata_not_ready(read_ia_metadata_part(ia_session, identifier, 'pending_tasks'))
         if not not_ready:
             ia_item = ia_session.get_item(identifier, request_kwargs={'params': {'extended_err': 1}})

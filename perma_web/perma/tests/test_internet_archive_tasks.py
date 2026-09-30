@@ -1261,38 +1261,69 @@ def test_upload_integrity_failures_count_as_attempts(complete_link, response, er
     assert InternetArchiveFile.objects.get(link=complete_link).status == "upload_attempted"
 
 
+# Observed on 2026-09-30 in ten parallel first PUTs to a new IA item: the raw bodies,
+# and the exception text as internetarchive re-raises it (Message and Resource joined).
+ITEM = "perma-ia-apitest-20260930-32f62c-1"
 SPAM_503_BODY = (
-    b'<?xml version="1.0" encoding="UTF-8"?><Error><Code>SlowDown</Code>'
-    b'<Message>Please reduce your request rate.</Message>'
-    b'<Resource>Your upload of daily_perma_cc_2026-09-29 appears to be spam. If you believe this is a mistake, '
-    b'contact info@archive.org and include this message.</Resource></Error>'
+    b"<Error><Code>SlowDown</Code><Message>Please reduce your request rate.</Message>"
+    b"<Resource>Your upload of " + ITEM.encode() + b" from username someone@example.com appears to be spam. "
+    b"If you believe this is a mistake, contact info@archive.org and include this entire message in your email.</Resource></Error>"
+)
+SPAM_503_TEXT = (
+    f" error uploading race-00.warc.gz to {ITEM}, Please reduce your request rate. - Your upload of {ITEM} "
+    "from username someone@example.com appears to be spam. If you believe this is a mistake, contact "
+    "info@archive.org and include this entire message in your email."
+)
+LOCK_500_TEXT = (
+    f" error uploading race-04.warc.gz to {ITEM}, We encountered an internal error. Please try again. - "
+    f"Failed to get necessary short term bucket lock for {ITEM}, please try again"
+)
+NAMESPACE_409_TEXT = (
+    f" error uploading race-07.warc.gz to {ITEM}, The requested bucket name is not available. The bucket "
+    "namespace is shared by all users of the system. Please select a different name and try again."
 )
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("error", [
-    # as internetarchive re-raises it: Message and Resource joined into the text
-    requests.exceptions.HTTPError(
-        " error uploading to item, Please reduce your request rate. - Your upload of daily_perma_cc_2026-09-29 appears to be spam.",
-        response=SimpleNamespace(status_code=503, content=SPAM_503_BODY),
-    ),
+    requests.exceptions.HTTPError(SPAM_503_TEXT, response=SimpleNamespace(status_code=503, content=SPAM_503_BODY)),
     # the flag found only in the response body
     requests.exceptions.HTTPError(
         " error uploading to item, Please reduce your request rate.",
         response=SimpleNamespace(status_code=503, content=SPAM_503_BODY),
     ),
 ])
-def test_spam_flagged_uploads_fail_without_retrying(complete_link, caplog, error):
+def test_spam_refusals_are_retried_with_backoff_as_counted_attempts(complete_link, error):
     with patch("perma.ia_metrics.flow") as flow:
         apply_async, delay = _upload_raising(complete_link, error)
 
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=42, headers=CLAIMED)
+    delay.assert_not_called()
+    assert InternetArchiveFile.objects.get(link=complete_link).status == "upload_attempted"
+    flow.assert_any_call("http_error", item=ANY, status=503, reason="spam")
+    flow.assert_any_call("upload_retry", item=ANY, reason="spam")
+
+
+@pytest.mark.django_db
+def test_spam_refusals_stop_at_the_error_limit(complete_link):
+    error = requests.exceptions.HTTPError(SPAM_503_TEXT, response=SimpleNamespace(status_code=503, content=SPAM_503_BODY))
+
+    apply_async, delay = _upload_raising(complete_link, error, attempts=settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT - 1)
+
     apply_async.assert_not_called()
     delay.assert_not_called()
-    assert InternetArchiveFile.objects.get(link=complete_link).status == "upload_failed"
-    assert f"Please investigate {complete_link.guid}" in caplog.text
-    assert "refused the upload as spam" in caplog.text
-    flow.assert_any_call("http_error", item=ANY, status=503, reason="spam")
-    flow.assert_any_call("upload_failed", item=ANY)
+    # left for the stale requeue and the per-file attempt cap
+    assert InternetArchiveFile.objects.get(link=complete_link).status == "upload_attempted"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("status, text", [(500, LOCK_500_TEXT), (409, NAMESPACE_409_TEXT)])
+def test_item_creation_race_errors_are_retried_without_counting(complete_link, status, text):
+    error = requests.exceptions.HTTPError(text, response=SimpleNamespace(status_code=status, content=b""))
+
+    apply_async, delay = _upload_raising(complete_link, error, attempts=1)
+
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=None, headers=CLAIMED)
 
 
 @pytest.mark.django_db
