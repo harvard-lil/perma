@@ -113,7 +113,9 @@ class InternetArchiveItem(models.Model):
 
     @classmethod
     def inflight_task_count(cls):
-        return cls.objects.aggregate(Sum('tasks_in_progress'))['tasks_in_progress__sum']
+        # The filter lets Postgres read only the few items with tasks from the
+        # index on tasks_in_progress, which refresh_tasks_in_progress keeps >= 0.
+        return cls.objects.filter(tasks_in_progress__gt=0).aggregate(Sum('tasks_in_progress'))['tasks_in_progress__sum']
 
     @classmethod
     def refresh_tasks_in_progress(cls, identifier=None):
@@ -127,12 +129,19 @@ class InternetArchiveItem(models.Model):
             item_id=OuterRef('identifier')
         ).order_by().values('item_id').annotate(n=Count('*')).values('n')
         if identifier:
-            items = cls.objects.filter(identifier=identifier)
+            identifiers = [identifier]
         else:
-            items = cls.objects.filter(
-                ~Q(tasks_in_progress=0) | Q(identifier__in=in_flight.values('item_id'))
+            # Two index lookups: combined into one filter with OR, or written as
+            # "tasks_in_progress != 0", this reads the whole item table, most of
+            # which is legacy single-link items.
+            identifiers = set(
+                cls.objects.filter(
+                    Q(tasks_in_progress__gt=0) | Q(tasks_in_progress__lt=0)
+                ).values_list('identifier', flat=True)
+            ) | set(
+                in_flight.values_list('item_id', flat=True).distinct()
             )
-        items.update(tasks_in_progress=Coalesce(Subquery(count), 0))
+        cls.objects.filter(identifier__in=identifiers).update(tasks_in_progress=Coalesce(Subquery(count), 0))
 
 
 class InternetArchiveFile(models.Model):
@@ -173,6 +182,15 @@ class InternetArchiveFile(models.Model):
     class Meta:
         verbose_name = "Internet Archive File"
         unique_together = (("link", "item"),)
+        indexes = [
+            # For in_flight(), per item and overall: a small index, since nearly
+            # all files are 'confirmed_present'.
+            models.Index(
+                fields=['item', 'status_updated'],
+                condition=Q(status__in=['upload_attempted', 'upload_submitted', 'deletion_attempted', 'deletion_submitted']),
+                name='perma_iafile_in_flight_idx',
+            ),
+        ]
 
     def __str__(self):
         return f"IA File {self.pk}: {self.item_id} > {self.link_id}"

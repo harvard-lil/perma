@@ -336,13 +336,17 @@ def test_tasks_in_progress_is_derived_from_file_statuses(complete_link_factory):
         perma_file = InternetArchiveFile.objects.create(item=perma_item, link=link, status=status)
         InternetArchiveFile.objects.filter(pk=perma_file.pk).update(status_updated=timezone.now() - age)
     idle_item = InternetArchiveItem.objects.create(identifier="idle", tasks_in_progress=5)
+    reset_item = InternetArchiveItem.objects.create(identifier="reset", tasks_in_progress=-2)
 
     InternetArchiveItem.refresh_tasks_in_progress()
 
     perma_item.refresh_from_db()
     idle_item.refresh_from_db()
+    reset_item.refresh_from_db()
     assert perma_item.tasks_in_progress == 3
     assert idle_item.tasks_in_progress == 0
+    assert reset_item.tasks_in_progress == 0
+    assert InternetArchiveItem.inflight_task_count() == 3
 
 
 @pytest.mark.django_db
