@@ -24,7 +24,7 @@ from ..utils import (
     raise_general_validation_error,
     raise_invalid_capture_job,
     reverse_api_view_relative,
-    url_is_invalid_unicode,
+    unexpected_url_character_excerpt,
 )
 from .base import BaseView
 
@@ -131,10 +131,10 @@ class AuthenticatedLinkListView(BaseView):
         human = request.data.get('human', False)
         if not isinstance(human, bool):
             raise ValidationError({'human': f'Value must be of type bool, not {type(human).__name__}.'})
-        # Somehow it's possible for some control characters to get to the server
+        # Invisible characters reach us in URLs copied from documents
         submitted_url = request.data.get('url', '')
-        if url_is_invalid_unicode(submitted_url):
-            raise ValidationError({'url': "Unicode error while processing URL."})
+        if excerpt := unexpected_url_character_excerpt(submitted_url):
+            raise ValidationError({'url': f'This URL contains an unexpected character at "{excerpt}". Retype that part of the URL and try again.'})
 
         capture_job = CaptureJob(
             human=human,
