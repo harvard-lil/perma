@@ -24,7 +24,7 @@ from ..utils import (
     raise_general_validation_error,
     raise_invalid_capture_job,
     reverse_api_view_relative,
-    url_is_invalid_unicode,
+    unexpected_url_character_excerpt,
 )
 from .base import BaseView
 
@@ -131,10 +131,10 @@ class AuthenticatedLinkListView(BaseView):
         human = request.data.get('human', False)
         if not isinstance(human, bool):
             raise ValidationError({'human': f'Value must be of type bool, not {type(human).__name__}.'})
-        # Somehow it's possible for some control characters to get to the server
+        # Invisible characters reach us in URLs copied from documents
         submitted_url = request.data.get('url', '')
-        if url_is_invalid_unicode(submitted_url):
-            raise ValidationError({'url': "Unicode error while processing URL."})
+        if excerpt := unexpected_url_character_excerpt(submitted_url):
+            raise ValidationError({'url': f'This URL contains an unexpected character at "{excerpt}". Retype that part of the URL and try again.'})
 
         capture_job = CaptureJob(
             human=human,
@@ -402,7 +402,7 @@ class AuthenticatedLinkDownloadView(BaseView):
         if link.replacement_link_id:
             base_url = reverse_api_view_relative('archives_download', kwargs={'guid': link.replacement_link_id})
             return HttpResponseRedirect(f"{base_url}?file_format={file_format}")
-        return stream_archive_if_permissible(link, request.user, file_format=file_format)
+        return stream_archive_if_permissible(link, request.user, file_format=file_format, head=request.method == "HEAD")
 
 
 # /folders/:parent_id/archives/:guid
@@ -419,4 +419,10 @@ class MoveLinkView(BaseView):
             raise_general_validation_error("You can't move links to your Sponsored Links folder. Select a folder belonging to a sponsor or organization, or your Personal Links folder.")
         link.move_to_folder_for_user(request.parent, request.user)
         serializer = self.serializer_class(link, context={'request': request})
-        return Response(serializer.data)
+        # Moving a link into or out of an org or sponsored folder changes the
+        # personal-link quota, so report the new count for the manage UI.
+        data = dict(serializer.data)
+        links_remaining = request.user.get_links_remaining()
+        data['links_remaining'] = 'Infinity' if links_remaining[0] == float('inf') else links_remaining[0]
+        data['links_remaining_period'] = links_remaining[1]
+        return Response(data)

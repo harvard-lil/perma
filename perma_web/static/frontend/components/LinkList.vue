@@ -197,7 +197,7 @@ const moveLink = async (folderID, guid) => {
     globalStore.addToast('Error fetching data. Please try again.', 'error');
     return;
   }
-  globalStore.linksRemaining = data.links_remaining;
+  globalStore.linksRemaining = Number(data.links_remaining);
   // remove the link from the current folder
   links.value = links.value.filter(link => link.guid !== guid);
 }
