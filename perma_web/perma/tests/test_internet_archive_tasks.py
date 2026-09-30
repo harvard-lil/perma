@@ -1242,3 +1242,48 @@ def test_upload_integrity_failures_count_as_attempts(complete_link, response, er
     apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=None, headers=CLAIMED)
     flow.assert_any_call("upload_retry", item=ANY, reason="integrity")
     assert InternetArchiveFile.objects.get(link=complete_link).status == "upload_attempted"
+
+
+SPAM_503_BODY = (
+    b'<?xml version="1.0" encoding="UTF-8"?><Error><Code>SlowDown</Code>'
+    b'<Message>Please reduce your request rate.</Message>'
+    b'<Resource>Your upload of daily_perma_cc_2026-09-29 appears to be spam. If you believe this is a mistake, '
+    b'contact info@archive.org and include this message.</Resource></Error>'
+)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("error", [
+    # as internetarchive re-raises it: Message and Resource joined into the text
+    requests.exceptions.HTTPError(
+        " error uploading to item, Please reduce your request rate. - Your upload of daily_perma_cc_2026-09-29 appears to be spam.",
+        response=SimpleNamespace(status_code=503, content=SPAM_503_BODY),
+    ),
+    # the flag found only in the response body
+    requests.exceptions.HTTPError(
+        " error uploading to item, Please reduce your request rate.",
+        response=SimpleNamespace(status_code=503, content=SPAM_503_BODY),
+    ),
+])
+def test_spam_flagged_uploads_fail_without_retrying(complete_link, caplog, error):
+    with patch("perma.ia_metrics.flow") as flow:
+        apply_async, delay = _upload_raising(complete_link, error)
+
+    apply_async.assert_not_called()
+    delay.assert_not_called()
+    assert InternetArchiveFile.objects.get(link=complete_link).status == "upload_failed"
+    assert f"Please investigate {complete_link.guid}" in caplog.text
+    assert "refused the upload as spam" in caplog.text
+    flow.assert_any_call("http_error", item=ANY, status=503, reason="spam")
+    flow.assert_any_call("upload_failed", item=ANY)
+
+
+@pytest.mark.django_db
+def test_a_plain_slowdown_is_still_a_rate_limit(complete_link):
+    error = requests.exceptions.HTTPError(
+        " error uploading to item, Please reduce your request rate.",
+        response=SimpleNamespace(status_code=503, content=b"<Error><Code>SlowDown</Code></Error>"),
+    )
+    apply_async, delay = _upload_raising(complete_link, error)
+
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=42, headers=CLAIMED)

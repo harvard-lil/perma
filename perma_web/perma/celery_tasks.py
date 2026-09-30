@@ -653,6 +653,19 @@ def ia_error_is_rate_limit(error):
     )
 
 
+def ia_error_is_spam_flag(error):
+    """
+    Whether IA refused an upload because it appears to be spam. IA sends a 503 with
+    code SlowDown, the usual "Please reduce your request rate." message, and a
+    Resource saying the upload appears to be spam; internetarchive stops retrying
+    on that text too (jjjake/internetarchive#383). Uploaders report that retrying
+    the same item fails indefinitely (bibanon/tubeup#163).
+    """
+    response = getattr(error, 'response', None)
+    content = getattr(response, 'content', None) or b''
+    return "appears to be spam" in str(error) or (isinstance(content, bytes) and b"appears to be spam" in content)
+
+
 class IAUploadIntegrityError(Exception):
     """IA reports receiving different bytes from those we uploaded."""
 
@@ -971,7 +984,19 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
         # ('ServiceUnavailable', ('Please reduce your request rate.', '503 Service Unavailable'))
         # ('SlowDown', ('Please reduce your request rate.', '503 Slow Down'))
         error_string = str(e)
-        if ("The bucket namespace is shared" in error_string or
+        if ia_error_is_spam_flag(e):
+            # IA answers an upload it has flagged as spam with a 503 SlowDown whose
+            # message also says "Please reduce your request rate.", but retrying does
+            # not help: the flag holds for the item (see ia_error_is_spam_flag).
+            logger.error(f"Please investigate {link_guid} (IA Item {identifier}): IA refused the upload as spam ({error_string.strip()[:200]}), so marked upload_failed and no longer retrying.")
+            response = getattr(e, 'response', None)
+            ia_metrics.flow('http_error', item=identifier, status=getattr(response, 'status_code', 0), reason='spam')
+            if InternetArchiveFile.objects.filter(pk=perma_file.pk, status='upload_attempted', claim=claim).update(
+                status='upload_failed', status_updated=timezone.now()
+            ):
+                ia_metrics.flow('upload_failed', item=identifier)
+            return
+        elif ("The bucket namespace is shared" in error_string or
                 "Failed to get necessary short term bucket lock" in error_string or
                 "auto_make_bucket requested" in error_string or
                 ("Checking for identifier availability..." in error_string and "not_available" in error_string)):
