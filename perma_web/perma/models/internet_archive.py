@@ -199,6 +199,19 @@ class InternetArchiveFile(models.Model):
             Q(status__in=['upload_attempted', 'deletion_attempted'], status_updated__gte=stale_before)
         )
 
+    @classmethod
+    def stale_upload_attempt(cls):
+        """
+        A Q matching upload attempts that are not in flight: not saved again within
+        INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER, or saved before status_updated was
+        recorded at all. Their tasks were killed, gave up, or were lost from the
+        queue, so the link should be queued for upload again.
+        """
+        stale_before = timezone.now() - settings.INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER
+        return Q(status='upload_attempted') & (
+            Q(status_updated__lt=stale_before) | Q(status_updated__isnull=True)
+        )
+
     WARC_FILENAME = '{guid}.warc.gz'
 
     @classmethod

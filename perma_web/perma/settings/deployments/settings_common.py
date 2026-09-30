@@ -571,7 +571,8 @@ INTERNET_ARCHIVE_UPLOAD_TIME_LIMIT = 1020
 INTERNET_ARCHIVE_UPLOAD_MAX_TIMEOUTS = 3
 # An upload or deletion attempt not saved again within this long is no longer
 # counted in InternetArchiveItem.tasks_in_progress: its task has ended without
-# recording a result. Must be longer than INTERNET_ARCHIVE_UPLOAD_TIME_LIMIT.
+# recording a result. A stale upload attempt is queued for upload again.
+# Must be longer than INTERNET_ARCHIVE_UPLOAD_TIME_LIMIT.
 INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER = timedelta(hours=1)
 # Upload confirmation. An item is checked again after its newest pending file's
 # age times the backoff factor, bounded by the max interval; items with IA tasks

@@ -670,3 +670,50 @@ def test_upload_confirmation_http_error_leaves_item_due(complete_link):
     perma_item.refresh_from_db()
     assert perma_file.status == "upload_submitted"
     assert perma_item.next_confirmation_check is None
+
+
+def _file_with_status(item, link, status, age=timedelta(0)):
+    perma_file = InternetArchiveFile.objects.create(item=item, link=link, status=status)
+    status_updated = None if age is None else timezone.now() - age
+    InternetArchiveFile.objects.filter(pk=perma_file.pk).update(status_updated=status_updated)
+    return perma_file
+
+
+@pytest.mark.django_db
+def test_upload_pending_includes_stale_attempts(complete_link_factory):
+    stale_age = settings.INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER + timedelta(minutes=1)
+    new, stale, legacy, running, submitted, present = [complete_link_factory() for _ in range(6)]
+    perma_item = _daily_item(new)
+    _file_with_status(perma_item, stale, "upload_attempted", stale_age)
+    _file_with_status(perma_item, legacy, "upload_attempted", None)
+    _file_with_status(perma_item, running, "upload_attempted")
+    _file_with_status(perma_item, submitted, "upload_submitted", stale_age)
+    _file_with_status(perma_item, present, "confirmed_present", stale_age)
+    date_string = new.creation_timestamp.strftime("%Y-%m-%d")
+
+    pending = set(Link.objects.ia_upload_pending(date_string, limit=None).values_list("guid", flat=True))
+
+    assert pending == {new.guid, stale.guid, legacy.guid}
+
+
+@pytest.mark.django_db
+def test_upload_queueing_requeues_stale_attempts_but_leaves_complete_items_alone(complete_link):
+    perma_item = _daily_item(complete_link)
+    _file_with_status(perma_item, complete_link, "upload_attempted", None)
+    date_string = complete_link.creation_timestamp.strftime("%Y-%m-%d")
+    redis_client = Mock()
+    redis_client.llen.return_value = 0
+
+    def run_producer():
+        with (
+            patch("perma.celery_tasks.redis.from_url", return_value=redis_client),
+            patch.object(upload_link_to_internet_archive, "delay") as delay,
+        ):
+            conditionally_queue_internet_archive_uploads_for_date_range.run(date_string, date_string)
+        return delay
+
+    InternetArchiveItem.objects.filter(pk=perma_item.pk).update(complete=True)
+    run_producer().assert_not_called()
+
+    InternetArchiveItem.objects.filter(pk=perma_item.pk).update(complete=False)
+    run_producer().assert_called_once_with(complete_link.guid)
