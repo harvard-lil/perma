@@ -1112,3 +1112,59 @@ def test_deletion_queueing_with_nothing_to_delete(caplog):
 
     delay.assert_not_called()
     assert "Queued 0 links for deletion." in caplog.text
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("age, status", [
+    (timedelta(days=1), "deletion_submitted"),
+    (settings.INTERNET_ARCHIVE_DELETION_CONFIRMATION_MAX_AGE, "deletion_unconfirmed"),
+])
+def test_deletion_confirmation_gives_up_after_max_age(complete_link, caplog, age, status):
+    perma_item = _daily_item(complete_link)
+    perma_file = _file_with_status(perma_item, complete_link, "deletion_submitted", age)
+    ia_item = Mock(files_count=3)
+    ia_item.get_file.return_value = Mock(exists=True)
+    session = _fake_session(ia_item)
+
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=session),
+        patch.object(confirm_file_deleted_from_daily_item, "delay") as delay,
+    ):
+        confirm_file_deleted_from_daily_item.run(perma_file.id)
+
+    perma_file.refresh_from_db()
+    assert perma_file.status == status
+    if status == "deletion_unconfirmed":
+        delay.assert_not_called()
+        assert f"Please investigate the deletion of {complete_link.guid}" in caplog.text
+        assert not InternetArchiveFile.in_flight().filter(pk=perma_file.pk).exists()
+    else:
+        delay.assert_called_once_with(perma_file.id, 1)
+
+
+@pytest.mark.django_db
+def test_deletion_confirmation_starts_the_clock_for_files_without_a_status_time(complete_link):
+    perma_file = _file_with_status(_daily_item(complete_link), complete_link, "deletion_submitted", None)
+    ia_item = Mock(files_count=3)
+    ia_item.get_file.return_value = Mock(exists=True)
+
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(ia_item)),
+        patch.object(confirm_file_deleted_from_daily_item, "delay"),
+    ):
+        confirm_file_deleted_from_daily_item.run(perma_file.id)
+
+    perma_file.refresh_from_db()
+    assert perma_file.status == "deletion_submitted"
+    assert timezone.now() - perma_file.status_updated < timedelta(minutes=1)
+
+
+@pytest.mark.django_db
+def test_deletion_task_leaves_an_unconfirmed_deletion_alone(complete_link):
+    _file_with_status(_daily_item(complete_link), complete_link, "deletion_unconfirmed")
+    session = _fake_session(Mock())
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        delete_link_from_daily_item.run(complete_link.guid)
+
+    session.get_s3_load_info.assert_not_called()

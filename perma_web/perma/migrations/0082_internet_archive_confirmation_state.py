@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='internetarchivefile',
             name='status',
-            field=models.CharField(blank=True, choices=[('upload_attempted', 'upload_attempted'), ('upload_submitted', 'upload_submitted'), ('upload_unconfirmed', 'upload_unconfirmed'), ('upload_failed', 'upload_failed'), ('confirmed_present', 'confirmed_present'), ('deletion_attempted', 'deletion_attempted'), ('deletion_submitted', 'deletion_submitted'), ('deletion_failed', 'deletion_failed'), ('confirmed_absent', 'confirmed_absent')], db_index=True, max_length=19, null=True),
+            field=models.CharField(blank=True, choices=[('upload_attempted', 'upload_attempted'), ('upload_submitted', 'upload_submitted'), ('upload_unconfirmed', 'upload_unconfirmed'), ('upload_failed', 'upload_failed'), ('confirmed_present', 'confirmed_present'), ('deletion_attempted', 'deletion_attempted'), ('deletion_submitted', 'deletion_submitted'), ('deletion_unconfirmed', 'deletion_unconfirmed'), ('deletion_failed', 'deletion_failed'), ('confirmed_absent', 'confirmed_absent')], db_index=True, max_length=20, null=True),
         ),
         migrations.AlterField(
             model_name='internetarchiveitem',

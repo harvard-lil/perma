@@ -158,13 +158,15 @@ class InternetArchiveFile(models.Model):
     # - upload_unconfirmed: IA accepted the upload, but the file did not appear with the
     #   expected metadata within INTERNET_ARCHIVE_UPLOAD_CONFIRMATION_MAX_AGE, so we
     #   stopped checking.
+    # - deletion_unconfirmed: IA accepted the deletion, but the file was still listed
+    #   INTERNET_ARCHIVE_DELETION_CONFIRMATION_MAX_AGE later, so we stopped checking.
     # - upload_failed, deletion_failed: INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE attempts
     #   ended without a result, so we stopped trying.
     status = models.CharField(
-        max_length=19,
+        max_length=20,
         null=True,
         blank=True,
-        choices=((s, s) for s in ('upload_attempted', 'upload_submitted', 'upload_unconfirmed', 'upload_failed', 'confirmed_present', 'deletion_attempted', 'deletion_submitted', 'deletion_failed', 'confirmed_absent')),
+        choices=((s, s) for s in ('upload_attempted', 'upload_submitted', 'upload_unconfirmed', 'upload_failed', 'confirmed_present', 'deletion_attempted', 'deletion_submitted', 'deletion_unconfirmed', 'deletion_failed', 'confirmed_absent')),
         db_index=True,
     )
     status_updated = models.DateTimeField(null=True, blank=True, help_text="When status was last saved, even if unchanged: an upload retry saves 'upload_attempted' again.")

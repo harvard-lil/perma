@@ -303,3 +303,27 @@ def test_state_is_cached_for_the_stats_page(events):
     emitted = {k: v for k, v in _states(events)[0].items() if k not in ("ia_metrics", "event")}
     assert cache.get(IA_STATE_CACHE_KEY)["state"] == emitted
     cache.delete(IA_STATE_CACHE_KEY)
+
+
+@pytest.mark.django_db
+def test_state_counts_unconfirmed_deletions(complete_link, events):
+    _file_with_status(_daily_item(complete_link), complete_link, "deletion_unconfirmed")
+
+    _run_producer(date_string="1999-01-01")
+
+    [state] = _states(events)
+    assert (state["unconfirmed_deletion"], state["in_flight_derived"]) == (1, 0)
+
+
+@pytest.mark.django_db
+def test_giving_up_on_a_deletion_confirmation_is_recorded(complete_link, events):
+    perma_file = _file_with_status(
+        _daily_item(complete_link), complete_link, "deletion_submitted", settings.INTERNET_ARCHIVE_DELETION_CONFIRMATION_MAX_AGE
+    )
+    ia_item = Mock(files_count=3)
+    ia_item.get_file.return_value = Mock(exists=True)
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(ia_item)):
+        confirm_file_deleted_from_daily_item.run(perma_file.id)
+
+    assert _flows(events) == [{"kind": "deletion_unconfirmed", "n": 1}]

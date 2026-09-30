@@ -1185,8 +1185,8 @@ def delete_link_from_daily_item(self, link_guid, attempts=0):
     elif perma_file.status == 'deletion_submitted':
         logger.info(f"Not deleting {link_guid} from {identifier}: our records indicate the deletion has been submitted and awaits confirmation.")
         return
-    elif perma_file.status == 'deletion_failed':
-        logger.info(f"Not deleting {link_guid} from {identifier}: earlier attempts failed and it awaits a human (status 'deletion_failed').")
+    elif perma_file.status in ['deletion_failed', 'deletion_unconfirmed']:
+        logger.info(f"Not deleting {link_guid} from {identifier}: earlier attempts failed and it awaits a human (status '{perma_file.status}').")
         return
     elif perma_file.status not in ['deletion_attempted', 'confirmed_present']:
         logger.warning(f"Not deleting {link_guid} from {identifier}: task not implemented for InternetArchiveFiles with status '{perma_file.status}'.")
@@ -1352,7 +1352,21 @@ def confirm_file_deleted_from_daily_item(file_id, attempts=0, connection_errors=
     except AssertionError:
         # IA's tasks can take some time to complete;
         # the deletion-related tasks for this link appear not to have finished yet.
-        # We need to check again later.
+        # We need to check again later, unless we have been checking for too long:
+        # as with uploads, give up then and leave the file for a human, so that it
+        # no longer counts as in flight.
+        if perma_file.status == 'deletion_submitted':
+            now = timezone.now()
+            if perma_file.status_updated is None:
+                # Submitted before we recorded status times: its wait starts now.
+                perma_file.status_updated = now
+                perma_file.save(update_fields=['status_updated'])
+            if now - perma_file.status_updated >= settings.INTERNET_ARCHIVE_DELETION_CONFIRMATION_MAX_AGE:
+                perma_file.status = 'deletion_unconfirmed'
+                perma_file.save(update_fields=['status'])
+                logger.error(f"Please investigate the deletion of {guid} from IA Item {perma_item.identifier}: still present {settings.INTERNET_ARCHIVE_DELETION_CONFIRMATION_MAX_AGE} after the deletion was submitted, so no longer checking.")
+                ia_metrics.flow('deletion_unconfirmed', item=perma_item.identifier)
+                return
         retry = (
             not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
             (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > attempts + 1)
@@ -1698,7 +1712,7 @@ def ia_file_state():
     fresh = Q(status_updated__gte=stale_before)
     counts = InternetArchiveFile.objects.filter(status__in=[
         'upload_attempted', 'upload_submitted', 'upload_unconfirmed', 'upload_failed',
-        'deletion_attempted', 'deletion_submitted', 'deletion_failed',
+        'deletion_attempted', 'deletion_submitted', 'deletion_unconfirmed', 'deletion_failed',
     ]).aggregate(
         in_flight_derived=Count('pk', filter=(
             Q(status__in=['upload_submitted', 'deletion_submitted']) |
@@ -1710,6 +1724,7 @@ def ia_file_state():
         submitted_over_24h=Count('pk', filter=Q(status='upload_submitted', status_updated__lt=now - timedelta(hours=24))),
         oldest_submitted=Min('status_updated', filter=Q(status='upload_submitted')),
         unconfirmed=Count('pk', filter=Q(status='upload_unconfirmed')),
+        unconfirmed_deletion=Count('pk', filter=Q(status='deletion_unconfirmed')),
         failed_upload=Count('pk', filter=Q(status='upload_failed')),
         failed_deletion=Count('pk', filter=Q(status='deletion_failed')),
         deletion_attempted=Count('pk', filter=Q(status='deletion_attempted')),
