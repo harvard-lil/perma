@@ -4,7 +4,7 @@ from datetime import timezone as tz
 from django.conf import settings
 from django.contrib.postgres.fields import DateTimeRangeField
 from django.contrib.postgres.indexes import GistIndex
-from django.db import models
+from django.db import IntegrityError, models, transaction
 from django.db.models import Count, OuterRef, Q, Subquery, Sum
 from django.db.models.functions import Coalesce
 from django.template.defaultfilters import truncatechars
@@ -211,6 +211,38 @@ class InternetArchiveFile(models.Model):
         return Q(status='upload_attempted') & (
             Q(status_updated__lt=stale_before) | Q(status_updated__isnull=True)
         )
+
+    @classmethod
+    def claim_upload(cls, item_id, link_id, claim=None):
+        """
+        Mark this link's file in this item 'upload_attempted' for the calling task,
+        unless another task holds the attempt. Returns a claim to pass to the task's
+        own retries, or None if the upload is not the caller's to attempt.
+
+        Any task may claim a file that does not exist yet, one deleted from IA, or
+        a stale upload attempt. A fresh attempt belongs to the task that last
+        claimed it: its claim is the attempt's status_updated, and only a task
+        passing that claim, which is to say that task's own retry, may claim it
+        again. Each claim is a single INSERT or conditional UPDATE, so two tasks
+        for the same file cannot both succeed.
+        """
+        try:
+            with transaction.atomic():
+                perma_file = cls.objects.create(item_id=item_id, link_id=link_id, status='upload_attempted')
+            return perma_file.status_updated.isoformat()
+        except IntegrityError:
+            pass
+
+        claimable = Q(status='confirmed_absent') | cls.stale_upload_attempt()
+        if claim:
+            claimable |= Q(status='upload_attempted', status_updated=datetime.fromisoformat(claim))
+        now = timezone.now()
+        claimed = cls.objects.filter(
+            claimable, item_id=item_id, link_id=link_id
+        ).update(
+            status='upload_attempted', status_updated=now
+        )
+        return now.isoformat() if claimed else None
 
     WARC_FILENAME = '{guid}.warc.gz'
 

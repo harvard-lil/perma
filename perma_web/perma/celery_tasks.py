@@ -703,11 +703,14 @@ def queue_batched_tasks(task, query, batch_size=1000, **kwargs):
     soft_time_limit=settings.INTERNET_ARCHIVE_UPLOAD_SOFT_TIME_LIMIT,
     time_limit=settings.INTERNET_ARCHIVE_UPLOAD_TIME_LIMIT,
 )
-def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
+def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0, claim=None):
     """
     This task adds a link's WARC and metadata to a "daily" Internet Archive item
     using IA's S3-like API. If it fails, it re-queues itself up to settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT,
     settings.INTERNET_ARCHIVE_UPLOAD_MAX_TIMEOUTS, or settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT times.
+
+    The task proceeds only if it can claim the upload (see InternetArchiveFile.claim_upload),
+    so that two messages for the same link do not both upload it. Retries pass on `claim`.
     """
 
     # Get the link and verify that it is eligible for upload
@@ -743,35 +746,33 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
             # Use the error log, assuming this will happen rarely or never.
             logger.error(f"Please investigate the status of {link_guid}: our records indicate a deletion attempt is in progress, but an upload was attempted in the meantime.")
             return
-        elif perma_file.status in ['upload_attempted', 'upload_submitted']:
-            logger.info(f"Potentially redundant attempt to upload {link_guid} to {identifier}: if this message recurs, please look into its status.")
-        elif perma_file.status == 'confirmed_absent':
-            logger.info(f"Uploading {link_guid} (previously deleted) to {identifier}.")
-        else:
+        elif perma_file.status == 'upload_submitted':
+            logger.info(f"Not uploading {link_guid} to {identifier}: our records indicate it has been submitted and awaits confirmation.")
+            return
+        elif perma_file.status not in ['upload_attempted', 'confirmed_absent']:
             logger.warning(f"Not uploading {link_guid} to {identifier}: task not implemented for InternetArchiveFiles with status '{perma_file.status}'.")
             return
-    else:
-        # A fresh one. Create the InternetArchiveFile here.
-        perma_file = InternetArchiveFile(
-            item_id=identifier,
-            link_id=link_guid,
-            status='upload_attempted'
-        )
-        perma_file.save()
-        logger.info(f"Uploading {link_guid} to {identifier}.")
 
+    # Record that we are attempting an upload, if no other task is
+    claim = InternetArchiveFile.claim_upload(identifier, link_guid, claim)
+    if not claim:
+        logger.info(f"Not uploading {link_guid} to {identifier}: another task is attempting the upload.")
+        return
+    if not perma_file:
+        logger.info(f"Uploading {link_guid} to {identifier}.")
+    elif perma_file.status == 'confirmed_absent':
+        logger.info(f"Uploading {link_guid} (previously deleted) to {identifier}.")
+    else:
+        logger.info(f"Potentially redundant attempt to upload {link_guid} to {identifier}: if this message recurs, please look into its status.")
+    perma_file = InternetArchiveFile.objects.get(item_id=identifier, link_id=link_guid)
 
     # Attempt the upload
 
     def retry_upload(attempt_count, timeout_count, countdown=None):
         if countdown:
-            upload_link_to_internet_archive.apply_async((link_guid, attempt_count, timeout_count), countdown=countdown)
+            upload_link_to_internet_archive.apply_async((link_guid, attempt_count, timeout_count, claim), countdown=countdown)
         else:
-            upload_link_to_internet_archive.delay(link_guid, attempt_count, timeout_count)
-
-    # Record that we are attempting an upload
-    perma_file.status = 'upload_attempted'
-    perma_file.save(update_fields=['status'])
+            upload_link_to_internet_archive.delay(link_guid, attempt_count, timeout_count, claim)
 
     # Make sure we aren't exceeding rate limits
     ia_session = get_ia_session()
