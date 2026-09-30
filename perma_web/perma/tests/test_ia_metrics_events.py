@@ -347,3 +347,17 @@ def test_state_counts_items_ia_refused_to_create(complete_link, events):
     _run_producer(date_string="1999-01-01")
 
     assert (_states(events)[0]["items_refused_by_ia"], _states(events)[0]["items_blocked_by_ia_tasks"]) == (1, 0)
+
+
+@pytest.mark.django_db
+def test_state_counts_items_awaiting_creation(complete_link_factory, events):
+    # three links pending for today, whose item IA has not created
+    created = [complete_link_factory() for _ in range(3)][0]
+
+    _run_producer(date_string="1999-01-01")
+    assert _states(events)[-1]["items_awaiting_creation"] == 1
+
+    # IA accepted an upload to the day's item (all three links share today's)
+    _file_with_status(_daily_item(created), created, "upload_submitted")
+    _run_producer(date_string="1999-01-01")
+    assert _states(events)[-1]["items_awaiting_creation"] == 0

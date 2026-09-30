@@ -680,14 +680,18 @@ def ia_files_for_link(ia_files, guid):
     return [f.get('name') for f in ia_files if str(f.get('name', '')).startswith(prefix)]
 
 
+# File statuses showing that IA accepted an upload of the file
+IA_ACCEPTED_STATUSES = [
+    'upload_submitted', 'upload_unconfirmed', 'confirmed_present',
+    'deletion_attempted', 'deletion_submitted', 'deletion_unconfirmed', 'deletion_failed', 'confirmed_absent',
+]
+
+
 def perma_item_created(identifier):
     """
     Whether IA has accepted an upload to this item from us, so that it exists.
     """
-    return InternetArchiveFile.objects.filter(
-        item_id=identifier,
-        status__in=['upload_submitted', 'upload_unconfirmed', 'confirmed_present', 'deletion_attempted', 'deletion_submitted', 'deletion_unconfirmed', 'deletion_failed', 'confirmed_absent'],
-    ).exists()
+    return InternetArchiveFile.objects.filter(item_id=identifier, status__in=IA_ACCEPTED_STATUSES).exists()
 
 
 class IAUploadIntegrityError(Exception):
@@ -1865,6 +1869,7 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
         held_back = []
         refused = []
         probing = []
+        creating = []
         for day in date_range(start, end, timedelta(days=1)):
             if total_queued < to_queue:
                 date_string = day.strftime('%Y-%m-%d')
@@ -1876,6 +1881,7 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
                     prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX,
                     date_string=date_string
                 )
+                creating_item = False
                 try:
                     item = InternetArchiveItem.objects.get(identifier=identifier)
                     if item.complete:
@@ -1896,14 +1902,28 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
                             continue
                         day_limit = 1
                         probing.append(identifier)
+                    elif not perma_item_created(identifier):
+                        day_limit = 1
+                        creating_item = True
                     in_flight_for_this_day = item.tasks_in_progress
                 except InternetArchiveItem.DoesNotExist:
-                    day_limit = daily_limit
+                    day_limit = 1
+                    creating_item = True
                     in_flight_for_this_day = 0
+                # Until IA has accepted an upload to an item, send it one upload at a time:
+                # parallel uploads that would create an item get IA's bucket-lock, "bucket
+                # namespace is shared" and "appears to be spam" errors, while uploads to an
+                # existing item do not (tests against IA, 2026-09-30). The first upload's
+                # in-flight attempt keeps later runs from sending another. Once it is
+                # accepted, the next run, at least a beat interval later, sends the rest;
+                # IA took 40-58 seconds to make a new item readable, and parallel uploads to
+                # an item not yet readable were not tested.
                 bucket_limit = min(day_limit, to_queue - total_queued) - in_flight_for_this_day
                 if bucket_limit > 0:
                     count_queued = queue_internet_archive_uploads_for_date(date_string, bucket_limit)
                     if count_queued:
+                        if creating_item:
+                            creating.append(identifier)
                         total_queued += count_queued
                         queued.append(f"{date_string} ({count_queued})")
             else:
@@ -1915,6 +1935,8 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
             logger.info(f"Held back uploads to IA Items that IA refused to create: {', '.join(refused)}.")
         if probing:
             logger.info(f"Allowed one upload to test IA Items that IA refused to create: {', '.join(probing)}.")
+        if creating:
+            logger.info(f"Sent one upload to create each of these IA Items: {', '.join(creating)}.")
         if total_queued:
             logger.info(f"Prepared to upload {total_queued} links to internet archive across {len(queued)} days: {', '.join(queued)}.")
             return {'decision': 'queued', 'queued': total_queued, **ia_load}
@@ -2004,17 +2026,22 @@ def ia_pending_state():
         identifier__in=identifiers, complete=True
     ).values_list('identifier', flat=True))
     pending_by_day = {}
+    awaiting_creation = 0
     for identifier, day in identifiers.items():
         if identifier in complete:
             continue
         pending = Link.objects.ia_upload_pending(day.strftime('%Y-%m-%d'), limit=None).count()
         if pending:
             pending_by_day[day.strftime('%Y-%m-%d')] = pending
+            if not perma_item_created(identifier):
+                awaiting_creation += 1
     oldest = min(pending_by_day, default=None)
     return {
         'pending_recent_total': sum(pending_by_day.values()),
         'pending_oldest_day_age_days': (today - datetime.strptime(oldest, '%Y-%m-%d').date()).days if oldest else 0,
         'pending_by_day': dict(sorted(pending_by_day.items())),
+        # days with uploads pending whose item IA has not yet accepted an upload to
+        'items_awaiting_creation': awaiting_creation,
     }
 
 

@@ -389,10 +389,12 @@ def test_saving_a_file_status_records_when(complete_link):
 
 
 @pytest.mark.django_db
-def test_upload_queueing_ignores_an_inflated_counter(complete_link):
+def test_upload_queueing_ignores_an_inflated_counter(complete_link, complete_link_factory):
     perma_item = _daily_item(complete_link)
     perma_item.tasks_in_progress = 100
     perma_item.save()
+    # IA has accepted an upload to the item
+    _file_with_status(perma_item, complete_link_factory(), "confirmed_present")
     date_string = complete_link.creation_timestamp.strftime("%Y-%m-%d")
 
     redis_client = fakeredis.FakeStrictRedis()
@@ -906,7 +908,8 @@ def test_upload_queueing_checks_ia_load_once(complete_link_factory):
     delay = _producer_run(links[0], session)
 
     session.get_s3_load_info.assert_called_once_with(access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY)
-    assert delay.call_count == 3
+    # one upload, to create the day's item
+    assert delay.call_count == 1
 
 
 @pytest.mark.django_db
@@ -1536,3 +1539,33 @@ def test_a_simulated_slowdown_takes_the_rate_limit_path(complete_link):
 
     apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=42, headers=CLAIMED)
     flow.assert_any_call("upload_retry", item=ANY, reason="rate_limit")
+
+
+@pytest.mark.django_db
+def test_a_new_items_first_upload_goes_alone(complete_link_factory, caplog):
+    caplog.set_level(logging.INFO)
+    links = [complete_link_factory() for _ in range(3)]
+
+    # no item yet: one upload, to create it
+    first = _producer_run(links[0], _fake_session(Mock()))
+    assert first.call_count == 1
+    assert "Sent one upload to create each of these IA Items: daily_perma_cc_" in caplog.text
+
+    # its upload in flight: nothing more
+    creator = Link.objects.get(guid=first.call_args.args[0])
+    perma_item = _daily_item(creator)
+    InternetArchiveFile.claim_upload(perma_item.identifier, creator.guid, "creator")
+    assert _producer_run(links[0], _fake_session(Mock())).call_count == 0
+
+    # accepted by IA: the rest go
+    InternetArchiveFile.objects.filter(link=creator).update(status="upload_submitted")
+    rest = _producer_run(links[0], _fake_session(Mock()))
+    assert {c.args[0] for c in rest.call_args_list} == {link.guid for link in links} - {creator.guid}
+
+
+@pytest.mark.django_db
+def test_an_existing_item_without_accepted_uploads_also_gets_one_upload(complete_link_factory):
+    links = [complete_link_factory() for _ in range(3)]
+    _daily_item(links[0])
+
+    assert _producer_run(links[0], _fake_session(Mock())).call_count == 1
