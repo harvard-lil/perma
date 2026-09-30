@@ -513,7 +513,7 @@ function deleteFolder(folderID) {
 
 function moveLink(folderID, linkID) {
   return APIModule.request("PUT", "/folders/" + folderID + "/archives/" + linkID + "/").done(function (data) {
-    $(window).trigger("FolderTreeModule.updateLinksRemaining", data.links_remaining);
+    useGlobalStore().linksRemaining = Number(data.links_remaining);
     // once we're done moving the link, hide it from the current folder
     $('.item-row[data-link_id="' + linkID + '"]').closest('.item-container').remove();
   });

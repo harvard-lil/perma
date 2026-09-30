@@ -251,8 +251,14 @@ class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
         folder = self.org_user.organizations.first().folders.first()
         folder_url = "{0}/folders/{1}".format(self.url_base, folder.pk)
 
-        self.successful_put("{0}/archives/{1}".format(folder_url, self.unrelated_link.pk),
-                            user=self.org_user)
+        links_remaining_before, period, _ = self.org_user.get_links_remaining()
+
+        data = self.successful_put("{0}/archives/{1}".format(folder_url, self.unrelated_link.pk),
+                                   user=self.org_user)
+
+        # Moving a personal link into an org folder frees a personal link
+        self.assertEqual(data['links_remaining'], links_remaining_before + 1)
+        self.assertEqual(data['links_remaining_period'], period)
 
         # Make sure it's listed in the folder
         obj = self.successful_get(self.unrelated_link_detail_url, user=self.org_user)
