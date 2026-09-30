@@ -9,6 +9,7 @@ import os.path
 import random
 import tempfile
 import time
+import uuid
 from datetime import datetime, timedelta
 import psycopg2.errors
 import redis
@@ -737,6 +738,15 @@ def retry_ia_task(task, args, claim, countdown=None):
     task.apply_async(args, countdown=countdown, headers={IA_CLAIM_HEADER: claim})
 
 
+def ia_task_claim(request):
+    """
+    The claim for an IA upload or deletion task's attempt: the one passed on by the
+    task that queued it as a retry, or else this message's id, which stays the same
+    if the message is delivered again. A call outside a worker gets a claim of its own.
+    """
+    return request.get(IA_CLAIM_HEADER) or request.id or uuid.uuid4().hex
+
+
 @shared_task(
     bind=True,
     acks_late=True,
@@ -798,25 +808,29 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
             return
 
     # Record that we are attempting an upload, if no other task is
-    retrying = bool(self.request.get(IA_CLAIM_HEADER))
-    claim = InternetArchiveFile.claim_upload(identifier, link_guid, self.request.get(IA_CLAIM_HEADER))
-    if not claim:
+    claim = ia_task_claim(self.request)
+    claimed = InternetArchiveFile.claim_upload(identifier, link_guid, claim)
+    if not claimed:
         logger.info(f"Not uploading {link_guid} to {identifier}: another task is attempting the upload.")
         ia_metrics.flow('upload_claim_lost', item=identifier)
         return
     previous_status = perma_file.status if perma_file else None
     perma_file = InternetArchiveFile.objects.get(item_id=identifier, link_id=link_guid)
-    if retrying:
+    if claimed == InternetArchiveFile.CLAIM_RESUMED and self.request.get(IA_CLAIM_HEADER):
         logger.info(f"Retrying upload of {link_guid} to {identifier} (attempts {attempts}, timeouts {timeouts}).")
-    elif previous_status is None:
-        logger.info(f"Uploading {link_guid} to {identifier}.")
-        ia_metrics.flow('upload_started', item=identifier)
+    elif claimed == InternetArchiveFile.CLAIM_RESUMED:
+        # this message was delivered again, after its worker stopped
+        logger.info(f"Resuming interrupted upload of {link_guid} to {identifier} (attempts {attempts}, timeouts {timeouts}).")
+        ia_metrics.flow('upload_retry', item=identifier, reason='interrupted')
+    elif claimed == InternetArchiveFile.CLAIM_STALE:
+        logger.info(f"Re-attempting stale upload of {link_guid} to {identifier} (attempt {perma_file.attempts} of {settings.INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE}).")
+        ia_metrics.flow('upload_stale_reattempt', item=identifier, attempt=perma_file.attempts)
     elif previous_status == 'confirmed_absent':
         logger.info(f"Uploading {link_guid} (previously deleted) to {identifier}.")
         ia_metrics.flow('upload_started', item=identifier)
     else:
-        logger.info(f"Re-attempting stale upload of {link_guid} to {identifier} (attempt {perma_file.attempts} of {settings.INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE}).")
-        ia_metrics.flow('upload_stale_reattempt', item=identifier, attempt=perma_file.attempts)
+        logger.info(f"Uploading {link_guid} to {identifier}.")
+        ia_metrics.flow('upload_started', item=identifier)
 
     # Attempt the upload
 
@@ -1193,20 +1207,24 @@ def delete_link_from_daily_item(self, link_guid, attempts=0):
         return
 
     # Record that we are attempting a deletion, if no other task is
-    retrying = bool(self.request.get(IA_CLAIM_HEADER))
-    claim = InternetArchiveFile.claim_deletion(identifier, link_guid, self.request.get(IA_CLAIM_HEADER))
-    if not claim:
+    claim = ia_task_claim(self.request)
+    claimed = InternetArchiveFile.claim_deletion(identifier, link_guid, claim)
+    if not claimed:
         logger.info(f"Not deleting {link_guid} from {identifier}: another task is attempting the deletion.")
         ia_metrics.flow('deletion_claim_lost', item=identifier)
         return
-    if retrying:
+    if claimed == InternetArchiveFile.CLAIM_RESUMED and self.request.get(IA_CLAIM_HEADER):
         logger.info(f"Retrying deletion of {link_guid} from {identifier} (attempts {attempts}).")
-    elif perma_file.status == 'confirmed_present':
-        logger.info(f"Deleting {link_guid} from {identifier}.")
-        ia_metrics.flow('deletion_started', item=identifier)
-    else:
+    elif claimed == InternetArchiveFile.CLAIM_RESUMED:
+        # this message was delivered again, after its worker stopped
+        logger.info(f"Resuming interrupted deletion of {link_guid} from {identifier} (attempts {attempts}).")
+        ia_metrics.flow('deletion_retry', item=identifier, reason='interrupted')
+    elif claimed == InternetArchiveFile.CLAIM_STALE:
         perma_file.refresh_from_db(fields=['attempts'])
         logger.info(f"Re-attempting stale deletion of {link_guid} from {identifier} (attempt {perma_file.attempts} of {settings.INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE}).")
+    else:
+        logger.info(f"Deleting {link_guid} from {identifier}.")
+        ia_metrics.flow('deletion_started', item=identifier)
 
     def retry_deletion(attempt_count, reason, countdown=None):
         ia_metrics.flow('deletion_retry', item=identifier, reason=reason)

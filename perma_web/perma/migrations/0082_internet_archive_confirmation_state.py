@@ -25,6 +25,11 @@ class Migration(migrations.Migration):
             name='next_confirmation_check',
             field=models.DateTimeField(blank=True, help_text='Uploads to this item awaiting confirmation are not checked again before this time.', null=True),
         ),
+        migrations.AddField(
+            model_name='internetarchivefile',
+            name='claim',
+            field=models.CharField(blank=True, help_text='Identifies the task attempting the current upload or deletion: the id of the task message that started it.', max_length=255, null=True),
+        ),
         migrations.AlterField(
             model_name='internetarchivefile',
             name='status',

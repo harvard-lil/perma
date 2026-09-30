@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import DateTimeRangeField
 from django.contrib.postgres.indexes import GistIndex
 from django.db import IntegrityError, models, transaction
-from django.db.models import Case, Count, F, OuterRef, Q, Subquery, Sum, Value, When
+from django.db.models import Count, F, OuterRef, Q, Subquery, Sum
 from django.db.models.functions import Coalesce
 from django.template.defaultfilters import truncatechars
 from django.urls import reverse
@@ -170,6 +170,7 @@ class InternetArchiveFile(models.Model):
         db_index=True,
     )
     status_updated = models.DateTimeField(null=True, blank=True, help_text="When status was last saved, even if unchanged: an upload retry saves 'upload_attempted' again.")
+    claim = models.CharField(max_length=255, null=True, blank=True, help_text="Identifies the task attempting the current upload or deletion: the id of the task message that started it.")
     attempts = models.IntegerField(default=0, db_default=0, help_text="How many times the current upload or deletion has been started: 1 when it begins, plus 1 each time it is taken up again after going stale. A task's own retries are not counted.")
 
     cached_size = models.IntegerField(null=True, blank=True, default=None)
@@ -246,59 +247,60 @@ class InternetArchiveFile(models.Model):
         """
         return cls.stale_attempt(status) & Q(attempts__lt=settings.INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE)
 
+    # What a claim did (see claim_upload)
+    CLAIM_NEW = 'new'
+    CLAIM_RESUMED = 'resumed'
+    CLAIM_STALE = 'stale'
+
     @classmethod
     def _claim(cls, item_id, link_id, attempting, starting_from, claim):
         """
-        Set an existing file's status to `attempting` if it is in one of the
-        `starting_from` statuses (a new attempt), in a stale `attempting` status
-        (the attempt taken up again), or in `attempting` saved at exactly `claim`
-        (the same attempt, retried). Returns the new claim, or None.
+        Claim an existing file for the attempt identified by `claim`: resume it if
+        the file is already `attempting` under that claim, start a new attempt if
+        the file is in one of the `starting_from` statuses, or take up a stale
+        `attempting` attempt. Each step is one conditional UPDATE, so two callers
+        cannot both succeed. Returns CLAIM_RESUMED, CLAIM_NEW, CLAIM_STALE or None.
         """
-        restart = Q(status__in=starting_from)
-        whens = [When(restart, then=Value(1))]
-        claimable = restart | cls.stale_attempt(attempting)
-        if claim:
-            retried = Q(status=attempting, status_updated=datetime.fromisoformat(claim))
-            whens.append(When(retried, then=F('attempts')))
-            claimable |= retried
+        if not claim:
+            raise ValueError("A claim is required.")
+        file = cls.objects.filter(item_id=item_id, link_id=link_id)
         now = timezone.now()
-        claimed = cls.objects.filter(
-            claimable, item_id=item_id, link_id=link_id
-        ).update(
-            status=attempting,
-            status_updated=now,
-            attempts=Case(*whens, default=F('attempts') + 1),
-        )
-        return now.isoformat() if claimed else None
+        if file.filter(status=attempting, claim=claim).update(status_updated=now):
+            return cls.CLAIM_RESUMED
+        if file.filter(status__in=starting_from).update(status=attempting, status_updated=now, claim=claim, attempts=1):
+            return cls.CLAIM_NEW
+        if file.filter(cls.stale_attempt(attempting)).update(status=attempting, status_updated=now, claim=claim, attempts=F('attempts') + 1):
+            return cls.CLAIM_STALE
+        return None
 
     @classmethod
-    def claim_upload(cls, item_id, link_id, claim=None):
+    def claim_upload(cls, item_id, link_id, claim):
         """
         Mark this link's file in this item 'upload_attempted' for the calling task,
-        unless another task holds the attempt. Returns a claim to pass to the task's
-        own retries, or None if the upload is not the caller's to attempt.
+        unless another task holds the attempt. Returns what the claim did (see
+        _claim), or None if the upload is not the caller's to attempt.
 
-        Any task may claim a file that does not exist yet, one deleted from IA, or
-        a stale upload attempt. A fresh attempt belongs to the task that last
-        claimed it: its claim is the attempt's status_updated, and only a task
-        passing that claim, which is to say that task's own retry, may claim it
-        again. Each claim is a single INSERT or conditional UPDATE, so two tasks
-        for the same file cannot both succeed.
+        `claim` identifies the attempt: the id of the task message that started it,
+        which the task's own retries carry in a message header. A message that is
+        delivered again after its worker stopped keeps its id, so it resumes its
+        attempt too. Any task may start a new attempt on a file that does not exist
+        yet or was deleted from IA, or take up a stale one; no other task may claim
+        an attempt in progress.
         """
         try:
             with transaction.atomic():
-                perma_file = cls.objects.create(item_id=item_id, link_id=link_id, status='upload_attempted', attempts=1)
-            return perma_file.status_updated.isoformat()
+                cls.objects.create(item_id=item_id, link_id=link_id, status='upload_attempted', claim=claim, attempts=1)
+            return cls.CLAIM_NEW
         except IntegrityError:
             pass
         return cls._claim(item_id, link_id, 'upload_attempted', ['confirmed_absent'], claim)
 
     @classmethod
-    def claim_deletion(cls, item_id, link_id, claim=None):
+    def claim_deletion(cls, item_id, link_id, claim):
         """
         The deletion counterpart of claim_upload: mark the file 'deletion_attempted'
-        for the calling task if it is 'confirmed_present' or its deletion attempt is
-        stale, or if `claim` is the claim of its current attempt.
+        for the attempt `claim` if it is 'confirmed_present', its deletion attempt is
+        stale, or it is already that attempt's.
         """
         return cls._claim(item_id, link_id, 'deletion_attempted', ['confirmed_present'], claim)
 

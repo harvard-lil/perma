@@ -730,17 +730,15 @@ def test_upload_queueing_requeues_stale_attempts_but_leaves_complete_items_alone
 def test_an_upload_attempt_can_be_claimed_by_one_task_at_a_time(complete_link):
     perma_item = _daily_item(complete_link)
 
-    first = InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid)
-    assert first
-    assert InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid) is None
+    def claim(token):
+        return InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid, token)
 
-    retry = InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid, first)
-    assert retry and retry != first
-    assert InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid, first) is None
+    assert claim("first") == InternetArchiveFile.CLAIM_NEW
+    assert claim("duplicate") is None
+    assert claim("first") == InternetArchiveFile.CLAIM_RESUMED
 
     perma_file = InternetArchiveFile.objects.get(item=perma_item, link=complete_link)
-    assert perma_file.status == "upload_attempted"
-    assert perma_file.status_updated.isoformat() == retry
+    assert (perma_file.status, perma_file.claim) == ("upload_attempted", "first")
 
 
 @pytest.mark.django_db
@@ -753,7 +751,9 @@ def test_any_task_can_claim_a_stale_or_deleted_upload(complete_link, status, age
     perma_item = _daily_item(complete_link)
     _file_with_status(perma_item, complete_link, status, age)
 
-    assert InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid)
+    assert InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid, "claim") in (
+        InternetArchiveFile.CLAIM_STALE if status == "upload_attempted" else InternetArchiveFile.CLAIM_NEW,
+    )
 
 
 def _upload_session():
@@ -811,11 +811,12 @@ def test_upload_retry_reclaims_its_own_attempt(complete_link):
 @pytest.mark.django_db
 def test_upload_retry_yields_to_a_task_that_reclaimed_its_stale_attempt(complete_link):
     perma_item = _daily_item(complete_link)
-    old_claim = InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid)
+    old_claim = "old"
+    InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid, old_claim)
     InternetArchiveFile.objects.filter(link=complete_link).update(
         status_updated=timezone.now() - settings.INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER - timedelta(minutes=1)
     )
-    assert InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid)
+    assert InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid, "new")
     session = _upload_session()
 
     with patch("perma.celery_tasks.get_ia_session", return_value=session):
@@ -929,17 +930,20 @@ def test_claims_count_attempts_but_not_retries(complete_link):
     def attempts():
         return InternetArchiveFile.objects.get(link=complete_link).attempts
 
-    claim = InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid)
+    def claim(token):
+        return InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid, token)
+
+    claim("a")
     assert attempts() == 1
-    InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid, claim)
+    claim("a")
     assert attempts() == 1
 
     _stale(InternetArchiveFile.objects.get(link=complete_link), 1)
-    InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid)
+    claim("b")
     assert attempts() == 2
 
     InternetArchiveFile.objects.filter(link=complete_link).update(status="confirmed_absent", attempts=4)
-    InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid)
+    claim("c")
     assert attempts() == 1
 
 
@@ -1168,3 +1172,32 @@ def test_deletion_task_leaves_an_unconfirmed_deletion_alone(complete_link):
         delete_link_from_daily_item.run(complete_link.guid)
 
     session.get_s3_load_info.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_a_message_delivered_again_resumes_its_own_attempt(complete_link, caplog):
+    caplog.set_level(logging.INFO)
+    session = _upload_session()
+
+    def deliver(message_id):
+        upload_link_to_internet_archive.push_request(id=message_id)
+        try:
+            with (
+                patch("perma.celery_tasks.get_ia_session", return_value=session),
+                patch.object(Link, "get_warc", return_value=nullcontext(BytesIO(b"warc"))),
+            ):
+                upload_link_to_internet_archive.run(complete_link.guid)
+        finally:
+            upload_link_to_internet_archive.pop_request()
+
+    # the first delivery's worker stops after claiming, before uploading
+    InternetArchiveFile.claim_upload(_daily_item(complete_link).identifier, complete_link.guid, "message-1")
+    deliver("message-2")  # a duplicate message for the same link
+    session.get_s3_load_info.assert_not_called()
+
+    deliver("message-1")
+
+    session.get_item.return_value.upload_file.assert_called_once()
+    assert f"Resuming interrupted upload of {complete_link.guid}" in caplog.text
+    perma_file = InternetArchiveFile.objects.get(link=complete_link)
+    assert (perma_file.status, perma_file.attempts) == ("upload_submitted", 1)
