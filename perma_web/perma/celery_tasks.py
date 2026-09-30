@@ -698,19 +698,34 @@ def queue_batched_tasks(task, query, batch_size=1000, **kwargs):
     logger.info(f"Queued {batches_queued} batches of size {batch_size}{' and a single batch of size ' + str(remainder) if remainder else ''}, pks {first}-{last}.")
 
 
+IA_CLAIM_HEADER = 'ia_claim'
+
+
+def retry_ia_task(task, args, claim, countdown=None):
+    """
+    Queue a retry of an IA upload or deletion task, passing on its claim (see
+    InternetArchiveFile.claim_upload). The claim travels in a message header
+    rather than as an argument, so that a worker running an earlier version of
+    the task, as after a rollback, still accepts the message.
+    """
+    task.apply_async(args, countdown=countdown, headers={IA_CLAIM_HEADER: claim})
+
+
 @shared_task(
+    bind=True,
     acks_late=True,
     soft_time_limit=settings.INTERNET_ARCHIVE_UPLOAD_SOFT_TIME_LIMIT,
     time_limit=settings.INTERNET_ARCHIVE_UPLOAD_TIME_LIMIT,
 )
-def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0, claim=None):
+def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
     """
     This task adds a link's WARC and metadata to a "daily" Internet Archive item
     using IA's S3-like API. If it fails, it re-queues itself up to settings.INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT,
     settings.INTERNET_ARCHIVE_UPLOAD_MAX_TIMEOUTS, or settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT times.
 
     The task proceeds only if it can claim the upload (see InternetArchiveFile.claim_upload),
-    so that two messages for the same link do not both upload it. Retries pass on `claim`.
+    so that two messages for the same link do not both upload it. Retries pass on the
+    claim in the IA_CLAIM_HEADER message header.
     """
 
     # Get the link and verify that it is eligible for upload
@@ -754,7 +769,7 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0, claim=Non
             return
 
     # Record that we are attempting an upload, if no other task is
-    claim = InternetArchiveFile.claim_upload(identifier, link_guid, claim)
+    claim = InternetArchiveFile.claim_upload(identifier, link_guid, self.request.get(IA_CLAIM_HEADER))
     if not claim:
         logger.info(f"Not uploading {link_guid} to {identifier}: another task is attempting the upload.")
         return
@@ -769,10 +784,7 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0, claim=Non
     # Attempt the upload
 
     def retry_upload(attempt_count, timeout_count, countdown=None):
-        if countdown:
-            upload_link_to_internet_archive.apply_async((link_guid, attempt_count, timeout_count, claim), countdown=countdown)
-        else:
-            upload_link_to_internet_archive.delay(link_guid, attempt_count, timeout_count, claim)
+        retry_ia_task(upload_link_to_internet_archive, (link_guid, attempt_count, timeout_count), claim, countdown)
 
     # Make sure we aren't exceeding rate limits
     ia_session = get_ia_session()

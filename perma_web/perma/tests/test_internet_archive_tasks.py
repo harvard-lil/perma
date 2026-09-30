@@ -15,6 +15,7 @@ from django.utils import timezone
 from psycopg2.extras import DateTimeTZRange
 
 from perma.celery_tasks import (
+    IA_CLAIM_HEADER,
     IA_UPLOAD_QUEUING_LOCK,
     conditionally_queue_internet_archive_uploads_for_date_range,
     confirm_file_deleted_from_daily_item,
@@ -27,6 +28,9 @@ from perma.celery_tasks import (
     upload_link_to_internet_archive,
 )
 from perma.models import InternetArchiveFile, InternetArchiveItem, Link
+
+# a retry of an IA task, passing on its claim
+CLAIMED = {IA_CLAIM_HEADER: ANY}
 
 
 def _s3_details():
@@ -116,11 +120,11 @@ def test_upload_to_internet_archive_requeues_failed_upload(complete_link):
     with (
         patch("perma.celery_tasks.get_ia_session", return_value=session),
         patch.object(Link, "get_warc", return_value=nullcontext(BytesIO(b"warc"))),
-        patch.object(upload_link_to_internet_archive, "delay") as delay,
+        patch.object(upload_link_to_internet_archive, "apply_async") as apply_async,
     ):
         upload_link_to_internet_archive.run(complete_link.guid)
 
-    delay.assert_called_once_with(complete_link.guid, 1, 0, ANY)
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=None, headers=CLAIMED)
 
 
 def _ia_file_entry(link, **overrides):
@@ -451,14 +455,14 @@ def test_upload_timeouts_are_retried_a_limited_number_of_times(complete_link, ti
     with (
         patch("perma.celery_tasks.get_ia_session", return_value=session),
         patch.object(Link, "get_warc", return_value=nullcontext(BytesIO(b"warc"))),
-        patch.object(upload_link_to_internet_archive, "delay") as delay,
+        patch.object(upload_link_to_internet_archive, "apply_async") as apply_async,
     ):
         upload_link_to_internet_archive.run(complete_link.guid, 0, timeouts)
 
     if requeued:
-        delay.assert_called_once_with(complete_link.guid, 0, timeouts + 1, ANY)
+        apply_async.assert_called_once_with((complete_link.guid, 0, timeouts + 1), countdown=None, headers=CLAIMED)
     else:
-        delay.assert_not_called()
+        apply_async.assert_not_called()
 
 
 @pytest.mark.django_db
@@ -511,7 +515,7 @@ def test_rate_limited_upload_retries_after_a_delay(complete_link):
         upload_link_to_internet_archive.run(complete_link.guid, 3, 1)
 
     countdown.assert_called_once_with(3)
-    apply_async.assert_called_once_with((complete_link.guid, 4, 1, ANY), countdown=42)
+    apply_async.assert_called_once_with((complete_link.guid, 4, 1), countdown=42, headers=CLAIMED)
     delay.assert_not_called()
 
 
@@ -573,7 +577,7 @@ def _upload_raising(link, error, attempts=0, timeouts=0):
 def test_rate_limited_upload_http_error_retries_after_a_delay(complete_link, error):
     apply_async, delay = _upload_raising(complete_link, error, attempts=2, timeouts=1)
 
-    apply_async.assert_called_once_with((complete_link.guid, 3, 1, ANY), countdown=42)
+    apply_async.assert_called_once_with((complete_link.guid, 3, 1), countdown=42, headers=CLAIMED)
     delay.assert_not_called()
 
 
@@ -581,8 +585,7 @@ def test_rate_limited_upload_http_error_retries_after_a_delay(complete_link, err
 def test_upload_http_error_counts_as_an_attempt(complete_link):
     apply_async, delay = _upload_raising(complete_link, _http_error(500, "We encountered an internal error."))
 
-    delay.assert_called_once_with(complete_link.guid, 1, 0, ANY)
-    apply_async.assert_not_called()
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=None, headers=CLAIMED)
 
 
 @pytest.mark.django_db
@@ -605,16 +608,14 @@ def test_upload_bucket_lock_error_is_retried_without_counting(complete_link):
         attempts=1,
     )
 
-    delay.assert_called_once_with(complete_link.guid, 1, 0, ANY)
-    apply_async.assert_not_called()
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=None, headers=CLAIMED)
 
 
 @pytest.mark.django_db
 def test_upload_connection_error_is_retried_without_counting(complete_link):
     apply_async, delay = _upload_raising(complete_link, requests.exceptions.ConnectionError(), attempts=1)
 
-    delay.assert_called_once_with(complete_link.guid, 1, 0, ANY)
-    apply_async.assert_not_called()
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=None, headers=CLAIMED)
 
 
 @pytest.mark.django_db
@@ -624,11 +625,11 @@ def test_upload_metadata_read_error_counts_as_an_attempt(complete_link, error):
     session.get_item.side_effect = error
     with (
         patch("perma.celery_tasks.get_ia_session", return_value=session),
-        patch.object(upload_link_to_internet_archive, "delay") as delay,
+        patch.object(upload_link_to_internet_archive, "apply_async") as apply_async,
     ):
         upload_link_to_internet_archive.run(complete_link.guid)
 
-    delay.assert_called_once_with(complete_link.guid, 1, 0, ANY)
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=None, headers=CLAIMED)
 
 
 def _deletion_raising(link, error):
@@ -787,6 +788,7 @@ def test_upload_retry_reclaims_its_own_attempt(complete_link):
     ):
         upload_link_to_internet_archive.run(complete_link.guid)
     retry_args = apply_async.call_args.args[0]
+    retry_headers = apply_async.call_args.kwargs["headers"]
 
     # a duplicate message for the same link, arriving while the retry waits
     session = _upload_session()
@@ -798,7 +800,11 @@ def test_upload_retry_reclaims_its_own_attempt(complete_link):
         patch("perma.celery_tasks.get_ia_session", return_value=session),
         patch.object(Link, "get_warc", return_value=nullcontext(BytesIO(b"warc"))),
     ):
-        upload_link_to_internet_archive.run(*retry_args)
+        upload_link_to_internet_archive.push_request(**retry_headers)
+        try:
+            upload_link_to_internet_archive.run(*retry_args)
+        finally:
+            upload_link_to_internet_archive.pop_request()
 
     session.get_item.return_value.upload_file.assert_called_once()
     assert InternetArchiveFile.objects.get(link=complete_link).status == "upload_submitted"
@@ -815,7 +821,11 @@ def test_upload_retry_yields_to_a_task_that_reclaimed_its_stale_attempt(complete
     session = _upload_session()
 
     with patch("perma.celery_tasks.get_ia_session", return_value=session):
-        upload_link_to_internet_archive.run(complete_link.guid, 1, 0, old_claim)
+        upload_link_to_internet_archive.push_request(**{IA_CLAIM_HEADER: old_claim})
+        try:
+            upload_link_to_internet_archive.run(complete_link.guid, 1, 0)
+        finally:
+            upload_link_to_internet_archive.pop_request()
 
     session.get_s3_load_info.assert_not_called()
 
