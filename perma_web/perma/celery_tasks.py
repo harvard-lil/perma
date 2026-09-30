@@ -670,6 +670,16 @@ def ia_error_is_spam_flag(error):
     return "appears to be spam" in str(error) or (isinstance(content, bytes) and b"appears to be spam" in content)
 
 
+def ia_files_for_link(ia_files, guid):
+    """
+    The names of the files in an IA item's metadata file list that belong to a link:
+    its WARC, <guid>.warc.gz, and files IA made from it, such as <guid>.warc.os.cdx.gz
+    and <guid>.warc.gz_meta.txt.
+    """
+    prefix = f"{guid}.warc"
+    return [f.get('name') for f in ia_files if str(f.get('name', '')).startswith(prefix)]
+
+
 class IAUploadIntegrityError(Exception):
     """IA reports receiving different bytes from those we uploaded."""
 
@@ -1448,7 +1458,9 @@ def delete_link_from_daily_item(self, link_guid, attempts=0):
     # attempt the deletion
     try:
         response = ia_file.delete(
-            cascade_delete=False,  # is this correct? not sure: test with "derived" items
+            # also delete what IA derived from the WARC, such as <guid>.warc.os.cdx.gz,
+            # which lists the capture's URLs (x-archive-cascade-delete)
+            cascade_delete=True,
             access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
             secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
             verbose=False,
@@ -1517,7 +1529,7 @@ def confirm_file_deleted_from_daily_item(file_id, attempts=0, connection_errors=
     ia_session = get_ia_session()
     try:
         ia_item = ia_session.get_item(perma_item.identifier)
-        ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=guid))
+        remaining = ia_files_for_link(ia_item.item_metadata.get('files', []), guid)
     except METADATA_READ_ERRORS:
         # Sometimes, requests to retrieve the metadata of an IA Item time out. Retry later.
         if connection_errors < settings.INTERNET_ARCHIVE_RETRY_FOR_CONFIRMATION_CONNECTION_ERROR:
@@ -1526,7 +1538,8 @@ def confirm_file_deleted_from_daily_item(file_id, attempts=0, connection_errors=
         return
 
     try:
-        assert not ia_file.exists
+        # the WARC and everything IA derived from it
+        assert not remaining, f"still listed: {', '.join(remaining)}"
     except AssertionError:
         # IA's tasks can take some time to complete;
         # the deletion-related tasks for this link appear not to have finished yet.

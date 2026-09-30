@@ -426,7 +426,7 @@ def test_delete_from_internet_archive_sends_expected_request(complete_link):
         delete_link_from_daily_item.run(complete_link.guid)
 
     ia_file.delete.assert_called_once_with(
-        cascade_delete=False,
+        cascade_delete=True,
         access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
         secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
         verbose=False,
@@ -1144,8 +1144,7 @@ def test_deletion_queueing_with_nothing_to_delete(caplog):
 def test_deletion_confirmation_gives_up_after_max_age(complete_link, caplog, age, status):
     perma_item = _daily_item(complete_link)
     perma_file = _file_with_status(perma_item, complete_link, "deletion_submitted", age)
-    ia_item = Mock(files_count=3)
-    ia_item.get_file.return_value = Mock(exists=True)
+    ia_item = Mock(files_count=3, item_metadata={"files": [{"name": f"{complete_link.guid}.warc.gz"}]})
     session = _fake_session(ia_item)
 
     with (
@@ -1167,8 +1166,7 @@ def test_deletion_confirmation_gives_up_after_max_age(complete_link, caplog, age
 @pytest.mark.django_db
 def test_deletion_confirmation_starts_the_clock_for_files_without_a_status_time(complete_link):
     perma_file = _file_with_status(_daily_item(complete_link), complete_link, "deletion_submitted", None)
-    ia_item = Mock(files_count=3)
-    ia_item.get_file.return_value = Mock(exists=True)
+    ia_item = Mock(files_count=3, item_metadata={"files": [{"name": f"{complete_link.guid}.warc.gz"}]})
 
     with (
         patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(ia_item)),
@@ -1433,3 +1431,28 @@ def test_items_held_back_are_rechecked_until_their_ia_tasks_clear(complete_link,
     perma_item.refresh_from_db()
     assert (perma_item.ia_tasks_blocked_since is not None) == still_blocked
     assert (perma_item.next_confirmation_check is not None) == still_blocked
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("listed, confirmed", [
+    ([], True),
+    (["{guid}.warc.gz"], False),
+    # left behind by a deletion without cascade
+    (["{guid}.warc.os.cdx.gz"], False),
+    (["{guid}.warc.gz_meta.txt"], False),
+    # another link's files
+    (["OTHER-LINK.warc.gz", "OTHER-LINK.warc.os.cdx.gz"], True),
+])
+def test_deletion_is_confirmed_once_the_warc_and_its_derivatives_are_gone(complete_link, listed, confirmed):
+    perma_file = _file_with_status(_daily_item(complete_link), complete_link, "deletion_submitted")
+    files = [{"name": name.format(guid=complete_link.guid)} for name in listed]
+    ia_item = Mock(files_count=3, item_metadata={"files": files})
+
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(ia_item)),
+        patch.object(confirm_file_deleted_from_daily_item, "delay"),
+    ):
+        confirm_file_deleted_from_daily_item.run(perma_file.id)
+
+    perma_file.refresh_from_db()
+    assert perma_file.status == ("confirmed_absent" if confirmed else "deletion_submitted")

@@ -139,8 +139,7 @@ def test_deletions_record_start_retry_submission_and_confirmation(complete_link,
     perma_file = _file_with_status(_daily_item(complete_link), complete_link, "confirmed_present")
     ia_file = Mock()
     ia_file.delete.side_effect = [_http_error(500), SimpleNamespace(status_code=204, text="")]
-    ia_file.exists = False
-    ia_item = Mock(files_count=3)
+    ia_item = Mock(files_count=3, item_metadata={"files": []})
     ia_item.get_file.return_value = ia_file
     with (
         patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(ia_item)),
@@ -322,8 +321,7 @@ def test_giving_up_on_a_deletion_confirmation_is_recorded(complete_link, events)
     perma_file = _file_with_status(
         _daily_item(complete_link), complete_link, "deletion_submitted", settings.INTERNET_ARCHIVE_DELETION_CONFIRMATION_MAX_AGE
     )
-    ia_item = Mock(files_count=3)
-    ia_item.get_file.return_value = Mock(exists=True)
+    ia_item = Mock(files_count=3, item_metadata={"files": [{"name": f"{complete_link.guid}.warc.gz"}]})
 
     with patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(ia_item)):
         confirm_file_deleted_from_daily_item.run(perma_file.id)
