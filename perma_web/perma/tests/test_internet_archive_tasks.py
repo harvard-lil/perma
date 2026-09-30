@@ -535,3 +535,138 @@ def test_rate_limit_countdown_doubles_up_to_the_maximum(settings, attempts, low,
     settings.INTERNET_ARCHIVE_RATE_LIMIT_RETRY_MAX_DELAY = 600
 
     assert low <= ia_rate_limit_countdown(attempts) <= high
+
+
+def _http_error(status_code, message=""):
+    return requests.exceptions.HTTPError(
+        f" error uploading to item, {message}",
+        response=SimpleNamespace(status_code=status_code),
+    )
+
+
+def _upload_raising(link, error, attempts=0, timeouts=0):
+    ia_item = Mock()
+    ia_item.upload_file.side_effect = error
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(ia_item)),
+        patch.object(Link, "get_warc", return_value=nullcontext(BytesIO(b"warc"))),
+        patch("perma.celery_tasks.ia_rate_limit_countdown", return_value=42),
+        patch.object(upload_link_to_internet_archive, "apply_async") as apply_async,
+        patch.object(upload_link_to_internet_archive, "delay") as delay,
+    ):
+        upload_link_to_internet_archive.run(link.guid, attempts, timeouts)
+    return apply_async, delay
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("error", [
+    _http_error(503, "Please reduce your request rate."),
+    _http_error(503),
+])
+def test_rate_limited_upload_http_error_retries_after_a_delay(complete_link, error):
+    apply_async, delay = _upload_raising(complete_link, error, attempts=2, timeouts=1)
+
+    apply_async.assert_called_once_with((complete_link.guid, 3, 1), countdown=42)
+    delay.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_upload_http_error_counts_as_an_attempt(complete_link):
+    apply_async, delay = _upload_raising(complete_link, _http_error(500, "We encountered an internal error."))
+
+    delay.assert_called_once_with(complete_link.guid, 1, 0)
+    apply_async.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_upload_http_error_is_not_retried_past_the_error_limit(complete_link):
+    apply_async, delay = _upload_raising(
+        complete_link,
+        _http_error(500, "We encountered an internal error."),
+        attempts=settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT - 1,
+    )
+
+    delay.assert_not_called()
+    apply_async.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_upload_bucket_lock_error_is_retried_without_counting(complete_link):
+    apply_async, delay = _upload_raising(
+        complete_link,
+        _http_error(503, "Failed to get necessary short term bucket lock"),
+        attempts=1,
+    )
+
+    delay.assert_called_once_with(complete_link.guid, 1, 0)
+    apply_async.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_upload_connection_error_is_retried_without_counting(complete_link):
+    apply_async, delay = _upload_raising(complete_link, requests.exceptions.ConnectionError(), attempts=1)
+
+    delay.assert_called_once_with(complete_link.guid, 1, 0)
+    apply_async.assert_not_called()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("error", [_http_error(502), requests.exceptions.ChunkedEncodingError()])
+def test_upload_metadata_read_error_counts_as_an_attempt(complete_link, error):
+    session = _fake_session(Mock())
+    session.get_item.side_effect = error
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=session),
+        patch.object(upload_link_to_internet_archive, "delay") as delay,
+    ):
+        upload_link_to_internet_archive.run(complete_link.guid)
+
+    delay.assert_called_once_with(complete_link.guid, 1, 0)
+
+
+def _deletion_raising(link, error):
+    InternetArchiveFile.objects.create(item=_daily_item(link), link=link, status="confirmed_present")
+    ia_file = Mock()
+    ia_file.delete.side_effect = error
+    ia_item = Mock()
+    ia_item.get_file.return_value = ia_file
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(ia_item)),
+        patch("perma.celery_tasks.ia_rate_limit_countdown", return_value=42),
+        patch.object(delete_link_from_daily_item, "apply_async") as apply_async,
+        patch.object(delete_link_from_daily_item, "delay") as delay,
+    ):
+        delete_link_from_daily_item.run(link.guid)
+    return apply_async, delay
+
+
+@pytest.mark.django_db
+def test_rate_limited_deletion_http_error_retries_after_a_delay(complete_link):
+    apply_async, delay = _deletion_raising(complete_link, _http_error(503))
+
+    apply_async.assert_called_once_with((complete_link.guid, 1), countdown=42)
+    delay.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_deletion_http_error_counts_as_an_attempt(complete_link):
+    apply_async, delay = _deletion_raising(complete_link, _http_error(500))
+
+    delay.assert_called_once_with(complete_link.guid, 1)
+    apply_async.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_upload_confirmation_http_error_leaves_item_due(complete_link):
+    perma_item = _daily_item(complete_link)
+    perma_file = _submitted_file(perma_item, complete_link)
+    session = Mock()
+    session.get_item.side_effect = _http_error(502)
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        confirm_files_uploaded_to_internet_archive_item.run(perma_item.identifier)
+
+    perma_file.refresh_from_db()
+    perma_item.refresh_from_db()
+    assert perma_file.status == "upload_submitted"
+    assert perma_item.next_confirmation_check is None

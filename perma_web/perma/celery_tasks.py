@@ -617,12 +617,35 @@ def populate_wacz_size(link_guid):
 ### INTERNET ARCHIVE ###
 ###                  ###
 
+# Requests that got no response from IA. HTTPError, raised when IA does respond
+# with an error, is handled separately by each task.
 CONNECTION_ERRORS = (
     requests.exceptions.ConnectionError,
     requests.exceptions.ConnectTimeout,
-    requests.exceptions.HTTPError,
     requests.exceptions.ReadTimeout
 )
+
+# Failed reads of an item's metadata that are worth trying again later. The
+# metadata API returns 5xx errors during IA outages, and responses for large
+# daily items are sometimes cut off (ChunkedEncodingError).
+METADATA_READ_ERRORS = CONNECTION_ERRORS + (
+    requests.exceptions.HTTPError,
+    requests.exceptions.ChunkedEncodingError,
+)
+
+
+def ia_error_is_rate_limit(error):
+    """
+    Whether an error from IA's S3-like API means that IA is turning requests away
+    because its task queue is overloaded: 503 SlowDown, whose message is "Please
+    reduce your request rate." (https://archive.org/developers/ias3.html)
+    """
+    response = getattr(error, 'response', None)
+    return (
+        "Please reduce your request rate" in str(error) or
+        (response is not None and response.status_code == 503)
+    )
+
 
 def ia_rate_limit_countdown(attempts):
     """
@@ -776,6 +799,21 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
                 logger.warning(msg)
         return
 
+    def retry_after_error(e):
+        logger.warning(f"Upload task for {link_guid} (IA Item {identifier}) encountered an unexpected error ({ str(e).strip() }). Will retry if allowed.")
+        retry = (
+            not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
+            (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > attempts + 1)
+        )
+        if retry:
+            retry_upload(attempts + 1, timeouts)
+        else:
+            msg = f"Not retrying IA upload task for {link_guid} (IA Item {identifier}, File {link.guid}): error retry maximum reached."
+            if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
+                logger.exception(msg)
+            else:
+                logger.warning(msg)
+
     # Get the IA Item
     try:
         ia_item = ia_session.get_item(identifier)
@@ -784,6 +822,9 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
         # Retry later, without counting this as a failed attempt
         logger.info(f"Re-queued 'upload_link_to_internet_archive' for {link_guid} after a connection error.")
         retry_upload(attempts, timeouts)
+        return
+    except (requests.exceptions.HTTPError, requests.exceptions.ChunkedEncodingError) as e:
+        retry_after_error(e)
         return
 
     # Attempt the upload
@@ -845,7 +886,19 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
         # ('ServiceUnavailable', ('Please reduce your request rate.', '503 Service Unavailable'))
         # ('SlowDown', ('Please reduce your request rate.', '503 Slow Down'))
         error_string = str(e)
-        if "Please reduce your request rate" in error_string:
+        if ("The bucket namespace is shared" in error_string or
+                "Failed to get necessary short term bucket lock" in error_string or
+                "auto_make_bucket requested" in error_string or
+                ("Checking for identifier availability..." in error_string and "not_available" in error_string)):
+            # These errors happen when we concurrently request to upload more than one file to an Item
+            # that does not yet exist: each concurrent request attempts to create it, and is thwarted
+            # by IA code guarding against inconsistent state. We need to support concurrent uploads
+            # because of our volume. Since we cannot create the Item in an advance preparatory step
+            # without a lot of engineering work on our end, we simply live with these errors, and
+            # re-queue the failed attempts, without considering it a failed attempt.
+            retry_upload(attempts, timeouts)
+            return
+        elif ia_error_is_rate_limit(e):
             # This logging is noisy: we're not sure whether we want it or not, going forward.
             logger.warning(f"Upload task for {link_guid} (IA Item {identifier}) prevented by rate-limiting. Will retry if allowed.")
             retry = (
@@ -861,32 +914,8 @@ def upload_link_to_internet_archive(link_guid, attempts=0, timeouts=0):
                 else:
                     logger.warning(msg)
             return
-        elif ("The bucket namespace is shared" in error_string or
-              "Failed to get necessary short term bucket lock" in error_string or
-              "auto_make_bucket requested" in error_string or
-              ("Checking for identifier availability..." in error_string and "not_available" in error_string)):
-            # These errors happen when we concurrently request to upload more than one file to an Item
-            # that does not yet exist: each concurrent request attempts to create it, and is thwarted
-            # by IA code guarding against inconsistent state. We need to support concurrent uploads
-            # because of our volume. Since we cannot create the Item in an advance preparatory step
-            # without a lot of engineering work on our end, we simply live with these errors, and
-            # re-queue the failed attempts, without considering it a failed attempt.
-            retry_upload(attempts, timeouts)
-            return
         else:
-            logger.warning(f"Upload task for {link_guid} (IA Item {identifier}) encountered an unexpected error ({ str(e).strip() }). Will retry if allowed.")
-            retry = (
-                not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
-                (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > attempts + 1)
-            )
-            if retry:
-                retry_upload(attempts + 1, timeouts)
-            else:
-                msg = f"Not retrying IA upload task for {link_guid} (IA Item {identifier}, File {link.guid}): error retry maximum reached."
-                if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
-                    logger.exception(msg)
-                else:
-                    logger.warning(msg)
+            retry_after_error(e)
             return
 
     # Record that the upload has been submitted
@@ -984,10 +1013,10 @@ def confirm_files_uploaded_to_internet_archive_item(identifier):
     ia_session = get_ia_session()
     try:
         ia_item = ia_session.get_item(identifier)
-    except CONNECTION_ERRORS:
-        # Sometimes, requests to retrieve the metadata of an IA Item time out.
+    except METADATA_READ_ERRORS as e:
+        # Sometimes, requests to retrieve the metadata of an IA Item time out or fail.
         # The item remains due, so the next scheduled run will check it again.
-        logger.info(f"Could not retrieve IA Item {identifier} to confirm uploads: connection error.")
+        logger.info(f"Could not retrieve IA Item {identifier} to confirm uploads: {type(e).__name__}.")
         return
 
     now = timezone.now()
@@ -1129,6 +1158,21 @@ def delete_link_from_daily_item(link_guid, attempts=0):
                 logger.warning(msg)
         return
 
+    def retry_after_error(e):
+        logger.warning(f"Deletion task for {link_guid} (IA Item {identifier}) encountered an unexpected error ({ str(e).strip() }). Will retry if allowed.")
+        retry = (
+            not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
+            (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > attempts + 1)
+        )
+        if retry:
+            retry_deletion(attempts + 1)
+        else:
+            msg = f"Not retrying IA deletion task for {link_guid} (IA Item {identifier}, File {link_guid}): error retry maximum reached."
+            if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
+                logger.exception(msg)
+            else:
+                logger.warning(msg)
+
     # Get the IA Item and File
     try:
         ia_item = ia_session.get_item(identifier)
@@ -1138,6 +1182,9 @@ def delete_link_from_daily_item(link_guid, attempts=0):
         # Retry later, without counting this as a failed attempt
         logger.info(f"Re-queued 'delete_link_from_daily_item' for {link_guid} after a connection error.")
         retry_deletion(attempts)
+        return
+    except (requests.exceptions.HTTPError, requests.exceptions.ChunkedEncodingError) as e:
+        retry_after_error(e)
         return
 
     # attempt the deletion
@@ -1164,7 +1211,7 @@ def delete_link_from_daily_item(link_guid, attempts=0):
         # ('InternalError', ('We encountered an internal error. Please try again.', '500 Internal Server Error'))
         # ('ServiceUnavailable', ('Please reduce your request rate.', '503 Service Unavailable'))
         # ('SlowDown', ('Please reduce your request rate.', '503 Slow Down'))
-        if "Please reduce your request rate" in str(e):
+        if ia_error_is_rate_limit(e):
             # This logging is noisy: we're not sure whether we want it or not, going forward.
             logger.warning(f"Deletion task for {link_guid} (IA Item {identifier}) prevented by rate-limiting. Will retry if allowed.")
             retry = (
@@ -1181,19 +1228,7 @@ def delete_link_from_daily_item(link_guid, attempts=0):
                     logger.warning(msg)
             return
         else:
-            logger.warning(f"Deletion task for {link_guid} (IA Item {identifier}) encountered an unexpected error ({ str(e).strip() }). Will retry if allowed.")
-            retry = (
-                not settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT or
-                (settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT > attempts + 1)
-            )
-            if retry:
-                retry_deletion(attempts + 1)
-            else:
-                msg = f"Not retrying IA deletion task for {link_guid} (IA Item {identifier}, File {link_guid}): error retry maximum reached."
-                if settings.INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED:
-                    logger.exception(msg)
-                else:
-                    logger.warning(msg)
+            retry_after_error(e)
             return
 
     # Record that the deletion has been submitted
@@ -1224,7 +1259,7 @@ def confirm_file_deleted_from_daily_item(file_id, attempts=0, connection_errors=
     try:
         ia_item = ia_session.get_item(perma_item.identifier)
         ia_file = ia_item.get_file(InternetArchiveFile.WARC_FILENAME.format(guid=guid))
-    except CONNECTION_ERRORS:
+    except METADATA_READ_ERRORS:
         # Sometimes, requests to retrieve the metadata of an IA Item time out. Retry later.
         if connection_errors < settings.INTERNET_ARCHIVE_RETRY_FOR_CONFIRMATION_CONNECTION_ERROR:
             confirm_file_deleted_from_daily_item.delay(file_id, attempts, connection_errors + 1)
