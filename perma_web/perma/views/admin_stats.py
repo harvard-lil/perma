@@ -2,6 +2,7 @@ import celery
 from datetime import timedelta
 import itertools
 import redis
+import time
 
 from django.conf import settings
 from django.core.cache import cache
@@ -11,6 +12,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 
+from perma.celery_tasks import IA_STATE_CACHE_KEY
 from perma.models import LinkUser, Link, Capture, CaptureJob, InternetArchiveItem
 from perma.utils import get_complete_ia_rate_limiting_info, user_passes_test_or_403
 
@@ -174,11 +176,24 @@ def stats(request, stat_type=None):
         if out is None:
             out = get_complete_ia_rate_limiting_info()
             cache.set(IA_RATE_LIMITS_CACHE_KEY, out, settings.INTERNET_ARCHIVE_RATE_LIMITS_STATS_CACHE_SECONDS)
-        out["inflight"] = InternetArchiveItem.inflight_task_count()
 
-        r = redis.from_url(settings.CELERY_BROKER_URL)
-        out['total_ia_queue'] = r.llen('ia')
-        out['total_ia_readonly_queue'] =  r.llen('ia-readonly')
+        # The upload producer records the pipeline's state every five minutes;
+        # use it rather than querying again on every refresh.
+        recorded = cache.get(IA_STATE_CACHE_KEY)
+        if recorded:
+            state = recorded['state']
+            out['ia_state'] = state
+            out['ia_state_age_seconds'] = round(time.time() - recorded['recorded_at'])
+            out['inflight'] = state.get('in_flight_stored')
+            out['total_ia_queue'] = state.get('queue_ia')
+            out['total_ia_readonly_queue'] = state.get('queue_ia_readonly')
+        else:
+            out['ia_state'] = None
+            out['ia_state_age_seconds'] = None
+            out['inflight'] = InternetArchiveItem.inflight_task_count()
+            r = redis.from_url(settings.CELERY_BROKER_URL)
+            out['total_ia_queue'] = r.llen('ia')
+            out['total_ia_readonly_queue'] = r.llen('ia-readonly')
 
     elif stat_type == 'capture_errors':
 
