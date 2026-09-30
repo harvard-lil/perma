@@ -372,6 +372,7 @@ def test_upload_queueing_ignores_an_inflated_counter(complete_link):
     redis_client.llen.return_value = 0
     with (
         patch("perma.celery_tasks.redis.from_url", return_value=redis_client),
+        patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(Mock())),
         patch("perma.celery_tasks.queue_internet_archive_uploads_for_date", return_value=1) as queue_for_date,
     ):
         conditionally_queue_internet_archive_uploads_for_date_range.run(date_string, date_string, daily_limit=100)
@@ -709,6 +710,7 @@ def test_upload_queueing_requeues_stale_attempts_but_leaves_complete_items_alone
     def run_producer():
         with (
             patch("perma.celery_tasks.redis.from_url", return_value=redis_client),
+            patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(Mock())),
             patch.object(upload_link_to_internet_archive, "delay") as delay,
         ):
             conditionally_queue_internet_archive_uploads_for_date_range.run(date_string, date_string)
@@ -850,3 +852,52 @@ def test_upload_queueing_lock_outlasts_a_run():
     ):
         conditionally_queue_internet_archive_uploads_for_date_range.run(None, None)
     queue_uploads.assert_called_once()
+
+
+def _producer_run(link, session):
+    date_string = link.creation_timestamp.strftime("%Y-%m-%d")
+    redis_client = Mock()
+    redis_client.llen.return_value = 0
+    with (
+        patch("perma.celery_tasks.redis.from_url", return_value=redis_client),
+        patch("perma.celery_tasks.get_ia_session", return_value=session),
+        patch.object(upload_link_to_internet_archive, "delay") as delay,
+    ):
+        conditionally_queue_internet_archive_uploads_for_date_range.run(date_string, date_string)
+    return delay
+
+
+@pytest.mark.django_db
+def test_upload_queueing_checks_ia_load_once(complete_link_factory):
+    links = [complete_link_factory() for _ in range(3)]
+    session = _fake_session(Mock())
+
+    delay = _producer_run(links[0], session)
+
+    session.get_s3_load_info.assert_called_once_with(access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY)
+    assert delay.call_count == 3
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("over_limit, detail", [
+    (True, {}),
+    (False, {"accesskey_tasks_queued": 99}),
+    (False, {"total_tasks_queued": 990}),
+])
+def test_upload_queueing_waits_while_ia_is_near_its_limits(complete_link, over_limit, detail):
+    s3_details = _s3_details()
+    s3_details["detail"].update(detail)
+    session = _fake_session(Mock())
+    session.get_s3_load_info.return_value = (over_limit, s3_details)
+
+    delay = _producer_run(complete_link, session)
+
+    delay.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_upload_queueing_waits_when_ia_load_is_unknown(complete_link):
+    session = _fake_session(Mock())
+    session.get_s3_load_info.return_value = (True, {})
+
+    _producer_run(complete_link, session).assert_not_called()

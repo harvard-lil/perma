@@ -1496,6 +1496,15 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
 
     if to_queue:
 
+        # Check IA's load once per run, rather than leaving each queued upload
+        # to find IA near its limits and retry
+        s3_is_overloaded, s3_details = get_ia_session().get_s3_load_info(
+            access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY
+        )
+        if s3_is_overloaded or ia_perma_task_limit_approaching(s3_details) or ia_global_task_limit_approaching(s3_details):
+            logger.warning(f"Skipped the queuing of file upload tasks: IA is at or near its task limits: {s3_details}.")
+            return
+
         total_queued = 0
         queued = []
         for day in date_range(start, end, timedelta(days=1)):
