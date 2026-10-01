@@ -1952,16 +1952,16 @@ class IAStateQueryTimeout(Exception):
     pass
 
 
-def bounded_ia_state_query(compute):
+def bounded_ia_state_query(compute, timeout_ms=None):
     """
-    Run compute() in a transaction whose statements time out after
-    INTERNET_ARCHIVE_STATE_STATEMENT_TIMEOUT_MS, so that a slow query cannot hold
-    up the producer. Raises IAStateQueryTimeout if one does.
+    Run compute() in a transaction whose statements time out after timeout_ms
+    (default INTERNET_ARCHIVE_STATE_STATEMENT_TIMEOUT_MS), so that a slow query
+    cannot hold up the task. Raises IAStateQueryTimeout if one does.
     """
     try:
         with transaction.atomic():
             with connection.cursor() as cursor:
-                cursor.execute("SET LOCAL statement_timeout = %s", [settings.INTERNET_ARCHIVE_STATE_STATEMENT_TIMEOUT_MS])
+                cursor.execute("SET LOCAL statement_timeout = %s", [timeout_ms or settings.INTERNET_ARCHIVE_STATE_STATEMENT_TIMEOUT_MS])
             return compute()
     except OperationalError as e:
         if isinstance(e.__cause__, psycopg2.errors.QueryCanceled):
@@ -1979,9 +1979,11 @@ def ia_file_state():
     stale_before = now - settings.INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER
     fresh = Q(status_updated__gte=stale_before)
     counts = InternetArchiveFile.objects.filter(status__in=[
-        'upload_attempted', 'upload_submitted', 'upload_unconfirmed', 'upload_failed',
-        'deletion_attempted', 'deletion_submitted', 'deletion_unconfirmed', 'deletion_failed',
+        'upload_needed', 'upload_attempted', 'upload_submitted', 'upload_unconfirmed', 'upload_failed',
+        'deletion_needed', 'deletion_attempted', 'deletion_submitted', 'deletion_unconfirmed', 'deletion_failed',
     ]).aggregate(
+        upload_needed=Count('pk', filter=Q(status='upload_needed')),
+        deletion_needed=Count('pk', filter=Q(status='deletion_needed')),
         in_flight_derived=Count('pk', filter=(
             Q(status__in=['upload_submitted', 'deletion_submitted']) |
             Q(fresh, status__in=['upload_attempted', 'deletion_attempted'])
@@ -2394,3 +2396,146 @@ def send_user_email_from_bulk_addition(
         )
     else:
         send_user_email(user_email, template, context)
+
+
+# RECONCILIATION
+
+IA_RECONCILE_LOCK = 'perma:ia-reconcile'
+
+
+@shared_task
+def reconcile_internet_archive_files():
+    """
+    Runs reconcile_ia_files, unless another run is in progress (see
+    conditionally_queue_internet_archive_uploads_for_date_range for the lock).
+    """
+    broker = redis.from_url(settings.CELERY_BROKER_URL)
+    if not broker.set(IA_RECONCILE_LOCK, 1, nx=True, ex=settings.CELERY_TASK_TIME_LIMIT):
+        logger.info("Skipped reconciling IA files: another run is in progress.")
+        return
+    try:
+        return reconcile_ia_files()
+    finally:
+        broker.delete(IA_RECONCILE_LOCK)
+
+
+def reconcile_ia_files():
+    """
+    Compare links' eligibility for IA with their files in daily IA items, and mark
+    the files the upload producer should act on. Database only; no IA calls.
+
+    - A file at IA ('confirmed_present') whose link is no longer public (deleted,
+      private or unlisted) becomes 'deletion_needed'. A link that only stopped being
+      playable is left alone: that can follow from a playback check, not a choice
+      to withdraw it.
+    - A file deleted from IA ('confirmed_absent') whose link is public and playable
+      again becomes 'upload_needed'.
+    - A public, playable link with no file in a daily item, from a day whose item is
+      marked complete, or has no item and is earlier than the producer's backlog,
+      gets a file row 'upload_needed'. Other days are left to the producer's
+      day-by-day walk. Links before DAILY_ITEM_BACKLOG_SPAN_FLOOR, links with only a
+      legacy per-link item, and the uneditable days are counted, not changed.
+    - Files still 'deletion_needed' whose link is public again go back to
+      'confirmed_present'; files still 'upload_needed' whose link is no longer
+      eligible become 'confirmed_absent' (for a row made here and never uploaded,
+      that is equally true: IA does not have the file).
+
+    Each step runs under INTERNET_ARCHIVE_RECONCILE_STATEMENT_TIMEOUT_MS; a step that
+    times out is reported as None. Emits a 'reconcile' metrics line with the counts.
+    """
+    started = time.monotonic()
+    now = timezone.now()
+    timeout_ms = settings.INTERNET_ARCHIVE_RECONCILE_STATEMENT_TIMEOUT_MS
+    daily = InternetArchiveFile.objects.filter(item__span__isempty=False)
+    editable = daily.exclude(item_id__in=uneditable_daily_item_identifiers())
+    withdrawn = Q(link__user_deleted=True) | Q(link__is_private=True) | Q(link__is_unlisted=True)
+    uploadable = Q(link__user_deleted=False, link__is_private=False, link__is_unlisted=False, link__cached_can_play_back=True)
+
+    counts = {}
+
+    def step(name, compute):
+        try:
+            result = bounded_ia_state_query(compute, timeout_ms)
+        except IAStateQueryTimeout:
+            logger.warning(f"Reconciling IA files: the step {name} timed out.")
+            result = None
+        if isinstance(result, dict):
+            counts.update(result)
+        else:
+            counts[name] = result
+
+    step('deletion_cancelled', lambda: daily.filter(status='deletion_needed').exclude(withdrawn).update(
+        status='confirmed_present', status_updated=now))
+    step('upload_cancelled', lambda: daily.filter(status='upload_needed').exclude(uploadable).update(
+        status='confirmed_absent', status_updated=now))
+    step('deletion_needed', lambda: editable.filter(withdrawn, status='confirmed_present').update(
+        status='deletion_needed', status_updated=now))
+    step('upload_needed_again', lambda: editable.filter(uploadable, status='confirmed_absent').update(
+        status='upload_needed', status_updated=now))
+    step('upload_needed_new', lambda: reconcile_links_without_ia_files(now))
+
+    counts['reconcile_ms'] = round((time.monotonic() - started) * 1000)
+    logger.info(f"Reconciled IA files: {', '.join(f'{k} {v}' for k, v in counts.items())}.")
+    ia_metrics.emit('reconcile', **counts)
+    return counts
+
+
+def reconcile_links_without_ia_files(now):
+    """
+    The third case of reconcile_ia_files: eligible links with no file in a daily item.
+    """
+    daily_file = InternetArchiveFile.objects.filter(link_id=OuterRef('guid'), item__span__isempty=False)
+    legacy_file = InternetArchiveFile.objects.filter(link_id=OuterRef('guid'), item__span__isempty=True)
+    rows = Link.objects.visible_to_ia().filter(
+        ~Exists(daily_file)
+    ).annotate(
+        legacy=Exists(legacy_file)
+    ).values_list('guid', 'creation_timestamp', 'legacy')
+
+    floor = datetime.strptime(DAILY_ITEM_BACKLOG_SPAN_FLOOR[1], '%Y-%m-%d').date()
+    oldest_incomplete = InternetArchiveItem.objects.filter(
+        span__isempty=False, span__gt=DAILY_ITEM_BACKLOG_SPAN_FLOOR, complete=False,
+    ).order_by('span').first()
+    backlog_start = oldest_incomplete.span.lower.date() if oldest_incomplete else timezone.now().date()
+
+    counts = {'pre_backlog': 0, 'legacy_only': 0, 'uneditable': 0, 'left_to_producer': 0, 'upload_needed_new': 0}
+    by_day = {}
+    for guid, created, legacy in rows:
+        # the day's item, as upload_link_to_internet_archive chooses it
+        day = created.date()
+        date_string = day.strftime('%Y-%m-%d')
+        if day < floor:
+            counts['pre_backlog'] += 1
+        elif legacy:
+            counts['legacy_only'] += 1
+        elif date_string in UNEDITABLE_DAILY_ITEM_DATE_STRINGS:
+            counts['uneditable'] += 1
+        else:
+            by_day.setdefault(day, []).append(guid)
+
+    identifiers = {
+        InternetArchiveItem.DAILY_IDENTIFIER.format(
+            prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX, date_string=day.strftime('%Y-%m-%d')
+        ): day for day in by_day
+    }
+    items = {item.identifier: item for item in InternetArchiveItem.objects.filter(identifier__in=identifiers)}
+    new_files = []
+    for identifier, day in identifiers.items():
+        item = items.get(identifier)
+        if item is None:
+            if day >= backlog_start:
+                counts['left_to_producer'] += len(by_day[day])
+                continue
+            start = InternetArchiveItem.datetime(f"{day:%Y-%m-%d} 00:00:00")
+            InternetArchiveItem.objects.get_or_create(identifier=identifier, span=(start, start + timedelta(days=1)))
+        elif not item.complete:
+            counts['left_to_producer'] += len(by_day[day])
+            continue
+        new_files += [
+            InternetArchiveFile(item_id=identifier, link_id=guid, status='upload_needed', status_updated=now)
+            for guid in by_day[day]
+        ]
+    # a row made meanwhile by an upload task wins (the (link, item) unique constraint)
+    InternetArchiveFile.objects.bulk_create(new_files, ignore_conflicts=True)
+    counts['upload_needed_new'] = len(new_files)
+    return counts

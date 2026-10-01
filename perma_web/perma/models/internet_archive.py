@@ -202,6 +202,14 @@ class InternetArchiveFile(models.Model):
     link = models.ForeignKey("Link", on_delete=models.DO_NOTHING, related_name='internet_archive_files')
     item = models.ForeignKey("InternetArchiveItem", on_delete=models.CASCADE, related_name='internet_archive_files')
 
+    # Statuses set by reconcile_internet_archive_files, for the upload producer to act on
+    # (not in flight):
+    # - deletion_needed: the file is at IA, but its link is no longer public (deleted,
+    #   private or unlisted).
+    # - upload_needed: the link is public and playable, but the file is not at IA:
+    #   deleted earlier, or never uploaded because the link became eligible after its
+    #   day's uploads were complete.
+    #
     # Statuses that end the pipeline's work on a file and need a human:
     # - upload_unconfirmed: IA accepted the upload, but the file did not appear with the
     #   expected metadata within INTERNET_ARCHIVE_UPLOAD_CONFIRMATION_MAX_AGE, so we
@@ -214,7 +222,7 @@ class InternetArchiveFile(models.Model):
         max_length=20,
         null=True,
         blank=True,
-        choices=((s, s) for s in ('upload_attempted', 'upload_submitted', 'upload_unconfirmed', 'upload_failed', 'confirmed_present', 'deletion_attempted', 'deletion_submitted', 'deletion_unconfirmed', 'deletion_failed', 'confirmed_absent')),
+        choices=((s, s) for s in ('upload_needed', 'upload_attempted', 'upload_submitted', 'upload_unconfirmed', 'upload_failed', 'confirmed_present', 'deletion_needed', 'deletion_attempted', 'deletion_submitted', 'deletion_unconfirmed', 'deletion_failed', 'confirmed_absent')),
         db_index=True,
     )
     status_updated = models.DateTimeField(null=True, blank=True, help_text="When status was last saved, even if unchanged: an upload retry saves 'upload_attempted' again.")

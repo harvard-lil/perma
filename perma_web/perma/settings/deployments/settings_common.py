@@ -544,6 +544,7 @@ CELERY_TASK_ROUTES = {
     'perma.celery_tasks.queue_file_deleted_confirmation_tasks': {'queue': 'ia-readonly'},
     'perma.celery_tasks.confirm_file_deleted_from_daily_item': {'queue': 'ia-readonly'},
     'perma.celery_tasks.conditionally_queue_internet_archive_uploads_for_date_range': {'queue': 'ia-readonly'},
+    'perma.celery_tasks.reconcile_internet_archive_files': {'queue': 'ia-readonly'},
     'perma.celery_tasks.queue_internet_archive_deletions': {'queue': 'ia-readonly'},
     'perma.celery_tasks.convert_warc_to_wacz': {'queue': 'wacz-conversion'},
     'perma.celery_tasks.deactivate_expired_sponsored_users': {'queue': 'background'},
@@ -581,6 +582,9 @@ INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT = 2
 # each query for it may take this long, and /manage/stats shows it for this long.
 INTERNET_ARCHIVE_STATE_STATEMENT_TIMEOUT_MS = 5000
 INTERNET_ARCHIVE_STATE_CACHE_SECONDS = 15 * 60
+# Each of reconcile_internet_archive_files' queries may take this long; the largest
+# reads all of perma_link (about 6.5 s in production, September 2026).
+INTERNET_ARCHIVE_RECONCILE_STATEMENT_TIMEOUT_MS = 60_000
 # How long /manage/stats reuses IA's rate-limit figures before asking IA again
 INTERNET_ARCHIVE_RATE_LIMITS_STATS_CACHE_SECONDS = 60
 INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED = False
