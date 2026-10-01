@@ -854,7 +854,7 @@ def upload_link_to_internet_archive(self, link_guid, attempts=0, timeouts=0):
         elif perma_file.status == 'upload_failed':
             logger.info(f"Not uploading {link_guid} to {identifier}: earlier attempts failed and it awaits a human (status 'upload_failed').")
             return
-        elif perma_file.status not in ['upload_attempted', 'confirmed_absent']:
+        elif perma_file.status not in ['upload_attempted', 'confirmed_absent', 'upload_needed']:
             logger.warning(f"Not uploading {link_guid} to {identifier}: task not implemented for InternetArchiveFiles with status '{perma_file.status}'.")
             return
 
@@ -1412,9 +1412,18 @@ def delete_link_from_daily_item(self, link_guid, attempts=0):
     elif perma_file.status in ['deletion_failed', 'deletion_unconfirmed']:
         logger.info(f"Not deleting {link_guid} from {identifier}: earlier attempts failed and it awaits a human (status '{perma_file.status}').")
         return
-    elif perma_file.status not in ['deletion_attempted', 'confirmed_present']:
+    elif perma_file.status not in ['deletion_attempted', 'confirmed_present', 'deletion_needed']:
         logger.warning(f"Not deleting {link_guid} from {identifier}: task not implemented for InternetArchiveFiles with status '{perma_file.status}'.")
         return
+    elif perma_file.status == 'deletion_needed':
+        link = Link.objects.all_with_deleted().filter(guid=link_guid).first()
+        if link and not (link.user_deleted or link.is_private or link.is_unlisted):
+            # made public again since reconciliation marked it
+            if InternetArchiveFile.objects.filter(pk=perma_file.pk, status='deletion_needed').update(
+                status='confirmed_present', status_updated=timezone.now()
+            ):
+                logger.info(f"Not deleting {link_guid} from {identifier}: the link is public again.")
+            return
 
     # Record that we are attempting a deletion, if no other task is
     claim = ia_task_claim(self.request)
@@ -1865,6 +1874,19 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
         total_queued = 0
         queued = []
         held_back = []
+        # Work marked by reconcile_internet_archive_files comes first, deletions before
+        # uploads: a withdrawn link's WARC stays public at IA until it is deleted.
+        queued_for_item = {}
+        deletions = queue_needed_ia_work(
+            'deletion_needed', delete_link_from_daily_item,
+            min(to_queue, settings.INTERNET_ARCHIVE_DELETIONS_PER_RUN), daily_limit, queued_for_item,
+        )
+        uploads = queue_needed_ia_work(
+            'upload_needed', upload_link_to_internet_archive, to_queue - deletions, daily_limit, queued_for_item,
+        )
+        total_queued = deletions + uploads
+        if total_queued:
+            logger.info(f"Queued {deletions} deletion{pluralize(deletions)} and {uploads} upload{pluralize(uploads)} marked by reconciliation.")
         refused = []
         probing = []
         creating = []
@@ -1903,7 +1925,7 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
                     elif not perma_item_created(identifier):
                         day_limit = 1
                         creating_item = True
-                    in_flight_for_this_day = item.tasks_in_progress
+                    in_flight_for_this_day = item.tasks_in_progress + queued_for_item.get(identifier, 0)
                 except InternetArchiveItem.DoesNotExist:
                     day_limit = 1
                     creating_item = True
@@ -1943,6 +1965,41 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
 
     logger.info("Skipped the queuing of file upload tasks: max tasks already in progress.")
     return {'decision': 'skip_at_capacity'}
+
+
+def queue_needed_ia_work(status, task, limit, daily_limit, queued_for_item):
+    """
+    Queue `task` for up to `limit` files in `status` ('deletion_needed' or
+    'upload_needed'), oldest first, within each item's per-day cap: daily_limit, or one
+    upload at a time to an item IA has not yet accepted an upload to. Items held back
+    for IA tasks in error or paused, or because IA refused to create them, are skipped.
+    queued_for_item counts what this run has queued per item, for the later steps.
+    """
+    if limit <= 0:
+        return 0
+    files = InternetArchiveFile.objects.filter(status=status).exclude(
+        item_id__in=uneditable_daily_item_identifiers()
+    ).select_related('item').order_by('status_updated', 'pk')
+    created = {}
+    queued = 0
+    for perma_file in files.iterator():
+        if queued >= limit:
+            break
+        item = perma_file.item
+        if item.ia_tasks_blocked_since or item.ia_creation_refused_at:
+            continue
+        cap = daily_limit
+        if status == 'upload_needed':
+            if item.identifier not in created:
+                created[item.identifier] = perma_item_created(item.identifier)
+            if not created[item.identifier]:
+                cap = 1
+        if item.tasks_in_progress + queued_for_item.get(item.identifier, 0) >= cap:
+            continue
+        task.delay(perma_file.link_id)
+        queued_for_item[item.identifier] = queued_for_item.get(item.identifier, 0) + 1
+        queued += 1
+    return queued
 
 
 IA_STATE_CACHE_KEY = 'ia-state'

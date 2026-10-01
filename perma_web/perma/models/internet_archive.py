@@ -340,8 +340,8 @@ class InternetArchiveFile(models.Model):
         which the task's own retries carry in a message header. A message that is
         delivered again after its worker stopped keeps its id, so it resumes its
         attempt too. Any task may start a new attempt on a file that does not exist
-        yet or was deleted from IA, or take up a stale one; no other task may claim
-        an attempt in progress.
+        yet, was deleted from IA, or is marked 'upload_needed', or take up a stale
+        one; no other task may claim an attempt in progress.
         """
         try:
             with transaction.atomic():
@@ -349,16 +349,16 @@ class InternetArchiveFile(models.Model):
             return cls.CLAIM_NEW
         except IntegrityError:
             pass
-        return cls._claim(item_id, link_id, 'upload_attempted', ['confirmed_absent'], claim)
+        return cls._claim(item_id, link_id, 'upload_attempted', ['confirmed_absent', 'upload_needed'], claim)
 
     @classmethod
     def claim_deletion(cls, item_id, link_id, claim):
         """
         The deletion counterpart of claim_upload: mark the file 'deletion_attempted'
-        for the attempt `claim` if it is 'confirmed_present', its deletion attempt is
-        stale, or it is already that attempt's.
+        for the attempt `claim` if it is 'confirmed_present' or 'deletion_needed', its
+        deletion attempt is stale, or it is already that attempt's.
         """
-        return cls._claim(item_id, link_id, 'deletion_attempted', ['confirmed_present'], claim)
+        return cls._claim(item_id, link_id, 'deletion_attempted', ['confirmed_present', 'deletion_needed'], claim)
 
     WARC_FILENAME = '{guid}.warc.gz'
 

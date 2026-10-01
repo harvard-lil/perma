@@ -1,15 +1,26 @@
+from contextlib import nullcontext
 from datetime import datetime, timedelta, timezone as tz
+from io import BytesIO
 import json
-from unittest.mock import patch
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
 
 import fakeredis
 import pytest
+from django.utils import timezone
 from psycopg2.extras import DateTimeTZRange
 
-from perma.celery_tasks import IA_RECONCILE_LOCK, reconcile_internet_archive_files
+from perma import celery_tasks
+from perma.celery_tasks import (
+    IA_RECONCILE_LOCK,
+    conditionally_queue_internet_archive_uploads_for_date_range,
+    delete_link_from_daily_item,
+    reconcile_internet_archive_files,
+    upload_link_to_internet_archive,
+)
 from perma.models import InternetArchiveFile, InternetArchiveItem, Link
 from perma.models.internet_archive import uneditable_daily_item_identifiers
-from perma.tests.test_internet_archive_tasks import _daily_item, _file_with_status
+from perma.tests.test_internet_archive_tasks import _daily_item, _fake_session, _file_with_status
 
 
 def _link_on(factory, day, **fields):
@@ -142,3 +153,90 @@ def test_reconciliation_runs_one_at_a_time():
     broker.set(IA_RECONCILE_LOCK, 1)
 
     assert _reconcile(broker)[0] is None
+
+
+def _producer(link, settings, max_uploads=499):
+    settings.INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS = max_uploads
+    date_string = link.creation_timestamp.strftime("%Y-%m-%d")
+    with (
+        patch("perma.celery_tasks.redis.from_url", return_value=fakeredis.FakeStrictRedis()),
+        patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(Mock())),
+        patch.object(delete_link_from_daily_item, "delay") as delete,
+        patch.object(upload_link_to_internet_archive, "delay") as upload,
+    ):
+        conditionally_queue_internet_archive_uploads_for_date_range.run(date_string, date_string)
+    return [c.args[0] for c in delete.call_args_list], [c.args[0] for c in upload.call_args_list]
+
+
+@pytest.mark.django_db
+def test_producer_queues_marked_deletions_first_within_caps(complete_link_factory, settings):
+    settings.INTERNET_ARCHIVE_DELETIONS_PER_RUN = 2
+    links = [complete_link_factory() for _ in range(6)]
+    item = _daily_item(links[0])
+    for link in links[:3]:
+        _file_with_status(item, link, "deletion_needed")
+    for link in links[3:5]:
+        _file_with_status(item, link, "upload_needed")
+    _file_with_status(item, links[5], "confirmed_present")  # IA has accepted uploads to the item
+
+    deletions, uploads = _producer(links[0], settings, max_uploads=3)
+
+    assert len(deletions) == 2 and set(deletions) <= {link.guid for link in links[:3]}
+    # the global budget of 3 leaves one upload
+    assert len(uploads) == 1 and uploads[0] in {link.guid for link in links[3:5]}
+
+
+@pytest.mark.django_db
+def test_marked_uploads_to_an_item_ia_has_not_created_go_one_at_a_time(complete_link_factory, settings):
+    links = [complete_link_factory() for _ in range(3)]
+    item = _daily_item(links[0])
+    for link in links:
+        _file_with_status(item, link, "upload_needed")
+
+    deletions, uploads = _producer(links[0], settings)
+
+    assert deletions == [] and len(uploads) == 1
+
+
+@pytest.mark.django_db
+def test_marked_work_on_held_items_waits(complete_link_factory, settings):
+    link = complete_link_factory()
+    item = _daily_item(link)
+    _file_with_status(item, link, "deletion_needed")
+    InternetArchiveItem.objects.filter(pk=item.pk).update(ia_tasks_blocked_since=timezone.now())
+
+    assert _producer(link, settings) == ([], [])
+
+
+@pytest.mark.django_db
+def test_deletion_task_skips_a_link_made_public_again(complete_link):
+    _file_with_status(_daily_item(complete_link), complete_link, "deletion_needed")
+    session = _fake_session(Mock())
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        delete_link_from_daily_item.run(complete_link.guid)
+
+    session.get_s3_load_info.assert_not_called()
+    assert _status(complete_link) == "confirmed_present"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("status, task_name, result", [
+    ("deletion_needed", "delete_link_from_daily_item", "deletion_submitted"),
+    ("upload_needed", "upload_link_to_internet_archive", "upload_submitted"),
+])
+def test_tasks_act_on_marked_files(complete_link, status, task_name, result):
+    _file_with_status(_daily_item(complete_link), complete_link, status)
+    if status == "deletion_needed":
+        Link.objects.filter(pk=complete_link.pk).update(is_private=True)
+    ia_item = Mock()
+    ia_item.upload_file.return_value = SimpleNamespace(status_code=200, text="")
+    ia_item.get_file.return_value.delete.return_value = SimpleNamespace(status_code=204, text="")
+
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(ia_item)),
+        patch.object(Link, "get_warc", return_value=nullcontext(BytesIO(b"warc"))),
+    ):
+        getattr(celery_tasks, task_name).run(complete_link.guid)
+
+    assert _status(complete_link) == result

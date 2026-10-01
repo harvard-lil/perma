@@ -607,6 +607,11 @@ INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER = timedelta(hours=1)
 # own retries (above), and attempts are at least INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER
 # apart, so reaching this takes repeated failures over hours.
 INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE = 5
+# The upload producer queues at most this many deletions marked by reconciliation per
+# run (every 5 minutes): 1,200 an hour, so the 6,363 found in September 2026 drain in
+# about 5.5 hours. IA makes two tasks of each deletion, so a run adds up to 200 to
+# Perma's queued IA tasks, inside the producer's in-flight budget.
+INTERNET_ARCHIVE_DELETIONS_PER_RUN = 100
 # After IA refuses to create a daily item (a 503 saying the upload "appears to be
 # spam"), the producer sends one upload to it at most this often, until IA accepts one.
 INTERNET_ARCHIVE_CREATION_REFUSED_PROBE_INTERVAL = timedelta(hours=1)
