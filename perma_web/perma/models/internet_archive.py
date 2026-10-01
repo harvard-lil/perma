@@ -16,6 +16,35 @@ from psycopg2.extras import DateTimeTZRange
 from perma.utils import protocol, remove_control_characters
 
 
+# Daily items with span at or before this range are excluded from backlog scheduling
+# (early daily-item era, before the current pipeline): the upload producer starts at
+# the oldest incomplete daily item after it.
+DAILY_ITEM_BACKLOG_SPAN_FLOOR = ('2021-11-10', '2021-11-11')
+
+# Links created after this date were only uploaded to daily IA items, not legacy per-link items.
+LAST_INDIVIDUAL_LINK_IA_UPLOAD_DATE = '2022-10-03'
+
+# Daily IA items Perma cannot edit on Internet Archive; skip uploads and confirmation tasks.
+# We need IA's help to resolve the situation; once they transfer ownership of these items,
+# we should be able to remove all references to this value.
+UNEDITABLE_DAILY_ITEM_DATE_STRINGS = frozenset({
+    '2022-07-19',
+    '2022-07-20',
+    '2022-07-21',
+    '2022-07-25',
+})
+
+
+def uneditable_daily_item_identifiers():
+    return [
+        InternetArchiveItem.DAILY_IDENTIFIER.format(
+            prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX,
+            date_string=date_string,
+        )
+        for date_string in sorted(UNEDITABLE_DAILY_ITEM_DATE_STRINGS)
+    ]
+
+
 def get_empty_datetime_range():
     return DateTimeTZRange(empty=True)
 
@@ -74,7 +103,12 @@ class InternetArchiveItem(models.Model):
     cached_description = models.TextField(null=True, blank=True, default=None)
 
     tasks_in_progress = models.IntegerField(default=0, db_index=True, help_text="We have asked Internet Archive to run appx this many tasks for this item and have not yet confirmed that those tasks are complete; derivative tasks not counted. Recomputed from file statuses by refresh_tasks_in_progress.")
-    complete = models.BooleanField(default=False, help_text="Has all the files it ought to have; has no files it ought not have.")
+    complete = models.BooleanField(default=False, help_text=(
+        "Initial uploads complete: True when the upload producer found no eligible links for this "
+        "daily item's day without an InternetArchiveFile, and no upload being attempted, once the "
+        "day was more than three days past. The producer's day-by-day walk skips items marked True. "
+        "It does not reflect later changes in links' eligibility, such as privacy changes."
+    ))
     last_derived = models.DateTimeField(null=True, blank=True)
     derive_required = models.BooleanField(default=False)
     ia_creation_refused_at = models.DateTimeField(null=True, blank=True, help_text="When IA last refused to create this item, answering an upload as spam; cleared when IA accepts an upload to it. The upload producer sends only an occasional single upload to the item meanwhile.")

@@ -1569,3 +1569,13 @@ def test_an_existing_item_without_accepted_uploads_also_gets_one_upload(complete
     _daily_item(links[0])
 
     assert _producer_run(links[0], _fake_session(Mock())).call_count == 1
+
+
+@pytest.mark.django_db
+def test_deletion_task_does_nothing_for_a_link_without_a_daily_file(complete_link):
+    session = _fake_session(Mock())
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        delete_link_from_daily_item.run(complete_link.guid)
+
+    session.get_s3_load_info.assert_not_called()

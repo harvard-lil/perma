@@ -27,7 +27,7 @@ from taggit.managers import TaggableManager
 from perma.utils import preserve_perma_wacz
 
 from .folder import Folder
-from .internet_archive import InternetArchiveFile
+from .internet_archive import LAST_INDIVIDUAL_LINK_IA_UPLOAD_DATE, InternetArchiveFile
 from .organization import Organization
 from .user import LinkUser
 from .utils import DeletableManager, DeletableModel, GenericStringTaggedItem
@@ -97,8 +97,8 @@ class LinkQuerySet(QuerySet):
         ).exclude(
             InternetArchiveFile.retryable_stale_attempt()
         )
-        if date_string > "2022-10-03":
-            # No links created after 2022-10-03 were uploaded to IA as individual Items:
+        if date_string > LAST_INDIVIDUAL_LINK_IA_UPLOAD_DATE:
+            # No links created after this date were uploaded to IA as individual Items:
             # use a simplified query
             logger.debug("Running simple IA eligibility query.")
             query = Link.objects.filter(

@@ -50,4 +50,9 @@ class Migration(migrations.Migration):
             name='tasks_in_progress',
             field=models.IntegerField(db_index=True, default=0, help_text='We have asked Internet Archive to run appx this many tasks for this item and have not yet confirmed that those tasks are complete; derivative tasks not counted. Recomputed from file statuses by refresh_tasks_in_progress.'),
         ),
+        migrations.AlterField(
+            model_name='internetarchiveitem',
+            name='complete',
+            field=models.BooleanField(default=False, help_text="Initial uploads complete: True when the upload producer found no eligible links for this daily item's day without an InternetArchiveFile, and no upload being attempted, once the day was more than three days past. The producer's day-by-day walk skips items marked True. It does not reflect later changes in links' eligibility, such as privacy changes."),
+        ),
     ]

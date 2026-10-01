@@ -23,19 +23,13 @@ from django.core.management.base import BaseCommand, CommandError
 
 from perma.celery_tasks import ia_files_for_link
 from perma.models import InternetArchiveFile
+from perma.models.internet_archive import uneditable_daily_item_identifiers
 from perma.utils import (
     get_ia_session,
     ia_global_task_limit_approaching,
     ia_perma_task_limit_approaching,
 )
 
-# daily items Perma cannot edit (see conditionally_queue_internet_archive_uploads_for_date_range)
-UNEDITABLE_ITEMS = [
-    'daily_perma_cc_2022-07-19',
-    'daily_perma_cc_2022-07-20',
-    'daily_perma_cc_2022-07-21',
-    'daily_perma_cc_2022-07-25',
-]
 LOAD_WAIT_SECONDS = 60
 LOAD_WAITS = 30
 
@@ -55,7 +49,7 @@ class Command(BaseCommand):
             item__span__isempty=False,
             item_id__gt=after_item,
         ).exclude(
-            item_id__in=UNEDITABLE_ITEMS
+            item_id__in=uneditable_daily_item_identifiers()
         ).order_by('item_id').values_list('item_id', flat=True).distinct()
         if limit_items:
             items = items[:limit_items]

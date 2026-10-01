@@ -36,6 +36,11 @@ from django.conf import settings
 from django.utils import timezone
 from django.template.defaultfilters import pluralize, filesizeformat
 
+from perma.models.internet_archive import (
+    DAILY_ITEM_BACKLOG_SPAN_FLOOR,
+    UNEDITABLE_DAILY_ITEM_DATE_STRINGS,
+    uneditable_daily_item_identifiers,
+)
 from perma.models import LinkUser, Link, Capture, \
     CaptureAttemptFacts, CaptureJob, InternetArchiveItem, InternetArchiveFile, Folder, Sponsorship, UserOrganizationAffiliation
 from perma.exceptions import PermaPaymentsCommunicationException, ScoopAPINetworkException, ScoopAPIException
@@ -1122,12 +1127,7 @@ def queue_file_uploaded_confirmation_tasks(limit=None):
     ).filter(
         Q(next_confirmation_check__isnull=True) | Q(next_confirmation_check__lte=Now())
     ).exclude(
-        identifier__in=[
-            'daily_perma_cc_2022-07-25',
-            'daily_perma_cc_2022-07-21',
-            'daily_perma_cc_2022-07-20',
-            'daily_perma_cc_2022-07-19'
-        ]
+        identifier__in=uneditable_daily_item_identifiers()
     ).order_by(
         F('next_confirmation_check').asc(nulls_first=True)
     ).values_list(
@@ -1391,7 +1391,10 @@ def delete_link_from_daily_item(self, link_guid, attempts=0):
     (see InternetArchiveFile.claim_deletion), and its retries pass on the claim in
     the IA_CLAIM_HEADER message header.
     """
-    perma_file = InternetArchiveFile.objects.select_related('item').get(link_id=link_guid, item__span__isempty=False)
+    perma_file = InternetArchiveFile.objects.select_related('item').filter(link_id=link_guid, item__span__isempty=False).first()
+    if not perma_file:
+        logger.info(f"No daily InternetArchiveFile for {link_guid}; nothing to delete.")
+        return
     perma_item = perma_file.item
     identifier = perma_item.identifier
 
@@ -1658,12 +1661,7 @@ def queue_file_deleted_confirmation_tasks(limit=100):
         file_ids = InternetArchiveFile.objects.filter(
                     status='deletion_submitted'
                 ).exclude(
-                    item_id__in=[
-                        'daily_perma_cc_2022-07-25',
-                        'daily_perma_cc_2022-07-21',
-                        'daily_perma_cc_2022-07-20',
-                        'daily_perma_cc_2022-07-19'
-                    ]
+                    item_id__in=uneditable_daily_item_identifiers()
                 ).values_list(
                     'id', flat=True
                 )[:limit]
@@ -1829,7 +1827,7 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
     if not start_date_string:
         oldest_incomplete_daily_item_in_backlog = InternetArchiveItem.objects.filter(
               span__isempty=False,
-              span__gt=('2021-11-10', '2021-11-11'),
+              span__gt=DAILY_ITEM_BACKLOG_SPAN_FLOOR,
               complete=False,
         ).order_by('span').first()
         start = oldest_incomplete_daily_item_in_backlog.span.lower.date()
@@ -1873,7 +1871,7 @@ def queue_internet_archive_uploads_for_date_range(start_date_string, end_date_st
         for day in date_range(start, end, timedelta(days=1)):
             if total_queued < to_queue:
                 date_string = day.strftime('%Y-%m-%d')
-                if date_string in ['2022-07-25', '2022-07-21', '2022-07-20', '2022-07-19']:
+                if date_string in UNEDITABLE_DAILY_ITEM_DATE_STRINGS:
                     # for now, skip these days: by accident, we don't presently have edit
                     # privileges for the IA Items with these identifiers
                     continue
