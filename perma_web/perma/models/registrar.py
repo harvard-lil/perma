@@ -3,7 +3,6 @@ from decimal import Decimal
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
-from django.db.models import F
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from model_utils import FieldTracker
@@ -71,18 +70,6 @@ class Registrar(CustomerModel):
 
     def __str__(self):
         return self.name
-
-    @staticmethod
-    def adjust_sponsored_link_count(old_sponsored_by_id, new_sponsored_by_id):
-        """ Update sponsored_link_count when a link leaves or enters a sponsored folder. """
-        if old_sponsored_by_id == new_sponsored_by_id:
-            return
-
-        if old_sponsored_by_id:
-            Registrar.objects.filter(pk=old_sponsored_by_id, sponsored_link_count__gt=0).update(sponsored_link_count=F('sponsored_link_count') - 1)
-
-        if new_sponsored_by_id:
-            Registrar.objects.filter(pk=new_sponsored_by_id).update(sponsored_link_count=F('sponsored_link_count') + 1)
 
     def save(self, *args, **kwargs):
         from .folder import Folder
