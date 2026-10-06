@@ -169,7 +169,7 @@
               <ul class="dropdown-menu">
                 {% if orgs %}
                   {% for org in orgs %}
-                    {% if organization_filter == org %}
+                    {% if org_filter == org %}
                       <li>
                         <a class="selected" aria-current="true" href="?{% current_query_string page='' org='' %}"><i aria-hidden="true" class="icon-ok"></i> {{org.name}}</a>
                       </li>
