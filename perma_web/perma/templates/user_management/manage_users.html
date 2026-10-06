@@ -207,11 +207,11 @@
                   {% for registrar in registrars %}
                     {% if registrar_filter == registrar %}
                       <li>
-                        <a class="selected" aria-current="true" href="?{% current_query_string page='' registrar='' organization='' %}"><i aria-hidden="true" class="icon-ok"></i> {{registrar.name}}</a>
+                        <a class="selected" aria-current="true" href="?{% current_query_string page='' registrar='' org='' %}"><i aria-hidden="true" class="icon-ok"></i> {{registrar.name}}</a>
                       </li>
                     {% else %}
                       <li>
-                        <a href="?{% current_query_string page='' registrar=registrar.id organization='' %}"><i aria-hidden="true" class="icon-ok"></i> {{registrar.name}}</a>
+                        <a href="?{% current_query_string page='' registrar=registrar.id org='' %}"><i aria-hidden="true" class="icon-ok"></i> {{registrar.name}}</a>
                       </li>
                     {% endif %}
                   {% endfor %}

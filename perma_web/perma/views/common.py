@@ -94,6 +94,6 @@ valid_org_sorts = [
     'date_created',
     'last_active',
     '-last_active',
-    'organization_users',
+    '-organization_users',
     'organization_users',
 ]
