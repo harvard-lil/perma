@@ -32,6 +32,9 @@ This document contains tips and tricks for working with Perma.
   - [Track migrations in Git and get started](#track-migrations-in-git-and-get-started)
   - [Visualize schema](#visualize-schema)
 - [Testing and Test Coverage](#testing-and-test-coverage)
+  - [Browsers, and how each one trusts the test server](#browsers-and-how-each-one-trusts-the-test-server)
+  - [Hangs: the per-test timeout, and why the login fixtures wait](#hangs-the-per-test-timeout-and-why-the-login-fixtures-wait)
+  - [Before/after screenshot capture](#beforeafter-screenshot-capture)
   - [Linting with Flake8](#linting-with-flake8)
 - [Working with Celery](#working-with-celery)
 - [Working with Redis](#working-with-redis)
@@ -168,6 +171,16 @@ Press `CONTROL-C` to stop the server.
 d pytest
 d npm test
 ```
+
+`d pytest` runs the browser tests in Chromium. To run the UI contract suite in Firefox
+or WebKit as well, as CI does:
+
+```
+d bash -c 'pytest functional_tests/test_ui_*.py --browser firefox'
+d bash -c 'pytest functional_tests/test_ui_*.py --browser webkit'
+```
+
+The `bash -c` is needed so the glob expands inside the container.
 
 See [Testing and Test Coverage](#testing-and-test-coverage) for more information about testing Perma.
 
@@ -416,6 +429,12 @@ This list is the yardstick for dropping legacy shims. A compatibility library
 should not be kept without an identified browser in this range that needs it;
 FastClick was removed on exactly those grounds.
 
+The browser tests exercise the three rendering engines behind that range — Chromium
+(Blink), Firefox (Gecko) and WebKit — as Playwright's Linux builds. That catches
+engine-level CSS and JavaScript differences, but **Playwright's WebKit is not Safari**:
+it has neither Safari's browser chrome nor iOS behavior, so real iOS Safari is not
+covered.
+
 #### Responsive breakpoints
 
 Perma's own breakpoints live in `static/css/_vars-global.scss` and are built
@@ -497,10 +516,15 @@ framework upgrade has to preserve behavior instead of markup:
 | `test_ui_computed_style.py` | typography, link states, box model, button colour, z-index |
 | `test_ui_archive.py` | archive details tray, view-mode toggle, playback structure |
 | `test_ui_touch.py` | tap activation under mobile emulation |
+| `test_ui_layout_parity.py` | column layout and archive header/frame geometry |
 
-When changing UI markup, expect to keep these passing unmodified. If an
+These files run in **Chromium, Firefox and WebKit**, locally with `--browser` and in CI
+as separate steps (see
+[Browsers, and how each one trusts the test server](#browsers-and-how-each-one-trusts-the-test-server)).
+When changing UI markup, expect to keep these passing unmodified in all three engines. If an
 assertion has to change, that is a product-visible behavior change and should
-be treated as one.
+be treated as one. One test is currently red under Firefox on a known defect; the CI
+section of that link says which and why.
 
 Note that `test_ui_touch.py` builds its own browser contexts with an iOS Safari
 user agent. That is not decoration: libraries that gate themselves on
@@ -644,6 +668,82 @@ they pin UI behavior and accessibility semantics rather than framework markup,
 so a CSS-framework upgrade has to preserve behavior. See
 [Front-end styles, Bootstrap, and browser support](#front-end-styles-bootstrap-and-browser-support)
 before changing them.
+
+### Browsers, and how each one trusts the test server
+
+The Playwright suite runs on Chromium unless told otherwise. Firefox and WebKit are
+installed in the image too, and are selected per run; flags can be repeated:
+
+```
+d pytest functional_tests/test_ui_navigation.py --browser firefox
+d pytest functional_tests/test_ui_navigation.py --browser chromium --browser webkit
+```
+
+Functional tests load pages from an HTTPS live server using the mkcert
+certificate, and the engines trust it differently:
+
+- **Chromium trusts it for real.** The `set_up_certs` fixture in `conftest.py` adds
+  mkcert's root CA to `$HOME/.pki/nssdb`. Client-side archive playback needs a
+  trusted secure context, so Chromium keeps this strict path.
+- **Firefox and WebKit ignore certificate errors instead.** Neither reads that NSS
+  database (Firefox uses a per-profile store, and Playwright gives it a fresh profile
+  each launch; Playwright's Linux WebKit has no NSS store at all), so without help
+  they reject every page. `browser_context_args` in `conftest.py` therefore sets
+  `ignore_https_errors` for every engine except Chromium.
+
+The consequence is that **a certificate problem is only caught under Chromium**. That
+trade was made deliberately so the other engines could run at all; the history is in
+`.plans/plan_browser-testing-and-vite.md` (finding F12).
+
+In CI (`.github/workflows/lint_test.yml`), the full suite runs on Chromium with
+coverage, then the `test_ui_*.py` contract suite runs again on Firefox and on WebKit,
+each as its own step. The WebKit step fails the build like any other. The Firefox step
+is marked `continue-on-error` for now: `test_skip_links_precede_the_navigation` fails
+there on a known product defect (Firefox makes `<body>` a keyboard tab stop), left red
+on purpose until the CSS is fixed. While that flag is set, *any* Firefox failure shows
+as a red step without failing the build, so check the step's result when touching the
+UI.
+
+### Hangs: the per-test timeout, and why the login fixtures wait
+
+Every test has a **180-second limit** (`pytest-timeout`, configured in
+`[tool.pytest.ini_options]` in `pyproject.toml`). A test that exceeds it fails with a
+stack dump instead of hanging the run. The limit is about six times the slowest test
+measured. It uses the `thread` method, which kills the stuck pytest-xdist worker; xdist
+replaces it and the run continues, reporting `worker 'gwN' crashed while running …`
+for the test that hung. A hang inside Playwright's synchronous API is not reliably
+interruptible by a signal, which is why the `signal` method is not used.
+
+The limit exists because of a real hang, now fixed at its cause. `page.set_viewport_size`
+is one of the few Playwright calls with **no timeout of its own**, and under Firefox it
+can fail to return when called while a page is still settling after a navigation. The
+login fixtures used to return while the
+post-login page was still settling — `log_in_user` waited for nothing at all — so a test
+that logged in and then resized could hang Firefox forever. Both `log_in` and
+`log_in_user` now return only after:
+
+1. the logout form is attached, which proves the login took; and
+2. the network is idle. After login, `/manage/create/`'s folder tree rewrites the URL to
+   `?folder=N` about 100 ms *after* the page's `load` event, and only for some users, so
+   neither "page loaded" nor a single URL pattern is a reliable "settled" signal.
+
+When writing a test that changes the viewport, prefer doing it before the first
+navigation.
+
+### Before/after screenshot capture
+
+`functional_tests/capture_control_screenshots.py` takes full-page screenshots of 20
+representative pages at the five supported widths. It produced the Bootstrap 3 "before"
+set for the browser-testing plan and is re-run unchanged for the "after" set. Its name
+deliberately does not match `test_*.py`, so ordinary `pytest` runs skip it; run it
+explicitly, once per engine:
+
+```
+d bash -c 'PERMA_CONTROL_SCREENSHOT_DIR=/perma/perma_web/control_shots pytest functional_tests/capture_control_screenshots.py --browser firefox'
+```
+
+PNGs land in `<dir>/<browser>/<page>@<width>.png`. Move them out of `perma_web/`
+afterwards; they are evidence, not committed baselines.
 
 See [Common tasks and commands](#common-tasks-and-commands) for commands to run the tests.
 

@@ -46,6 +46,11 @@ def computed_after_style(locator, property_name: str) -> str:
     )
 
 
+def font_family_names(value: str) -> list[str]:
+    """Split a computed font-family into names; WebKit serializes them unquoted, Blink and Gecko quoted."""
+    return [name.strip().strip("\"'") for name in value.split(",")]
+
+
 def assert_chevron_sprite_is_the_only_arrow(toggle) -> None:
     """
     Perma's dropdown arrow is a sprite on ::after. Bootstrap 5's own caret
@@ -69,7 +74,7 @@ def test_body_base_typography_and_background(page, ui_urls) -> None:
     page.goto(ui_urls("landing"))
 
     body = page.locator("body")
-    assert computed_style(body, "font-family") == '"Roboto Slab", sans-serif'
+    assert font_family_names(computed_style(body, "font-family")) == ["Roboto Slab", "sans-serif"]
     assert computed_style(body, "font-size") == "14px"
     assert computed_style(body, "line-height") == "20px"
     assert computed_style(body, "color") == "rgb(34, 34, 34)"

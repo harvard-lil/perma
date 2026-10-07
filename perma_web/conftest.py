@@ -50,8 +50,12 @@ os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 
 
 @pytest.fixture(scope="session")
-def browser_context_args(browser_context_args):
-    return {**browser_context_args, "locale": "en-US"}
+def browser_context_args(browser_context_args, browser_name):
+    args = {**browser_context_args, "locale": "en-US"}
+    # Firefox and WebKit don't read the NSS DB that set_up_certs populates; Chromium keeps strict trust.
+    if browser_name != "chromium":
+        args["ignore_https_errors"] = True
+    return args
 
 
 # patch django-liveserver-ssl to be compatible with changes made to the LiveTestServer in Django 4.2
@@ -256,19 +260,34 @@ def user() -> User:
     return User("functional_test_user@example.com", "pass")
 
 
+def _log_in_and_settle(page, login_url, user):
+    """Submit the login form and return only once login has finished and the page has settled."""
+    page.goto(login_url)
+    username = page.locator('#id_username')
+    username.focus()
+    username.type(user.username)
+    password = page.locator('#id_password')
+    password.focus()
+    password.type(user.password)
+    page.locator("button.btn.login").click()
+    # The logout form renders only on the authenticated branch of
+    # upper_right_menu.html, so its presence proves the login took. Matched
+    # by DOM attachment rather than by role or visibility: below the tablet
+    # breakpoint the whole menu collapses out of the accessibility tree, and
+    # a role- or visibility-based wait would fail purely because the caller
+    # is testing a narrow viewport.
+    expect(page.locator("#upper_right_menu form")).to_be_attached()
+    # Networkidle, not a URL wait: the create page's folder tree rewrites the URL to
+    # ?folder=N ~100ms after load for some users only, and set_viewport_size has no
+    # timeout, so a caller resizing mid-settle hangs Firefox forever.
+    page.wait_for_load_state("networkidle")
+
+
 @pytest.fixture
 def log_in_user(urls):
     """A utility to log in the desired user"""
-    # TODO: if this login fails, the fixture should error out
     def f(page, user):
-        page.goto(urls.login)
-        username = page.locator('#id_username')
-        username.focus()
-        username.type(user.username)
-        password = page.locator('#id_password')
-        password.focus()
-        password.type(user.password)
-        page.locator("button.btn.login").click()
+        _log_in_and_settle(page, urls.login, user)
     return f
 
 
@@ -299,21 +318,7 @@ def ui_urls(transactional_db, live_server_ssl):
 def log_in(ui_urls):
     """Log a user in without pulling in the WARC-backed `urls` fixture."""
     def f(page, user):
-        page.goto(ui_urls('user_management_limited_login'))
-        username = page.locator('#id_username')
-        username.focus()
-        username.type(user.username)
-        password = page.locator('#id_password')
-        password.focus()
-        password.type(user.password)
-        page.locator("button.btn.login").click()
-        # The logout form renders only on the authenticated branch of
-        # upper_right_menu.html, so its presence proves the login took. Matched
-        # by DOM attachment rather than by role or visibility: below the tablet
-        # breakpoint the whole menu collapses out of the accessibility tree, and
-        # a role- or visibility-based wait would fail purely because the caller
-        # is testing a narrow viewport.
-        expect(page.locator("#upper_right_menu form")).to_be_attached()
+        _log_in_and_settle(page, ui_urls('user_management_limited_login'), user)
     return f
 
 
