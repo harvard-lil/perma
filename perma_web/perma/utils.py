@@ -279,6 +279,14 @@ def export_queryset(
     return response
 
 
+def parse_int_or_404(value):
+    """ Convert the value to an int, or raise 404 if can't be converted. """
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        raise Http404
+
+
 ### form view helpers ###
 
 def get_form_data(request):

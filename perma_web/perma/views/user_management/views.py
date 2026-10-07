@@ -72,6 +72,7 @@ from perma.utils import (
     apply_sort_order,
     export_queryset,
     get_form_data,
+    parse_int_or_404,
     ratelimit_ip_key,
     remove_control_characters,
     user_passes_test_or_403,
@@ -226,8 +227,9 @@ def manage_organization(request):
     # handle registrar filter
     registrar_filter = request.GET.get('registrar', '')
     if registrar_filter:
+        registrar_filter = parse_int_or_404(registrar_filter)
         orgs = orgs.filter(registrar__id=registrar_filter)
-        registrar_filter = Registrar.objects.get(pk=registrar_filter)
+        registrar_filter = get_object_or_404(Registrar, pk=registrar_filter)
 
     # get total user count
     users_count = orgs.aggregate(count=Sum('organization_users'))['count']
@@ -481,9 +483,11 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
                 visible_orgs = visible_orgs.filter(pk__in=request.user.organizations.all())
         org_filter = request.GET.get('org', '')
         if org_filter:
+            org_filter = parse_int_or_404(org_filter)
             visible_orgs = visible_orgs.filter(pk=org_filter)
         registrar_filter = request.GET.get('registrar', '')
         if registrar_filter:
+            registrar_filter = parse_int_or_404(registrar_filter)
             visible_orgs = visible_orgs.filter(registrar_id=registrar_filter)
         users = users.filter(userorganizationaffiliation__organization__in=visible_orgs).alias(
             # Bind search/export fields to this join before later filters can
@@ -500,6 +504,8 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
     users, search_query = apply_search_query(request, users, search_fields)
 
     registrar_filter = request.GET.get('registrar', '')
+    if registrar_filter:
+        registrar_filter = parse_int_or_404(registrar_filter)
 
     registrars = None
     orgs = None
@@ -550,11 +556,12 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
     # handle org filter
     org_filter = request.GET.get('org', '')
     if org_filter:
+        org_filter = parse_int_or_404(org_filter)
         if group_name == 'organization_user':
             org_filter = get_object_or_404(visible_orgs, pk=org_filter)
         else:
             users = users.filter(organizations__id=org_filter)
-            org_filter = Organization.objects.get(pk=org_filter)
+            org_filter = get_object_or_404(Organization, pk=org_filter)
 
     # handle registrar filter
     if registrar_filter:
@@ -569,7 +576,7 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
                 permitted_registrars = Registrar.objects.filter(organizations__in=request.user.organizations.all())
             registrar_filter = get_object_or_404(permitted_registrars.distinct(), pk=registrar_filter)
         else:
-            registrar_filter = Registrar.objects.get(pk=registrar_filter)
+            registrar_filter = get_object_or_404(Registrar, pk=registrar_filter)
 
     # handle sponsorship status filter:
     sponsorship_status = request.GET.get('sponsorship_status', '')
@@ -644,8 +651,9 @@ def list_sponsored_users(
 
         # handle registrar filter
         if registrar_filter:
+            registrar_filter = parse_int_or_404(registrar_filter)
             sponsorships = sponsorships.filter(registrar_id=registrar_filter)
-            registrar_filter = Registrar.objects.get(pk=registrar_filter)
+            registrar_filter = get_object_or_404(Registrar, pk=registrar_filter)
 
     # handle sponsorship status filter:
     sponsorship_status = request.GET.get('sponsorship_status', '')

@@ -262,6 +262,35 @@ class UserManagementViewsTestCase(PermaTestCase):
         count = soup.select('.sort-filter-count')[0].text
         self.assertEqual("Found: 1 organization", count)
 
+    def test_missing_list_filter_ids_are_not_found(self):
+        """ A filter id that is a valid integer but matches no record should return 404 instead of raising an error """
+        missing = 999999999
+
+        for view, params in [
+            ('user_management_manage_organization', {'registrar': missing}),
+            ('user_management_manage_registrar_user', {'registrar': missing}),
+            ('user_management_manage_registrar_user', {'org': missing}),
+            ('user_management_manage_sponsored_user', {'registrar': missing}),
+            ('user_management_manage_organization_user', {'registrar': missing}),
+            ('user_management_manage_organization_user', {'org': missing})
+        ]:
+            with self.subTest(view=view, params=params):
+                self.get(view, user=self.admin_user, request_kwargs={'data': params}, require_status_code=404)
+
+    def test_non_integer_list_filter_ids_are_not_found(self):
+        """ A filter id that can't be converted into an integer should return 404 instead of raising an error """
+        for view, params in [
+            ('user_management_manage_organization', {'registrar': 'asdf'}),
+            ('user_management_manage_registrar_user', {'registrar': 'asdf'}),
+            ('user_management_manage_registrar_user', {'org': 'asdf'}),
+            ('user_management_manage_sponsored_user', {'registrar': 'asdf'}),
+            ('user_management_manage_organization_user', {'registrar': 'asdf'}),
+            ('user_management_manage_organization_user', {'org': 'asdf'})
+        ]:
+            with self.subTest(view=view, params=params):
+                self.get(view, user=self.admin_user, request_kwargs={'data': params}, require_status_code=404)
+
+
     def test_org_user_list_filters(self):
         # test assumptions: seven users
         # - three from Test Journal
