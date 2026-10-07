@@ -27,7 +27,7 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError, BadRequest
 from django.core.files.storage import storages
 from django.core.paginator import EmptyPage, Page, Paginator
 from django.core.serializers.json import DjangoJSONEncoder
@@ -277,6 +277,14 @@ def export_queryset(
         case _:
             raise ValueError('export_format must be one of: csv, json')
     return response
+
+
+def parse_int_or_400(value):
+    """ Convert the value to an int, or raise 400 if can't be converted. """
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        raise BadRequest('Invalid value for numeric field')
 
 
 ### form view helpers ###
