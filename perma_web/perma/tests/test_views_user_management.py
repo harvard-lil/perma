@@ -278,7 +278,7 @@ class UserManagementViewsTestCase(PermaTestCase):
                 self.get(view, user=self.admin_user, request_kwargs={'data': params}, require_status_code=404)
 
     def test_non_integer_list_filter_ids_are_not_found(self):
-        """ A filter id that can't be converted into an integer should return 404 instead of raising an error """
+        """ A filter id that can't be converted into an integer should return 400 instead of raising an error """
         for view, params in [
             ('user_management_manage_organization', {'registrar': 'asdf'}),
             ('user_management_manage_registrar_user', {'registrar': 'asdf'}),
@@ -288,7 +288,7 @@ class UserManagementViewsTestCase(PermaTestCase):
             ('user_management_manage_organization_user', {'org': 'asdf'})
         ]:
             with self.subTest(view=view, params=params):
-                self.get(view, user=self.admin_user, request_kwargs={'data': params}, require_status_code=404)
+                self.get(view, user=self.admin_user, request_kwargs={'data': params}, require_status_code=400)
 
 
     def test_org_user_list_filters(self):
