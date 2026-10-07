@@ -169,6 +169,35 @@ describe('dashboard interactions', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 
+  it.each([
+    [5, 5],
+    ['Infinity', Infinity],
+  ])('updates the remaining-links count from the move response (%s)', async (linksRemaining, expected) => {
+    const {pinia, store} = configureStore()
+    store.linksRemaining = 4
+    // the details panel builds its folder options from the jsTree instance
+    const folderNode = {text: 'Organization Links', data: {folder_id: 2}, children: []}
+    store.components.jstree = {
+      getFolderTree: () => ({get_node: (id) => id === '#' ? {children: ['folder-2']} : folderNode}),
+    }
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(response({objects: [link('moved')]}))
+      .mockResolvedValueOnce(response({guid: 'moved', links_remaining: linksRemaining, links_remaining_period: 'once'}))
+    const wrapper = mount(LinkList, {global: {plugins: [pinia]}})
+    await wrapper.vm.fetchLinks()
+
+    await wrapper.get('.toggle-details').trigger('click')
+    await wrapper.get('select.move-to-folder').setValue('2')
+    await flushPromises()
+
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      '/api/v1/folders/2/archives/moved/',
+      expect.objectContaining({method: 'PUT'}),
+    )
+    expect(store.linksRemaining).toBe(expected)
+    expect(wrapper.text()).not.toContain('Link moved')
+  })
+
   it('sends one request per search, and none while the same search is running', async () => {
     const {pinia} = configureStore()
     let releaseSearch

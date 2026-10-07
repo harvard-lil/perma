@@ -8,6 +8,7 @@ from model_utils import FieldTracker
 from tree_queries.models import TreeNode
 from tree_queries.query import TreeQuerySet
 
+from . import link_counts
 from .registrar import Sponsorship
 
 logger = logging.getLogger(__name__)
@@ -147,52 +148,6 @@ class Folder(TreeNode):
                 )[:1]
             )
 
-        def update_org_and_registrar_link_counts(links, old_org_id, new_org_id):
-            """ update the organization and registrar link counts after a folder move """
-            from .organization import Organization
-            from .registrar import Registrar
-
-            if old_org_id == new_org_id:
-                return
-
-            num_of_links = links.count()
-            if not num_of_links:
-                return
-
-            if old_org_id:
-                Organization.objects.filter(pk=old_org_id).update(link_count=F('link_count') - num_of_links)
-            if new_org_id:
-                Organization.objects.filter(pk=new_org_id).update(link_count=F('link_count') + num_of_links)
-
-            registrar_ids_by_orgs = dict(Organization.objects.filter(pk__in=(old_org_id, new_org_id)).values_list('pk', 'registrar_id'))
-
-            old_registrar_id = registrar_ids_by_orgs.get(old_org_id)
-            new_registrar_id = registrar_ids_by_orgs.get(new_org_id)
-            if old_registrar_id == new_registrar_id:
-                return
-
-            if old_registrar_id:
-                Registrar.objects.filter(pk=old_registrar_id).update(link_count=F('link_count') - num_of_links)
-            if new_registrar_id:
-                Registrar.objects.filter(pk=new_registrar_id).update(link_count=F('link_count') + num_of_links)
-
-        def update_registrar_sponsored_link_counts(links, old_sponsored_by_id, new_sponsored_by_id):
-            """ update Registrar.sponsored_link_count after folder movements change sponsorship """
-            from .registrar import Registrar
-
-            if old_sponsored_by_id == new_sponsored_by_id:
-                return
-              
-            num_of_links = links.count()
-            if not num_of_links:
-                return
-              
-            if old_sponsored_by_id:
-                Registrar.objects.filter(pk=old_sponsored_by_id).update(sponsored_link_count=F('sponsored_link_count') - num_of_links)
-
-            if new_sponsored_by_id:
-                Registrar.objects.filter(pk=new_sponsored_by_id).update(sponsored_link_count=F('sponsored_link_count') + num_of_links)
-        
         def update_parents_cached_has_children(parent_id=None, previous_parent_id=None):
             if parent_id:
                 Folder.objects.filter(
@@ -289,8 +244,14 @@ class Folder(TreeNode):
                 links.update(organization_id=parent.organization_id)
 
                 # update organization and registrar link counts including the registrar sponsored link count
-                update_org_and_registrar_link_counts(links, previous_parent_org_id, parent.organization_id)
-                update_registrar_sponsored_link_counts(links, old_sponsored_by_id, new_sponsored_by_id)
+                if previous_parent_org_id != parent.organization_id or old_sponsored_by_id != new_sponsored_by_id:
+                    link_counts.adjust_owner_link_counts(
+                        links.count(),
+                        old_org_id=previous_parent_org_id,
+                        new_org_id=parent.organization_id,
+                        old_sponsored_by_id=old_sponsored_by_id,
+                        new_sponsored_by_id=new_sponsored_by_id,
+                    )
 
                 # if any bonus links got transferred to an org or to a sponsored folder, give users their bonus credit back
                 bonus_links = links.filter(bonus_link=True)

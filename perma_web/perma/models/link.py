@@ -26,6 +26,7 @@ from taggit.managers import TaggableManager
 
 from perma.utils import preserve_perma_wacz
 
+from . import link_counts
 from .folder import Folder
 from .organization import Organization
 from .user import LinkUser
@@ -234,6 +235,8 @@ class Link(DeletableModel):
 
         initial_folder = kwargs.pop('initial_folder', None)
 
+        is_new = self._state.adding
+
         if not self.pk:
             if not self.archive_timestamp:
                 self.archive_timestamp = self.creation_timestamp + settings.ARCHIVE_DELAY
@@ -266,6 +269,9 @@ class Link(DeletableModel):
             self.private_reason = 'user'
 
         super(Link, self).save(*args, **kwargs)
+
+        if is_new:
+            link_counts.link_created(self)
 
         if not self.folders.count():
             if not initial_folder:
@@ -307,12 +313,18 @@ class Link(DeletableModel):
             .first()
         )
 
+    def safe_delete(self):
+        """ Mark this link deleted and remove it from the link counts. """
+        if self.user_deleted:
+            return
+
+        super().safe_delete()
+        link_counts.link_deleted(self)
+
     def move_to_folder_for_user(self, folder, user):
         """
             Move this link to the given folder for the given user.
         """
-        from .registrar import Registrar
-
         with transaction.atomic():
             destination_folder = folder
             # Don't let anybody move folders around, until this link is
@@ -321,6 +333,7 @@ class Link(DeletableModel):
             for locked_folder in itertools.chain(self.folders.all(), [destination_folder]):
                 Folder.objects.select_for_update().get(pk=locked_folder.tree_root_id)
 
+            old_org_id = self.organization_id
             old_sponsored_by_id = self._sponsored_by_id()
 
             # remove this link from any folders it's in for this user
@@ -335,7 +348,14 @@ class Link(DeletableModel):
                 self.bonus_link = False
                 user.bonus_links = F('bonus_links') + 1
 
-            Registrar.adjust_sponsored_link_count(old_sponsored_by_id, destination_folder.sponsored_by_id)
+            if not self.user_deleted:
+                link_counts.adjust_owner_link_counts(
+                    1,
+                    old_org_id=old_org_id,
+                    new_org_id=self.organization_id,
+                    old_sponsored_by_id=old_sponsored_by_id,
+                    new_sponsored_by_id=destination_folder.sponsored_by_id,
+                )
 
             self.save(update_fields=['organization', 'bonus_link'])
             user.save(update_fields=['bonus_links'])

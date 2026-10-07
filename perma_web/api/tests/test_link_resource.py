@@ -7,6 +7,7 @@ from requests.exceptions import RequestException
 from requests import request as orig_request
 
 from django.conf import settings
+from django.core.files.storage import storages
 from django.urls import reverse
 from django.test.utils import override_settings
 
@@ -195,6 +196,19 @@ class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
         self.assertEqual(resp.get('Content-Type', ''), 'application/wacz')
         self.assertEqual(get_wacz.call_count, 1)
 
+    @patch('perma.models.Link.get_warc', autospec=True)
+    def test_private_download_head(self, get_warc):
+        with open(os.path.join(TEST_ASSETS_DIR, 'new_style_archive/archive.warc.gz'), 'rb') as warc_file:
+            storages[settings.WARC_STORAGE].store_file(warc_file, self.unrelated_private_link.warc_storage_file(), overwrite=True)
+            self.unrelated_private_link.warc_size = warc_file.tell()
+        self.unrelated_private_link.save()
+        self.api_client.force_authenticate(user=self.regular_user)
+        resp = self.api_client.head(self.logged_in_private_link_download_url)
+        self.assertHttpOK(resp)
+        self.assertEqual(resp.get('Content-Disposition', ''), f'attachment; filename="{self.unrelated_private_link.pk}.warc.gz"')
+        self.assertEqual(resp.get('Content-Type', ''), 'application/gzip')
+        self.assertEqual(get_warc.call_count, 0)
+
 
     ############
     # Updating #
@@ -251,8 +265,14 @@ class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
         folder = self.org_user.organizations.first().folders.first()
         folder_url = "{0}/folders/{1}".format(self.url_base, folder.pk)
 
-        self.successful_put("{0}/archives/{1}".format(folder_url, self.unrelated_link.pk),
-                            user=self.org_user)
+        links_remaining_before, period, _ = self.org_user.get_links_remaining()
+
+        data = self.successful_put("{0}/archives/{1}".format(folder_url, self.unrelated_link.pk),
+                                   user=self.org_user)
+
+        # Moving a personal link into an org folder frees a personal link
+        self.assertEqual(data['links_remaining'], links_remaining_before + 1)
+        self.assertEqual(data['links_remaining_period'], period)
 
         # Make sure it's listed in the folder
         obj = self.successful_get(self.unrelated_link_detail_url, user=self.org_user)

@@ -86,7 +86,7 @@
               <a {% if sort == '-last_active' %}class="selected" aria-current="true" {% endif %} href="?{% current_query_string page='' sort="-last_active" %}"><i aria-hidden="true" class="icon-ok"></i> Recently active</a>
             </li>
             <li>
-              <a {% if sort == 'last_active' %}class="selected" aria-current="true" {% endif %} href="?{% current_query_string page='' sort="=last_active" %}"><i aria-hidden="true" class="icon-ok"></i> Least recently active</a>
+              <a {% if sort == 'last_active' %}class="selected" aria-current="true" {% endif %} href="?{% current_query_string page='' sort="last_active" %}"><i aria-hidden="true" class="icon-ok"></i> Least recently active</a>
             </li>
             <li>
               <a {% if sort == '-link_count' %}class="selected" aria-current="true" {% endif %} href="?{% current_query_string page='' sort="-link_count" %}"><i aria-hidden="true" class="icon-ok"></i> Most links</a>
@@ -95,10 +95,10 @@
               <a {% if sort == 'link_count' %}class="selected" aria-current="true" {% endif %} href="?{% current_query_string page='' sort="link_count" %}"><i aria-hidden="true" class="icon-ok"></i> Least links</a>
             </li>
             <li>
-              <a {% if sort == '-org_users' %}class="selected" aria-current="true" {% endif %} href="?sort=-org_users{% if search_query %}&q={{ search_query }}{% endif %}{% if registrar_filter %}&registrar={{ registrar_filter.id }}{% endif %}"><i aria-hidden="true" class="icon-ok"></i> Most users</a>
+              <a {% if sort == '-organization_users' %}class="selected" aria-current="true" {% endif %} href="?{% current_query_string page='' sort="-organization_users" %}"><i aria-hidden="true" class="icon-ok"></i> Most users</a>
             </li>
             <li>
-              <a {% if sort == 'org_users' %}class="selected" aria-current="true" {% endif %} href="?{% current_query_string page='' sort="org_users" %}"><i aria-hidden="true" class="icon-ok"></i> Least users</a>
+              <a {% if sort == 'organization_users' %}class="selected" aria-current="true" {% endif %} href="?{% current_query_string page='' sort="organization_users" %}"><i aria-hidden="true" class="icon-ok"></i> Least users</a>
             </li>
           </ul>
         </div>
@@ -136,7 +136,6 @@
           <h4 class="item-title" id="org-{{ org.id }}" tabindex="-1">
             {% if org.default_to_private %}<span class="ui-private">[private organization]</span> {% endif %}
             {{ org.name }}
-            </a>
           </h4>
           {% if user_management_perms.show_org_registrar_link %}
             <div class="item-affil">

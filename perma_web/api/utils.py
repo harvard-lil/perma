@@ -3,6 +3,7 @@ from collections import OrderedDict
 from collections.abc import Mapping
 from functools import wraps
 import json
+from urllib.parse import quote
 
 from django.conf import settings
 from django.http import Http404
@@ -213,12 +214,36 @@ def get_mime_type(file_name):
     file_extension = file_name.rsplit('.', 1)[-1].lower()
     return file_extension_lookup.get(file_extension)
 
-def url_is_invalid_unicode(url_string):
-    """ Check for unicode control characters in URL """
-    for x in str(url_string):
-        if unicodedata.category(x)[0] == "C":
-            return True
-    return False
+def _is_unexpected_url_character(char):
+    # Unicode control characters, and the line and paragraph separators
+    # (U+2028, U+2029) that copying a URL out of a PDF can leave behind
+    category = unicodedata.category(char)
+    return category[0] == "C" or category in ("Zl", "Zp")
+
+
+# URL punctuation that passes through excerpts unencoded; none of it can open
+# an HTML tag or end a quoted attribute (no <, >, quotes or backtick)
+EXCERPT_SAFE_CHARACTERS = "-._~:/?#[]@!$&()*+,;=%"
+
+
+def unexpected_url_character_excerpt(url_string, context=20):
+    """
+    The text around the first character in the URL that can't be part of the
+    address the user meant, with each such character shown as ⍰; or None.
+
+    Everything else in the excerpt is percent-encoded, so the excerpt is plain
+    ASCII URL text plus ⍰ and …, whatever the submitted string contained.
+    """
+    url_string = str(url_string)
+    for i, char in enumerate(url_string):
+        if _is_unexpected_url_character(char):
+            start, end = max(0, i - context), i + context + 1
+            excerpt = "".join(
+                "⍰" if _is_unexpected_url_character(c) else quote(c, safe=EXCERPT_SAFE_CHARACTERS)
+                for c in url_string[start:end]
+            )
+            return f"{'…' if start else ''}{excerpt}{'…' if end < len(url_string) else ''}"
+    return None
 
 def reverse_api_view(viewname, *args, **kwargs):
     # Requires request as a kwarg.

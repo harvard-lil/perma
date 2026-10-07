@@ -195,6 +195,9 @@ class LoggingAPIClient(APIClient):
     def get(self, *args, **kwargs):
         return super(LoggingAPIClient, self).get(*args, **kwargs, secure=True)
     @log_api_call
+    def head(self, *args, **kwargs):
+        return super(LoggingAPIClient, self).head(*args, **kwargs, secure=True)
+    @log_api_call
     def post(self, *args, **kwargs):
         return super(LoggingAPIClient, self).post(*args, **kwargs, secure=True)
     @log_api_call
@@ -286,6 +289,8 @@ class ApiResourceTestCaseMixin(SimpleTestCase):
 
         resp = self.api_client.put(url, **req_kwargs)
         self.assertHttpOK(resp)
+
+        return self.deserialize(resp)
 
     def successful_patch(self, url, check_results=True, **kwargs):
         req_kwargs = self.get_req_kwargs(kwargs)

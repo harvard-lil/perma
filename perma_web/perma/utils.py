@@ -27,7 +27,7 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError, BadRequest
 from django.core.files.storage import storages
 from django.core.paginator import EmptyPage, Page, Paginator
 from django.core.serializers.json import DjangoJSONEncoder
@@ -277,6 +277,14 @@ def export_queryset(
         case _:
             raise ValueError('export_format must be one of: csv, json')
     return response
+
+
+def parse_int_or_400(value):
+    """ Convert the value to an int, or raise 400 if can't be converted. """
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        raise BadRequest('Invalid value for numeric field')
 
 
 ### form view helpers ###
@@ -897,13 +905,37 @@ def get_wacz_stream(link, stream=True):
         return response
 
 
-def stream_archive(link, stream=True, file_format='warc'):
+def stream_archive(link, stream=True, file_format='warc', head=False):
     # `link.user_deleted` is checked here for dev convenience:
     # it's easy to forget that deleted Perma Links' files aren't truly deleted,
     # and easy to accidentally permit the downloading of "deleted" archive files.
     # Users of stream_archive shouldn't have to worry about / remember this.
     if link.user_deleted or not link.can_play_back():
         raise Http404
+
+    if head:
+        # Check that the stored file exists without reading it. A WARC download
+        # for a link with only a WACZ is extracted from the WACZ, so the WACZ
+        # stands in for the WARC here.
+        match file_format:
+            case 'warc':
+                suffix, content_type = 'warc.gz', 'application/gzip'
+            case 'wacz':
+                suffix, content_type = 'wacz', 'application/wacz'
+            case _:
+                raise NotImplementedError("Unsupported file format.")
+        if file_format == 'warc' and link.warc_size:
+            storage, name = settings.WARC_STORAGE, link.warc_storage_file()
+        elif link.wacz_size:
+            storage, name = settings.WACZ_STORAGE, link.wacz_storage_file()
+        else:
+            raise Http404
+        if not storages[storage].exists(name):
+            raise Http404
+        # Streaming prevents CommonMiddleware from inventing a zero file size.
+        response = StreamingHttpResponse((), content_type=content_type)
+        response['Content-Disposition'] = f'attachment; filename="{link.guid}.{suffix}"'
+        return response
 
     try:
         match file_format:
@@ -919,12 +951,12 @@ def stream_archive(link, stream=True, file_format='warc'):
         raise Http404
 
 
-def stream_archive_if_permissible(link, user, stream=True, file_format='warc'):
+def stream_archive_if_permissible(link, user, stream=True, file_format='warc', head=False):
     if not user.is_authenticated:
         return HttpResponse('Unauthenticated.', status=401)
 
     if user.can_view(link):
-        return stream_archive(link, stream, file_format)
+        return stream_archive(link, stream, file_format, head=head)
     return HttpResponseForbidden('Private archive.')
 
 
