@@ -745,6 +745,10 @@ d bash -c 'PERMA_CONTROL_SCREENSHOT_DIR=/perma/perma_web/control_shots pytest fu
 PNGs land in `<dir>/<browser>/<page>@<width>.png`. Move them out of `perma_web/`
 afterwards; they are evidence, not committed baselines.
 
+Before each shot the tool forces the page's lazy-loaded images to load. A full-page
+screenshot doesn't scroll, so without that some below-the-fold `loading="lazy"` images
+stay blank, and which ones varies by engine.
+
 See [Common tasks and commands](#common-tasks-and-commands) for commands to run the tests.
 
 

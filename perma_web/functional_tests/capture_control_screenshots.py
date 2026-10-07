@@ -82,6 +82,13 @@ def test_capture(page, request, browser_name, screenshot_dir, slug, width, ui_ur
     page.goto(target)
     # Webfonts and late XHR change layout; shoot only once both settle.
     page.wait_for_load_state("networkidle")
+    # Full-page shots don't scroll, so below-the-fold lazy images may never load; which ones varies by engine.
+    page.evaluate(
+        """() => Promise.all([...document.querySelectorAll('img[loading="lazy"]')].map(img => {
+            img.loading = "eager";
+            return img.decode().catch(() => {});
+        }))"""
+    )
     page.evaluate("document.fonts.ready.then(() => true)")
 
     out = screenshot_dir / browser_name / f"{slug}@{width}.png"
