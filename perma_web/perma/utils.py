@@ -280,7 +280,7 @@ def export_queryset(
 
 
 def parse_int_or_400(value):
-    """ Convert the value to an int, or raise 404 if can't be converted. """
+    """ Convert the value to an int, or raise 400 if can't be converted. """
     try:
         return int(value)
     except (TypeError, ValueError):
