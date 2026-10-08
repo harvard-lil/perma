@@ -456,25 +456,6 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
                     self.save(update_fields=['notes'])
                     self.organizations.add(*orgs)
 
-    def soft_delete_after_merge_with_user(self, user):
-        original_email = self.email
-
-        self.email = f"merged_users_{self.id}_and_{user.id}@perma.cc"
-        self.is_active = False
-        self.link_count = 0
-
-        self.prepend_to_notes(f"Original email: { original_email }")
-        if self.registrar_id:
-            self.prepend_to_notes(f"Original registrar: { self.registrar_id }")
-            self.registrar_id = None
-        orgs = list(self.organizations.all())
-        if orgs:
-            self.prepend_to_notes(f"Original orgs: {', '.join([str(o.id) for o in orgs])}")
-            self.organizations.remove(*orgs)
-
-        self.save(update_fields=['email', 'is_active', 'link_count', 'notes', 'registrar_id'])
-        return (original_email, self.email)
-
     def prepend_to_notes(self, message):
         if self.notes:
             self.notes = f"{message}\n\n{self.notes}"

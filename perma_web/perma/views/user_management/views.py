@@ -149,7 +149,6 @@ def manage_registrar(request):
         registrars = registrars.filter(status=status)
 
     orgs_count = Organization.objects.filter(registrar__in=registrars).count()
-    #users_count = registrars.aggregate(count=Sum('registrar_users'))
 
     # handle pagination
     registrars = apply_pagination(request, registrars)
@@ -231,8 +230,8 @@ def manage_organization(request):
         orgs = orgs.filter(registrar__id=registrar_filter)
         registrar_filter = get_object_or_404(Registrar, pk=registrar_filter)
 
-    # get total user count
-    users_count = orgs.aggregate(count=Sum('organization_users'))['count']
+    # get total user count (count each person once, even if they belong to more than one org)
+    users_count = LinkUser.objects.filter(organizations__in=orgs.order_by().values('pk')).distinct().count()
 
     # handle pagination
     orgs = apply_pagination(request, orgs)

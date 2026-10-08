@@ -205,7 +205,7 @@ def apply_search_query(
     # get words in search_string
     required_words = search_string.strip().split()
     if not required_words:
-        return queryset
+        return queryset, ''
 
     for required_word in required_words:
         # apply the equivalent of queryset = queryset.filter(Q(field1__icontains=required_word) | Q(field2__icontains=required_word) | ...)
