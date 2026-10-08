@@ -198,16 +198,11 @@ def apply_search_query(
     """
     # Support either GET or POST request params
     params = getattr(request, request.method)
-    search_string = params.get('q', '')
+    search_string = params.get('q', '').strip()
     if not search_string:
         return queryset, ''
 
-    # get words in search_string
-    required_words = search_string.strip().split()
-    if not required_words:
-        return queryset, ''
-
-    for required_word in required_words:
+    for required_word in search_string.split():
         # apply the equivalent of queryset = queryset.filter(Q(field1__icontains=required_word) | Q(field2__icontains=required_word) | ...)
         query_parts = [Q(**{field+"__icontains":required_word}) for field in fields]
         query_parts_joined = reduce(operator.or_, query_parts, Q())

@@ -1475,10 +1475,6 @@ def account_is_deactivated(request):
     return render(request, 'user_management/deactivated.html')
 
 
-def get_sitewide_cookie_domain(request):
-    return '.' + request.get_host().split(':')[0]  # remove port
-
-
 def logout(request):
     if request.method == 'POST':
         return auth_views.LogoutView.as_view(template_name='registration/logout_success.html')(request)

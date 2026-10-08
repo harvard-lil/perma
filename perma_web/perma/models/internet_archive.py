@@ -156,10 +156,6 @@ class InternetArchiveFile(models.Model):
     WARC_FILENAME = '{guid}.warc.gz'
 
     @classmethod
-    def guid_from_filename(cls, filename):
-        return filename.split('.')[0]
-
-    @classmethod
     def standard_metadata_for_link(cls, link):
         title = f"{link.guid}: {truncatechars(link.submitted_title, 50)}"
         url = remove_control_characters(link.submitted_url)
