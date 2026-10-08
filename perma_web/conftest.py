@@ -11,7 +11,7 @@ from django.core.management import call_command
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
 from filelock import FileLock
-from playwright.sync_api import Page, expect
+from playwright.sync_api import expect
 import pytest
 from pytest_django.plugin import blocking_manager_key
 
@@ -32,15 +32,6 @@ def current_frontend_assets():
     PERMA_SKIP_ASSET_CHECK, since its bundles were baked in by the build.
     """
     frontend_assets.ensure_current()
-
-# patch Playwright's screenshot method so that we get full-page screenshots
-# when functional tests fail, which is not presently configurable in pytest-playwright
-# https://github.com/microsoft/playwright-pytest/blob/456f8286f09f132d2e21f6bf71f27465e71ba17a/pytest_playwright/pytest_playwright.py#L249
-_orig = Page.screenshot
-def full_page_screenshot(*args, **kwargs):
-    kwargs['full_page'] = True
-    return _orig(*args, **kwargs)
-Page.screenshot = full_page_screenshot
 
 # Patch Playwright's expect timeout to 15 seconds (default: 5) to avoid spurious failures
 expect.set_options(timeout=15_000)

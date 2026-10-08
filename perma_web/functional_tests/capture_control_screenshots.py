@@ -93,4 +93,4 @@ def test_capture(page, request, browser_name, screenshot_dir, slug, width, ui_ur
 
     out = screenshot_dir / browser_name / f"{slug}@{width}.png"
     out.parent.mkdir(parents=True, exist_ok=True)
-    page.screenshot(path=str(out))
+    page.screenshot(path=str(out), full_page=True)

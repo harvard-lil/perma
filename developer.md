@@ -34,6 +34,7 @@ This document contains tips and tricks for working with Perma.
 - [Testing and Test Coverage](#testing-and-test-coverage)
   - [Browsers, and how each one trusts the test server](#browsers-and-how-each-one-trusts-the-test-server)
   - [Hangs: the per-test timeout, and why the login fixtures wait](#hangs-the-per-test-timeout-and-why-the-login-fixtures-wait)
+  - [Failure screenshots](#failure-screenshots)
   - [Before/after screenshot capture](#beforeafter-screenshot-capture)
   - [Linting with Flake8](#linting-with-flake8)
 - [Working with Celery](#working-with-celery)
@@ -729,6 +730,18 @@ that logged in and then resized could hang Firefox forever. Both `log_in` and
 
 When writing a test that changes the viewport, prefer doing it before the first
 navigation.
+
+### Failure screenshots
+
+When a browser test fails, pytest-playwright saves a full-page screenshot of the page under
+`failed_test_files/` (the `--screenshot only-on-failure`, `--full-page-screenshot` and
+`--output` options in `addopts` in `pyproject.toml`). In CI, the Firefox and WebKit steps
+pass their own `--output`, `failed_test_files_firefox` and `failed_test_files_webkit`.
+
+pytest-playwright empties its output directory at the start of every run. To keep a
+screenshot, copy it out first, or pass `--output` to point the next run somewhere else.
+
+A `page.screenshot()` call in a test is viewport-sized unless it passes `full_page=True`.
 
 ### Before/after screenshot capture
 

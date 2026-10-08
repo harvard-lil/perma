@@ -71,7 +71,7 @@ dev = [
 DJANGO_SETTINGS_MODULE = "perma.settings.deployments.settings_testing"
 norecursedirs = ["node_modules", ".hypothesis"]
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
-addopts = "-n auto --dist loadscope --screenshot only-on-failure --output failed_test_files"
+addopts = "-n auto --dist loadscope --screenshot only-on-failure --output failed_test_files --full-page-screenshot"
 # Thread method: a hang inside Playwright's sync API ignores signals; killing the xdist worker lets the run continue.
 timeout = 180
 timeout_method = "thread"
