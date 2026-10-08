@@ -1,7 +1,10 @@
+import io
 import os
 import re
+import shutil
 import subprocess
 from dataclasses import dataclass
+from pathlib import Path
 from random import choice
 
 import boto3
@@ -11,11 +14,14 @@ from django.core.management import call_command
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
 from filelock import FileLock
+from PIL import Image
 from playwright.sync_api import expect
 import pytest
 from pytest_django.plugin import blocking_manager_key
 
 import frontend_assets
+from functional_tests.image_diff import compare_images
+from functional_tests.page_settling import settle_page
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -38,6 +44,15 @@ expect.set_options(timeout=15_000)
 
 # Allow setup of live server test cases; see https://github.com/microsoft/playwright-python/issues/439
 os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--update-snapshots",
+        action="store_true",
+        default=False,
+        help="Write or overwrite visual baselines instead of comparing against them.",
+    )
 
 
 @pytest.fixture(scope="session")
@@ -311,6 +326,93 @@ def log_in(ui_urls):
     def f(page, user):
         _log_in_and_settle(page, ui_urls('user_management_limited_login'), user)
     return f
+
+
+# Per channel, out of 255; must stay above the 1-2/255 colour rounding seen between arm64 and amd64 renders.
+SNAPSHOT_TOLERANCE = 3
+
+
+@pytest.fixture
+def snapshot_dir() -> Path:
+    """Root of the visual baselines; override in a test to point somewhere else."""
+    return Path(__file__).parent / "functional_tests" / "baselines"
+
+
+@pytest.fixture
+def update_snapshots(request) -> bool:
+    """Whether `--update-snapshots` was passed; override in a test to force it."""
+    return request.config.getoption("--update-snapshots")
+
+
+@pytest.fixture
+def assert_snapshot(request, browser_name, snapshot_dir, update_snapshots, output_path):
+    """
+    Return `assert_snapshot(page, name, mask=())`, which checks a page against its stored baseline.
+
+    The callable settles the page, takes a full-page screenshot with animations
+    disabled, and compares it with
+    `<snapshot_dir>/<browser>/<test module>/<test function>/<name>.png`.
+    A pixel differs when any channel is off by more than `SNAPSHOT_TOLERANCE`.
+
+    Args (of the callable):
+        page: The Playwright page to photograph.
+        name: Baseline file stem, unique within the test, e.g. "landing@1200".
+        mask: Locators whose regions Playwright paints over before comparing.
+
+    Returns nothing on a match. With `--update-snapshots` it writes the baseline
+    only when it is missing or differs beyond the tolerance, and passes; a
+    baseline within tolerance is left untouched. Otherwise it raises
+    AssertionError, so the test fails in its call phase, when the baseline is
+    missing or the image differs; the expected, actual and diff PNGs are then
+    written to pytest-playwright's per-test output directory.
+    """
+    def check(page, name, mask=()):
+        settle_page(page)
+        actual_png = page.screenshot(full_page=True, animations="disabled", mask=list(mask))
+        baseline_path = snapshot_dir / browser_name / request.node.path.stem / request.node.originalname / f"{name}.png"
+
+        def write_baseline():
+            baseline_path.parent.mkdir(parents=True, exist_ok=True)
+            baseline_path.write_bytes(actual_png)
+
+        failure_dir = Path(output_path)
+        actual_path = failure_dir / f"{name}-actual.png"
+
+        if not baseline_path.is_file():
+            if update_snapshots:
+                write_baseline()
+                return
+            failure_dir.mkdir(parents=True, exist_ok=True)
+            actual_path.write_bytes(actual_png)
+            raise AssertionError(
+                f"No baseline at {baseline_path}. Run with --update-snapshots to create it. "
+                f"Actual image saved to {actual_path}."
+            )
+
+        with Image.open(baseline_path) as baseline, Image.open(io.BytesIO(actual_png)) as actual:
+            result = compare_images(baseline, actual, SNAPSHOT_TOLERANCE)
+        if result.passed:
+            return
+        if update_snapshots:
+            write_baseline()
+            return
+
+        expected_path = failure_dir / f"{name}-expected.png"
+        diff_path = failure_dir / f"{name}-diff.png"
+        failure_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(baseline_path, expected_path)
+        actual_path.write_bytes(actual_png)
+        result.diff_image.save(diff_path)
+        raise AssertionError(
+            f"Snapshot {name!r} differs from {baseline_path}: "
+            f"{result.differing_pixels} pixels over tolerance {SNAPSHOT_TOLERANCE}, "
+            f"worst channel difference {result.max_channel_difference}, "
+            f"bounding box {result.bbox}, "
+            f"baseline size {result.baseline_size}, actual size {result.actual_size}. "
+            f"Expected: {expected_path}; actual: {actual_path}; diff: {diff_path}."
+        )
+
+    return check
 
 
 ###              ###

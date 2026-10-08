@@ -35,6 +35,7 @@ This document contains tips and tricks for working with Perma.
   - [Browsers, and how each one trusts the test server](#browsers-and-how-each-one-trusts-the-test-server)
   - [Hangs: the per-test timeout, and why the login fixtures wait](#hangs-the-per-test-timeout-and-why-the-login-fixtures-wait)
   - [Failure screenshots](#failure-screenshots)
+  - [Visual snapshots](#visual-snapshots)
   - [Before/after screenshot capture](#beforeafter-screenshot-capture)
   - [Linting with Flake8](#linting-with-flake8)
 - [Working with Celery](#working-with-celery)
@@ -743,6 +744,44 @@ screenshot, copy it out first, or pass `--output` to point the next run somewher
 
 A `page.screenshot()` call in a test is viewport-sized unless it passes `full_page=True`.
 
+### Visual snapshots
+
+The `assert_snapshot` fixture (in `conftest.py`) compares a page with a stored baseline
+image. It settles the page (network idle, lazy images loaded, fonts ready), takes a
+full-page screenshot with animations disabled, and compares it pixel by pixel. The
+comparison itself is `functional_tests/image_diff.py`, which uses only Pillow.
+
+```python
+def test_landing_looks_the_same(page, ui_urls, assert_snapshot):
+    page.set_viewport_size({"width": 1200, "height": 900})
+    page.goto(ui_urls("landing"))
+    assert_snapshot(page, "landing@1200")
+```
+
+- **Tolerance.** A pixel differs when any colour channel is off by more than
+  `SNAPSHOT_TOLERANCE` (3, out of 255). A difference of exactly 3 passes. The size of the
+  image must match exactly. The value is set just above the 1-2/255 colour rounding
+  measured between arm64 and amd64 renders, and may change once it has been checked on
+  every page.
+- **Masks.** Pass Playwright locators, as in `mask=[page.locator("<selector>")]`. Their regions are painted over before
+  the comparison, so use them for content that changes between runs. Locate regions by
+  selector, not by coordinates: their position changes with the viewport width.
+- **Updating baselines.** `--update-snapshots` writes a baseline only when it is missing
+  or the page differs from it beyond the tolerance, and those tests pass. A baseline
+  within tolerance is left alone, so a run on another architecture doesn't rewrite every
+  PNG over rendering noise. Review the changed PNGs in the diff like any other change.
+  Without the flag, a missing baseline fails the test; nothing is created silently.
+- **Where baselines live.** `functional_tests/baselines/<browser>/<test file>/<test function>/<name>.png`,
+  one directory per engine. Parametrized tests share a function name, so give each
+  case its own `name`. A test can override the `snapshot_dir` fixture to use another
+  directory, and `update_snapshots` to force the flag.
+- **When a comparison fails.** The test fails with the number of pixels over tolerance,
+  the worst channel difference, the bounding box and both sizes. `<name>-expected.png`,
+  `<name>-actual.png` and `<name>-diff.png` are written to the test's directory under
+  `failed_test_files/`, next to the failure screenshot. The diff is a faded copy of the
+  actual image with differing pixels in red. If the sizes differ, the diff is as large
+  as the bigger image, and the region only one of them covers is blue.
+
 ### Before/after screenshot capture
 
 `functional_tests/capture_control_screenshots.py` takes full-page screenshots of 20
@@ -758,7 +797,9 @@ d bash -c 'PERMA_CONTROL_SCREENSHOT_DIR=/perma/perma_web/control_shots pytest fu
 PNGs land in `<dir>/<browser>/<page>@<width>.png`. Move them out of `perma_web/`
 afterwards; they are evidence, not committed baselines.
 
-Before each shot the tool forces the page's lazy-loaded images to load. A full-page
+Before each shot the tool settles the page with the helper in
+`functional_tests/page_settling.py`, which `assert_snapshot` uses too. That includes
+forcing the page's lazy-loaded images to load. A full-page
 screenshot doesn't scroll, so without that some below-the-fold `loading="lazy"` images
 stay blank, and which ones varies by engine.
 

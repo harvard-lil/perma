@@ -55,6 +55,7 @@ dev = [
     "flake8-pyproject~=1.2.4",
     "hypothesis~=6.165.10",
     "lupa~=2.8",
+    "pillow~=12.3.0",
     "playwright~=1.62.0",
     "pytest~=9.1.1",
     "pytest-cov~=7.1.0",
