@@ -187,6 +187,21 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
+  # The playback host's static player, beside the ECS deploy and independent
+  # of it; see deploy_playback.yml. Same conditions as prepare.
+  playback:
+    if: >-
+      github.repository == 'harvard-lil/perma' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/staging'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/deploy_playback.yml
+    with:
+      environment: staging
+    secrets:
+      CLOUDFLARE_PAGES_TOKEN: ${{ secrets.CLOUDFLARE_PAGES_TOKEN }}
+
   # A job whose condition does not hold is skipped, and a skipped job leaves
   # the run green. This job is what makes a deploy that did not happen show up
   # as a failed run rather than a successful build. Pull requests are meant to
