@@ -79,6 +79,11 @@ class Folder(TreeNode):
             tree_root_id=self.tree_root_id
         )
 
+    def get_ancestors(self, include_self=False):
+        return self.ancestors(include_self=include_self).tree_filter(
+            tree_root_id=self.tree_root_id
+        )
+
     def delete(self, *args, **kwargs):
         with transaction.atomic():
             super().delete(*args, **kwargs)

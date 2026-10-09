@@ -1,6 +1,7 @@
 import hashlib
 import hmac
 import json
+import re
 import uuid
 
 import django.contrib.auth.models
@@ -177,6 +178,12 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
         ).annotate(
             custom_order=Case(*ordering_cases, default=2)
         ).order_by('custom_order', 'name')
+
+    def all_folder_trees(self):
+        """
+            Get all folders for this user, including personal folders and shared folders.
+        """
+        return [folder.get_descendants(include_self=True) for folder in self.top_level_folders()]
 
     def get_orgs(self):
         """
@@ -416,6 +423,67 @@ class LinkUser(CustomerModel, AbstractBaseUser, PermissionsMixin):
 
     def can_purchase_bonus_links(self):
         return not self.nonpaying and not self.unlimited
+
+    ### merging accounts ###
+
+    def copy_memberships_from_users(self, users):
+        original_orgs = set(self.organizations.all())
+
+        orgs = set()
+        registrars = set()
+        if self.registrar_id:
+            registrars.add(self.registrar_id)
+        else:
+            orgs.update(original_orgs)
+        for user in users:
+            if user.registrar_id:
+                registrars.add(user.registrar_id)
+            else:
+                orgs.update(user.organizations.all())
+
+        if orgs or registrars:
+            assert not (orgs and registrars), f"This set of users includes both org and registrar users: {self.id}, {', '.join([str(user.id) for user in users])}."
+            if registrars:
+                assert len(registrars) == 1, f"This set of users includes registrar users from multiple registrars: {self.id}, {', '.join([str(user.id) for user in users])}."
+                new_registrar_id = registrars.pop()
+                if not self.registrar_id:
+                    self.registrar_id = new_registrar_id
+                    self.prepend_to_notes(f"Added registrar during the merging of accounts: {new_registrar_id}")
+                    self.save(update_fields=['registrar_id', 'notes'])
+            else:
+                if original_orgs != orgs:
+                    self.prepend_to_notes(f"Added organizations during the merging of accounts: {', '.join([str(o.id) for o in orgs - original_orgs])}")
+                    self.save(update_fields=['notes'])
+                    self.organizations.add(*orgs)
+
+    def soft_delete_after_merge_with_user(self, user):
+        original_email = self.email
+
+        self.email = f"merged_users_{self.id}_and_{user.id}@perma.cc"
+        self.is_active = False
+        self.link_count = 0
+
+        self.prepend_to_notes(f"Original email: { original_email }")
+        if self.registrar_id:
+            self.prepend_to_notes(f"Original registrar: { self.registrar_id }")
+            self.registrar_id = None
+        orgs = list(self.organizations.all())
+        if orgs:
+            self.prepend_to_notes(f"Original orgs: {', '.join([str(o.id) for o in orgs])}")
+            self.organizations.remove(*orgs)
+
+        self.save(update_fields=['email', 'is_active', 'link_count', 'notes', 'registrar_id'])
+        return (original_email, self.email)
+
+    def prepend_to_notes(self, message):
+        if self.notes:
+            self.notes = f"{message}\n\n{self.notes}"
+        else:
+            self.notes = message
+
+    def remove_line_from_notes(self, containing):
+        if self.notes:
+            self.notes = re.sub(f"\n*{containing}.*", '', self.notes)
 
 
 class UserOrganizationAffiliation(models.Model):

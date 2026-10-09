@@ -199,6 +199,10 @@ class Link(DeletableModel):
     def can_upload_to_internet_archive(self):
         return self.is_visible_to_memento()
 
+    @cached_property
+    def ia_identifier(self):
+        return settings.INTERNET_ARCHIVE_IDENTIFIER_PREFIX + self.guid
+
     @classmethod
     def get_ascii_safe_url(cls, submitted_url):
         """URL as encoded internally by python requests"""
@@ -425,6 +429,10 @@ class Link(DeletableModel):
     @cached_property
     def primary_capture(self):
         return self.captures.filter(role='primary').first()
+
+    @cached_property
+    def favicon_capture(self):
+        return self.captures.filter(role='favicon').first()
 
     @cached_property
     def provenance_summary_capture(self):
