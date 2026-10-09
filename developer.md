@@ -308,6 +308,41 @@ Track issues using [GitHub Issues](https://github.com/harvard-lil/perma/issues).
 All of your logs will end up in `./services/logs`. As a convenience, you can tail -f all of them with `d invoke dev.logs`.
 
 
+## Internet Archive files that need a human
+
+The Internet Archive pipeline stops working on a file and logs an ERROR naming the
+link when the file reaches one of these statuses (see the comment on
+`InternetArchiveFile.status`):
+
+- `upload_failed` / `deletion_failed`: every allowed attempt ended without a result.
+- `upload_unconfirmed` / `deletion_unconfirmed`: IA accepted the request, but the
+  item's metadata did not reflect it within the confirmation window.
+
+There is no established procedure for these yet. Look into why first: the ERROR
+line, Sentry, the item's task history at IA (the [Tasks API](https://archive.org/developers/tasks.html)),
+and whether the WARC exists. Sending a file back through the pipeline only makes
+sense if the cause is gone. To do that, set it to the status that
+`reconcile_internet_archive_files` would have set, and the upload producer picks
+it up on its next run:
+
+```sql
+-- Send one link's failed or unconfirmed upload back through the pipeline.
+UPDATE perma_internetarchivefile
+SET status = 'upload_needed', attempts = 0, claim = NULL, status_updated = now()
+WHERE link_id = '<GUID>' AND item_id = '<daily item identifier>'
+  AND status IN ('upload_failed', 'upload_unconfirmed');
+
+-- Likewise for a deletion.
+UPDATE perma_internetarchivefile
+SET status = 'deletion_needed', attempts = 0, claim = NULL, status_updated = now()
+WHERE link_id = '<GUID>' AND item_id = '<daily item identifier>'
+  AND status IN ('deletion_failed', 'deletion_unconfirmed');
+```
+
+The hourly reconciliation does not undo this. If the link's public status has
+changed in the meantime, the reconciliation corrects it as usual.
+
+
 ## Code style and techniques
 
 ### User roles and permissions tests
