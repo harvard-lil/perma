@@ -196,3 +196,4 @@ class InternetArchiveFile(models.Model):
         self.cached_format = None
         self.cached_submitted_url = None
         self.cached_perma_url = None
+
