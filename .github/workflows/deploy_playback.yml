@@ -1,0 +1,100 @@
+name: Playback deploy
+
+# Deploys a tier's playback host (PLAYBACK_HOST, "Rejouer") to Cloudflare
+# Pages, alongside the ECS deploy and independent of it. The player is
+# wacz-exhibitor at the release pinned in services/docker/wacz-exhibitor/
+# Dockerfile, which is also what local development and CI run, so a release
+# bump moves through main, staging and prod like any other change.
+#
+# Perma still passes `source` as a presigned S3 path without its host. The
+# deployment's config.js maps .wacz paths to the WACZ bucket and .warc.gz
+# paths to the WARC bucket, as the NGINX proxy on Fly did, and its _headers
+# Content-Security-Policy lets the player read only those bucket origins.
+#
+# The tier's GitHub environment holds:
+#   PLAYBACK_PAGES_PROJECT              Cloudflare Pages project. Unset, the job
+#                                       does nothing: the tier's playback is
+#                                       not on Pages yet.
+#   PLAYBACK_ARCHIVE_ORIGINS            Space-separated bucket origins (CSP).
+#   PLAYBACK_RELATIVE_SOURCE_ORIGINS    JSON [suffix, origin] pairs (config.js).
+# The Pages projects, DNS and the buckets' CORS rules are in lil-terraform
+# (perma/cloudflare/rejouer, perma/<tier>/aws/s3).
+#
+# Most deploys do not change the player: the build is then identical to the
+# live deployment and the upload is skipped.
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: GitHub environment of the tier (`staging` or `prod`)
+        required: true
+        type: string
+    secrets:
+      CLOUDFLARE_PAGES_TOKEN:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  playback:
+    name: Deploy playback (${{ inputs.environment }})
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Check whether this tier's playback is on Pages
+        id: configured
+        env:
+          PAGES_PROJECT: ${{ vars.PLAYBACK_PAGES_PROJECT }}
+        run: |
+          if [ -z "$PAGES_PROJECT" ]; then
+            echo "::notice::PLAYBACK_PAGES_PROJECT is not set for ${{ inputs.environment }}; playback is not deployed from here."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout code
+        if: steps.configured.outputs.enabled == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: services/docker/wacz-exhibitor/Dockerfile
+          sparse-checkout-cone-mode: false
+
+      - name: Read the pinned wacz-exhibitor release
+        id: pin
+        if: steps.configured.outputs.enabled == 'true'
+        run: |
+          release="$(sed -n 's/^ARG RELEASE=//p' services/docker/wacz-exhibitor/Dockerfile)"
+          : "${release:?No ARG RELEASE= line in services/docker/wacz-exhibitor/Dockerfile}"
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout wacz-exhibitor
+        if: steps.configured.outputs.enabled == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: harvard-lil/wacz-exhibitor
+          ref: ${{ steps.pin.outputs.release }}
+          path: wacz-exhibitor
+          persist-credentials: false
+
+      - name: Build site
+        if: steps.configured.outputs.enabled == 'true'
+        env:
+          ARCHIVE_ORIGINS: ${{ vars.PLAYBACK_ARCHIVE_ORIGINS }}
+          RELATIVE_SOURCE_ORIGINS: ${{ vars.PLAYBACK_RELATIVE_SOURCE_ORIGINS }}
+        run: wacz-exhibitor/scripts/build-static.sh site
+
+      - name: Deploy to Cloudflare Pages
+        if: steps.configured.outputs.enabled == 'true'
+        uses: harvard-lil/lil-actions/cloudflare-pages-deploy@main
+        with:
+          project-name: ${{ vars.PLAYBACK_PAGES_PROJECT }}
+          directory: site
+          branch: main
+          skip-unchanged: "true"
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_PAGES_TOKEN }}
