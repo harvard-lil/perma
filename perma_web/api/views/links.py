@@ -386,6 +386,7 @@ class AuthenticatedLinkDetailView(BaseView):
             raise_general_validation_error("Capture in progress: please wait until complete before deleting.")
 
         with transaction.atomic():
+            link = self.get_locked_link_for_user(request.user, guid)
             link.delete_related_captures()
             link.cached_can_play_back = False
             link.safe_delete()
