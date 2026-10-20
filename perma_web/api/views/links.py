@@ -314,20 +314,31 @@ class AuthenticatedLinkDetailView(BaseView):
         """
         return self.simple_get(request, guid)
 
+    def get_locked_link_for_user(self, user, guid):
+        """
+        Get link and lock its row. Raises Http404 if the link has been deleted since the request started.
+        """
+        return self.get_object_for_user(user, Link.objects.select_for_update().filter(pk=guid))
+
     def patch(self, request, guid, format=None):
         """
         Update link.
         """
-        link = self.get_object_for_user_by_pk(request.user, guid)
+        self.get_object_for_user_by_pk(request.user, guid)
 
-        was_private = link.is_private
         data = request.data
         folder = AuthenticatedLinkListView.get_folder_from_request(request)
         if folder and folder.is_sponsored_root_folder:
             raise_general_validation_error("You can't move links to your Sponsored Links folder. Select a folder belonging to a sponsor or organization, or your Personal Links folder.")
 
-        serializer = self.serializer_class(link, data=data, partial=True, context={'request': self.request})
-        if serializer.is_valid():
+        with transaction.atomic():
+            # fetch link and lock its row, in case it got deleted before the transaction started
+            link = self.get_locked_link_for_user(request.user, guid)
+            was_private = link.is_private
+
+            serializer = self.serializer_class(link, data=data, partial=True, context={'request': self.request})
+            if not serializer.is_valid():
+                raise ValidationError(serializer.errors)
             serializer.save()
 
             # move to new folder
@@ -360,9 +371,7 @@ class AuthenticatedLinkDetailView(BaseView):
                     link.internet_archive_upload_status = 'deletion_required'
                 link.save(update_fields=["internet_archive_upload_status"])
 
-            return Response(serializer.data)
-
-        raise ValidationError(serializer.errors)
+        return Response(serializer.data)
 
     def delete(self, request, guid, format=None):
         """
