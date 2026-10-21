@@ -287,6 +287,28 @@ class LinkResourceTestCase(LinkResourceTestMixin, ApiResourceTestCase):
                             user=self.sponsored_user)
         self.assertIn(b"You can't move links to your Sponsored Links folder.", response.content)
 
+    def test_patch_does_not_restore_link_deleted_during_request(self):
+        ''' User's request to patch shouldn't restore a link that was deleted during the request '''
+        link = Link(created_by=self.org_user)
+        link.save()
+        self.org_user.refresh_from_db()
+        link_count = self.org_user.link_count
+
+        def delete_link_mid_request(request):
+            other_copy = Link.objects.get(pk=link.pk)
+            other_copy.safe_delete()
+            other_copy.save()
+
+        self.api_client.force_authenticate(user=self.org_user)
+        with patch('api.views.links.AuthenticatedLinkListView.get_folder_from_request', side_effect=delete_link_mid_request):
+            response = self.api_client.patch(f"{self.list_url}/{link.pk}", data={'notes': 'New notes'})
+
+        self.assertHttpNotFound(response)
+        link.refresh_from_db()
+        self.assertTrue(link.user_deleted)
+        self.org_user.refresh_from_db()
+        self.assertEqual(self.org_user.link_count, link_count - 1)
+
 
     ############
     # Ordering #
