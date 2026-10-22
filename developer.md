@@ -36,6 +36,7 @@ This document contains tips and tricks for working with Perma.
   - [Hangs: the per-test timeout, and why the login fixtures wait](#hangs-the-per-test-timeout-and-why-the-login-fixtures-wait)
   - [Failure screenshots](#failure-screenshots)
   - [Visual snapshots](#visual-snapshots)
+  - [Accessibility baselines](#accessibility-baselines)
   - [Before/after screenshot capture](#beforeafter-screenshot-capture)
   - [Linting with Flake8](#linting-with-flake8)
 - [Working with Celery](#working-with-celery)
@@ -183,6 +184,8 @@ d bash -c 'pytest functional_tests/test_ui_*.py --browser webkit'
 ```
 
 The `bash -c` is needed so the glob expands inside the container.
+
+`d pytest` deselects the slow tests marked `sweep` (the accessibility sweep, see [Accessibility baselines](#accessibility-baselines)); `d pytest --all` runs them too.
 
 See [Testing and Test Coverage](#testing-and-test-coverage) for more information about testing Perma.
 
@@ -760,27 +763,240 @@ def test_landing_looks_the_same(page, ui_urls, assert_snapshot):
 
 - **Tolerance.** A pixel differs when any colour channel is off by more than
   `SNAPSHOT_TOLERANCE` (3, out of 255). A difference of exactly 3 passes. The size of the
-  image must match exactly. The value is set just above the 1-2/255 colour rounding
-  measured between arm64 and amd64 renders, and may change once it has been checked on
-  every page.
+  image must match exactly. Measured on 20 pages at 5 widths in all three engines:
+  repeat renders on one machine were identical, and arm64 against amd64 differed by at
+  most 2 per channel, with one exception (the archive page at 320 px, where a page script can leave a gap
+  above the archive that depends on timing; a page defect, not rendering noise). A 1 px
+  shift of one element differs by 200 or more, so the tolerance sits well clear of both.
 - **Masks.** Pass Playwright locators, as in `mask=[page.locator("<selector>")]`. Their regions are painted over before
   the comparison, so use them for content that changes between runs. Locate regions by
   selector, not by coordinates: their position changes with the viewport width.
+  - A mask hides pixels, not layout. Text whose length varies, such as a date or a name,
+    can wrap and move what comes after it, and no mask stops that. Use fixed test data
+    for such text instead.
+  - Mask a block element rather than a line of inline text. The mask is drawn on whole
+    pixels, and a glyph's anti-aliased edge at a fractional position can fall just
+    outside it.
+  - A mask whose selector matches nothing does nothing, so check that it matches.
+- **Content that appears late.** The fixture waits for network idle, lazy images and
+  fonts, but not for content drawn after that. An archive's replay frame is the example.
+  Wait for that content before calling `assert_snapshot`, for example the replayed
+  page's heading, as `check_playback` in `functional_tests/test_links.py` does.
 - **Updating baselines.** `--update-snapshots` writes a baseline only when it is missing
   or the page differs from it beyond the tolerance, and those tests pass. A baseline
   within tolerance is left alone, so a run on another architecture doesn't rewrite every
-  PNG over rendering noise. Review the changed PNGs in the diff like any other change.
+  PNG over rendering noise. The PNGs are not tracked by git (see
+  [Baseline sets](#baseline-sets)), so an update changes only the local working copy.
   Without the flag, a missing baseline fails the test; nothing is created silently.
-- **Where baselines live.** `functional_tests/baselines/<browser>/<test file>/<test function>/<name>.png`,
-  one directory per engine. Parametrized tests share a function name, so give each
-  case its own `name`. A test can override the `snapshot_dir` fixture to use another
-  directory, and `update_snapshots` to force the flag.
+- **Where baselines live.** In a working copy that git and `.dockerignore` both ignore:
+  `functional_tests/baselines/<browser>/<test file>/<test function>/<name>.png`, one
+  directory per engine. Its contents come from the baseline set that
+  `functional_tests/BASELINE_SET` names (below); without that file, the directory is
+  used as it is. Parametrized tests share a function name, so give each case its own
+  `name`. A test can override the `snapshot_dir` fixture to use another directory (no
+  set is then fetched), and `update_snapshots` to force the flag.
 - **When a comparison fails.** The test fails with the number of pixels over tolerance,
   the worst channel difference, the bounding box and both sizes. `<name>-expected.png`,
   `<name>-actual.png` and `<name>-diff.png` are written to the test's directory under
   `failed_test_files/`, next to the failure screenshot. The diff is a faded copy of the
   actual image with differing pixels in red. If the sizes differ, the diff is as large
   as the bigger image, and the region only one of them covers is blue.
+
+#### Baseline sets
+
+Baseline PNGs are kept out of git, so the repository and the image never grow with
+them. A set of baselines is one immutable tarball, named `YYYY-MM-DD-<slug>`. The
+committed file `functional_tests/BASELINE_SET` names the set the code is tested
+against, with the tarball's sha256, so every commit records its baselines:
+
+```
+set=2026-10-28-bootstrap3
+sha256=<64 lowercase hex digits>
+```
+
+The `snapshot_dir` fixture depends on the session fixture `baseline_set`, which calls
+`ensure_set` in `functional_tests/baseline_sets.py` once per pytest worker, before the
+first test that reads a baseline:
+
+- **No pointer file:** nothing happens; `functional_tests/baselines/` is used as it is.
+  This is the state until a first set is named.
+- **Stamp matches:** `functional_tests/baselines/.set` records the set the working copy
+  holds. When it equals the pointer, nothing is downloaded.
+- **Otherwise** it downloads `https://test-baselines.perma.cc/sets/<name>.tar`, checks
+  the sha256 against the pointer, and extracts the tarball into
+  `functional_tests/baselines.tmp/`. The working copy moves to
+  `functional_tests/baselines.prev/` (replacing an older one), the new set takes its
+  place, the stamp is written last, and one line goes to stderr (pytest captures it with
+  the first test that needed it). A missing set (HTTP 403), a network failure or a hash
+  mismatch fails those tests with a message saying what to check, and leaves the working
+  copy as it was. Nothing is retried; the messages name the command below that retries or
+  repairs it.
+- **Workers.** Under `-n auto` every worker gets this far. A lock on
+  `functional_tests/baselines.lock` lets one download while the others wait, then read
+  the new stamp and skip the network.
+- **Tarball contents.** The tarball holds the directory's contents, `<browser>/...` at its
+  top level. Only regular files and directories are extracted; absolute paths, `..` and
+  links are refused before anything is written.
+- **Local edits are not kept.** Switching sets moves the working copy, including PNGs
+  that `--update-snapshots` rewrote, to `baselines.prev/`, and the next switch discards
+  it. Copy out anything you want to keep.
+- **`PERMA_BASELINES_FETCH=0`** (or `false`, `no`) turns all of this off and uses the
+  directory as it is: for working offline, or for rendering a set from an empty directory.
+- **`PERMA_BASELINES_URL`** replaces the base URL. The default host is LIL's, read-only
+  for everyone; a fork that stores its own sets points this at its own host.
+- **The `visual` marker** (in `pyproject.toml`) is for tests that call `assert_snapshot`,
+  so that they can be run alone with `-m visual`.
+
+Two invoke tasks (`tasks/baselines.py`) manage the working copy and the pointer by hand.
+`functional_tests/` is bind-mounted into the container, so `d invoke` and a pytest run on
+the host see the same files; don't run them at the same time.
+
+- **`d invoke baselines.fetch`** does what pytest does and prints one line: fetching is
+  off (with the variable's value), legacy mode (no pointer file), the set is current
+  (nothing downloaded), or the set was fetched, with its file count, size and whether the
+  previous copy was kept. It doubles as a status check.
+- **`--force`** downloads the set again even when the working copy already holds it, for
+  a copy you no longer trust. It applies to the pointer's set (whose hash is still
+  checked; a disabled fetch or a missing pointer file still does nothing) and to `--name`.
+- **`--name NAME`** previews a set that no commit names yet. It downloads NAME and
+  installs it as above, so the working copy moves to `baselines.prev/`, and the stamp
+  records the sha256 of what was downloaded; there is no hash to check it against. If the
+  working copy already holds NAME, nothing is downloaded. The preview lasts only until the
+  next pytest run, which swaps the pointer's set back in unless NAME has been adopted.
+- **`d invoke baselines.adopt NAME`** makes NAME the committed set. If the working copy
+  already holds NAME (after a preview), its stamp's hash is reused; otherwise NAME is
+  downloaded and installed as `--name` does. It writes `functional_tests/BASELINE_SET`,
+  prints its two lines, counts the PNGs changed, added and removed against
+  `baselines.prev/` (by path and sha256, naming the set that copy holds, or saying there
+  is no previous copy), and ends by reminding you to commit `functional_tests/BASELINE_SET`;
+  nothing is committed for you. Adopting the set the pointer names and the working copy
+  holds is a no-op, and says so. After a hash mismatch, if the stored set is the right
+  one, `adopt` rewrites the pointer from a fresh download.
+- **Errors.** Both tasks exit with status 1 and the error's message, without a traceback,
+  when a set is missing, a download fails, a hash differs or a name is malformed.
+  `--name` and `adopt` ignore `PERMA_BASELINES_FETCH`: they name a set explicitly.
+- **Which sets exist.** Every set has a `baselines/<name>` git tag; newest first:
+
+  ```
+  git fetch --tags && git tag -l 'baselines/*' --sort=-creatordate
+  ```
+
+  There is deliberately no `latest`. A commit names its set, so a newer set never
+  changes what an older commit is tested against.
+
+The module's unit tests, `functional_tests/test_baseline_sets.py`, and the tasks' tests,
+`tasks/test_baselines.py`, use in-memory tarballs and a fake fetcher: no network, browser
+or database.
+
+#### Publishing a set
+
+Sets are rendered and uploaded by the `Baselines` workflow
+(`.github/workflows/baselines.yml`) and by nothing else. Nothing publishes from a
+developer's machine, and no developer holds credentials that can write a set: pushing a
+tag is how you ask for one.
+
+1. **Make the pages right locally.** Run the `visual` tests against the committed set and
+   fix what fails; `--update-snapshots` shows locally what a new set would hold. Those
+   local PNGs are not what gets published: the workflow renders its own.
+2. **Push a tag at the commit to render**, `baselines/` followed by the set name:
+
+   ```
+   git tag baselines/2026-11-02-new-header <commit>
+   git push origin baselines/2026-11-02-new-header
+   ```
+
+   The name is `YYYY-MM-DD-<slug>`, lowercase, with no further `/`; the workflow refuses
+   any other tag under `baselines/`. A tag can point at a branch commit, so a set can be
+   made and reviewed before the branch is merged.
+3. **The workflow renders and uploads.** It builds the test image as CI does and runs
+   every `visual` test with `--update-snapshots` in Chromium, Firefox and WebKit, starting
+   from an empty directory (`PERMA_BASELINES_FETCH=0`). It stops if any of those tests
+   fails or none wrote a baseline. It then fetches the set that the commit's
+   `functional_tests/BASELINE_SET` names and compares the new render with it (with no
+   pointer file, every image counts as added), packs the set reproducibly, and uploads it
+   once. An existing set is never overwritten: a re-run after a successful upload fails at
+   that last step (HTTP 412) and changes nothing. A run that failed earlier uploaded
+   nothing; re-run it, or, if the code has to change, tag the new commit with a new name.
+4. **Review.** The run's artifact `baseline-report-<name>` holds `index.html`: counts per
+   browser; for every changed baseline the expected, actual and diff images with the
+   comparison's numbers (differing pixels, worst channel difference, bounding box, both
+   sizes); thumbnails of the added images; and the removed paths. A baseline within
+   `SNAPSHOT_TOLERANCE` of the previous one counts as unchanged. The job summary repeats
+   the counts and gives the set's two pointer lines.
+5. **Adopt and commit.** `d invoke baselines.adopt <name>` downloads the set, writes
+   `functional_tests/BASELINE_SET` (the job summary's two lines), and counts the changes
+   against your previous copy. Commit the pointer with the code it belongs to.
+
+A tag is never moved or reused: it names an immutable set. To change a set, tag again
+under a new name; a set that nothing adopts stays stored and unused.
+
+**Forks.** The workflow uploads with the role that the repository variable
+`BASELINES_AWS_ROLE_TO_ASSUME` names. A fork has none, so in a fork the workflow stops at
+its first step and says why. A fork that wants its own sets stores the tarballs
+somewhere of its own, as `<base>/<name>.tar`, and sets `PERMA_BASELINES_URL` to that base.
+
+The report is `functional_tests/baseline_report.py`. Its tests,
+`functional_tests/test_baseline_report.py`, draw their images with Pillow and use a fake
+fetcher.
+
+### Accessibility baselines
+
+`functional_tests/test_accessibility.py` scans the same 20 pages at the same five widths
+as the screenshot capture tool (they share `functional_tests/control_pages.py`) with
+axe-core, in each engine, and compares what it finds with a stored baseline.
+
+- **It is a sweep.** The 100 cases carry the `sweep` marker (registered in `pyproject.toml`),
+  and `conftest.py` deselects them unless `--all`, `--update-a11y-baselines` or
+  `--update-snapshots` is passed, so plain `pytest` stays fast: the sweep adds about two
+  minutes in Chromium. The summary shows how many tests were deselected. CI's `pytest`
+  step doesn't pass `--all` yet, so it doesn't run the sweep. Mark any future
+  page-by-page test the same way.
+- **What it checks.** The `assert_a11y_baseline` fixture (in `conftest.py`) runs
+  `axe-playwright-python` with default options, in the top frame only, and keeps the
+  `violations` result type only. An archive's replay frame holds someone else's page and
+  isn't scanned. A violation is identified by its rule id and its target (axe's CSS
+  selector path), so the gate sees which elements fail, not just how many. Impact, help
+  text and the element's `html` are not compared; `html` is not even stored, because it
+  holds capture times and ids that change from run to run. `color-contrast` is gated like
+  every other rule.
+- **Where baselines live.** `functional_tests/accessibility_baselines/<browser>/<test file>/<test function>/<name>.json`,
+  one file per engine, page and width, laid out like the visual baselines. Each file
+  holds the `axe_version` and the violations (rule, target, impact, help) sorted by
+  rule and target, so a diff shows exactly which violations came or went. A test can
+  override the `a11y_baseline_dir` fixture to use another directory.
+- **Updating baselines.** `--update-a11y-baselines` writes a baseline that is missing or
+  differs, and those tests pass; a matching baseline is left untouched. Without the
+  flag, a missing baseline fails; nothing is created silently. The flag is separate from
+  `--update-snapshots` on purpose: re-blessing pixels (Bootstrap work does that often)
+  must not also bless new violations. Review the baseline diff like any other change.
+- **When a check fails.** The gate is a ratchet: it fails on a **new** violation and on
+  a **fixed** one, so that a fix is recorded and can't quietly come back. The message
+  lists the two kinds separately (impact, rule, help, target and axe's failure summary
+  for new ones), names the baseline file and says to re-run with
+  `--update-a11y-baselines`. The full axe response of the failed scan is saved as
+  `<name>-axe-response.json` in the test's directory under `failed_test_files/`.
+- **axe versions.** The axe-core version comes from the `axe-playwright-python` package,
+  so upgrading that package can change results without any change to a page. The version
+  is in every baseline, and the failure message says when it differs from the current
+  one. Re-record the baselines in the same change as such an upgrade.
+- **The archive pages' GUID.** `test_accessibility.py` overrides `complete_link_with_warc`
+  so the archive link has a fixed GUID (`ARCHIVE_GUID`). The GUID appears in a selector
+  (`a[href="/<GUID>?type=image"]`), and a random one would make the baseline differ on
+  every run. Setting `guid` up front skips `Link.save()`'s `if not self.pk` block,
+  including the `archive_timestamp` default, so the override sets that itself; a test
+  checks that the link is otherwise the same as one with a generated GUID.
+- **`settings-usage-plan` is a 403 page.** The test user isn't allowed to view the usage
+  plan, so that page (here and in the screenshot capture) shows "Permission Denied", and
+  its baseline records that page. This is pending a decision.
+- **Running it.**
+
+  ```
+  d pytest functional_tests/test_accessibility.py --browser firefox --all
+  d pytest functional_tests/test_accessibility.py --browser firefox --update-a11y-baselines
+  ```
+
+  Record each engine in its own session. Chromium and WebKit currently produce the same
+  violations; Firefox reports a few more `color-contrast` nodes.
 
 ### Before/after screenshot capture
 

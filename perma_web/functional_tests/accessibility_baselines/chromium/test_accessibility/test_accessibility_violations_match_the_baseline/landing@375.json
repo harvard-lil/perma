@@ -1,0 +1,341 @@
+{
+  "axe_version": "4.12.1",
+  "violations": [
+    {
+      "rule": "color-contrast",
+      "target": [
+        "#step-four > .row-modules.row > .first.col-sm-5.col-xs-12 > .caption-sxs.caption > .num"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "#step-four > .row-modules.row > .first.col-sm-5.col-xs-12 > .caption-sxs.caption > strong:nth-child(2)"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "#step-four > .row-modules.row > .first.col-sm-5.col-xs-12 > .caption-sxs.caption"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "#step-one > .row-modules.row > .first.col-sm-5.col-xs-12 > .caption-sxs.right.caption > .num"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "#step-one > .row-modules.row > .first.col-sm-5.col-xs-12 > .caption-sxs.right.caption > strong:nth-child(2)"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "#step-one > .row-modules.row > .first.col-sm-5.col-xs-12 > .caption-sxs.right.caption"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "#step-three > .row-modules.row > .first.col-sm-5.col-xs-12 > .caption-sxs.right.caption > .num"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "#step-three > .row-modules.row > .first.col-sm-5.col-xs-12 > .caption-sxs.right.caption > strong:nth-child(2)"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "#step-three > .row-modules.row > .first.col-sm-5.col-xs-12 > .caption-sxs.right.caption"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "#step-two > .row-modules.row > .first.col-sm-5.col-xs-12 > .caption-sxs.caption > .num"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "#step-two > .row-modules.row > .first.col-sm-5.col-xs-12 > .caption-sxs.caption > strong:nth-child(2)"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "#step-two > .row-modules.row > .first.col-sm-5.col-xs-12 > .caption-sxs.caption"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".boilerplate-item:nth-child(1) > a"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".boilerplate-item:nth-child(2) > a"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".boilerplate-item:nth-child(3) > a"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".boilerplate-item:nth-child(4) > a"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".boilerplate-item:nth-child(5) > a"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".btn-large-alt"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".center.btn-small[href$=\"libraries\"]"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".center.btn-small[href$=\"sign-up\"]"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".footer-nav-item:nth-child(1) > a[href$=\"about\"]"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".footer-nav-item:nth-child(2) > a[href$=\"docs\"]"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".footer-nav-item:nth-child(3) > a"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".footer-nav-item:nth-child(4) > a"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".footer-nav-item:nth-child(5) > a"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".row-modules.row > ._isCentered.col-xs-12 > .btn-large.btn[href$=\"sign-up\"]"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".row-subsection.row > ._isCentered.col-xs-12 > .btn-large.btn[href$=\"sign-up\"]"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".small > a:nth-child(1)"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".small"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "a[href$=\"#step-four\"] > .caption-hero"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "a[href$=\"#step-one\"] > .caption-hero"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "a[href$=\"#step-three\"] > .caption-hero"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "a[href$=\"#step-two\"] > .caption-hero"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "a[href$=\"courts\"]"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "a[href$=\"faq\"]"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "a[href$=\"orgs\"]"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "a[href$=\"perma-link-creation\"]"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "a[href$=\"status.perma.cc/\"]"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "h6 > ._noWrap"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "h6"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "heading-order",
+      "target": [
+        "h6"
+      ],
+      "impact": "moderate",
+      "help": "Heading levels should only increase by one"
+    },
+    {
+      "rule": "link-name",
+      "target": [
+        "a[href$=\"63AP-6EHJ\"]"
+      ],
+      "impact": "serious",
+      "help": "Links must have discernible text"
+    }
+  ]
+}

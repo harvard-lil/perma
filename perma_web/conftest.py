@@ -1,4 +1,5 @@
 import io
+import json
 import os
 import re
 import shutil
@@ -13,6 +14,7 @@ from django.core.files.storage import storages
 from django.core.management import call_command
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
+from axe_playwright_python.sync_playwright import Axe
 from filelock import FileLock
 from PIL import Image
 from playwright.sync_api import expect
@@ -20,7 +22,8 @@ import pytest
 from pytest_django.plugin import blocking_manager_key
 
 import frontend_assets
-from functional_tests.image_diff import compare_images
+from functional_tests import accessibility_baseline, baseline_sets
+from functional_tests.image_diff import SNAPSHOT_TOLERANCE, compare_images
 from functional_tests.page_settling import settle_page
 
 
@@ -53,6 +56,40 @@ def pytest_addoption(parser):
         default=False,
         help="Write or overwrite visual baselines instead of comparing against them.",
     )
+    parser.addoption(
+        "--all",
+        action="store_true",
+        default=False,
+        help="Also run tests marked sweep (slow).",
+    )
+    # Separate from --update-snapshots so that re-blessing pixels never blesses new violations.
+    parser.addoption(
+        "--update-a11y-baselines",
+        action="store_true",
+        default=False,
+        help="Write or overwrite accessibility violation baselines instead of comparing against them.",
+    )
+
+
+def _runs_sweeps(config) -> bool:
+    # An update run has to visit every page, so the update flags imply --all.
+    return any(config.getoption(flag) for flag in ("--all", "--update-a11y-baselines", "--update-snapshots"))
+
+
+def pytest_collection_modifyitems(config, items):
+    """Deselect `sweep` tests (visit every control page at every width) unless --all or an update flag is passed."""
+    if _runs_sweeps(config):
+        return
+    kept = [item for item in items if item.get_closest_marker("sweep") is None]
+    deselected = [item for item in items if item.get_closest_marker("sweep") is not None]
+    if deselected:
+        config.hook.pytest_deselected(items=deselected)
+        items[:] = kept
+
+
+def pytest_report_header(config):
+    if not _runs_sweeps(config):
+        return "sweep tests deselected (slow); pass --all to run them"
 
 
 @pytest.fixture(scope="session")
@@ -328,14 +365,17 @@ def log_in(ui_urls):
     return f
 
 
-# Per channel, out of 255; must stay above the 1-2/255 colour rounding seen between arm64 and amd64 renders.
-SNAPSHOT_TOLERANCE = 3
+
+@pytest.fixture(scope="session")
+def baseline_set() -> baseline_sets.Outcome:
+    """Bring `functional_tests/baselines` to the set `BASELINE_SET` names, once per worker; see `baseline_sets.ensure_set`."""
+    return baseline_sets.ensure_set()
 
 
 @pytest.fixture
-def snapshot_dir() -> Path:
-    """Root of the visual baselines; override in a test to point somewhere else."""
-    return Path(__file__).parent / "functional_tests" / "baselines"
+def snapshot_dir(baseline_set) -> Path:
+    """Root of the visual baselines; override in a test to point somewhere else (nothing is then fetched)."""
+    return baseline_set.directory
 
 
 @pytest.fixture
@@ -411,6 +451,76 @@ def assert_snapshot(request, browser_name, snapshot_dir, update_snapshots, outpu
             f"baseline size {result.baseline_size}, actual size {result.actual_size}. "
             f"Expected: {expected_path}; actual: {actual_path}; diff: {diff_path}."
         )
+
+    return check
+
+
+@pytest.fixture
+def a11y_baseline_dir() -> Path:
+    """Root of the accessibility baselines; override in a test to point somewhere else."""
+    return Path(__file__).parent / "functional_tests" / "accessibility_baselines"
+
+
+@pytest.fixture
+def update_a11y_baselines(request) -> bool:
+    """Whether `--update-a11y-baselines` was passed; override in a test to force it."""
+    return request.config.getoption("--update-a11y-baselines")
+
+
+@pytest.fixture
+def assert_a11y_baseline(request, browser_name, a11y_baseline_dir, update_a11y_baselines, output_path):
+    """
+    Return `assert_a11y_baseline(page, name)`, which checks a page's axe violations against a stored baseline.
+
+    The callable runs axe-core with default options over the top frame only
+    (frames, such as an archive's replay, are not scanned) and compares the
+    violations, identified by rule id and target, with
+    `<a11y_baseline_dir>/<browser>/<test module>/<test function>/<name>.json`.
+    It does not settle the page; callers do that first. Impact, help text and
+    `html` do not take part in the comparison.
+
+    Args (of the callable):
+        page: The Playwright page to scan.
+        name: Baseline file stem, unique within the test, e.g. "landing@1200".
+
+    Returns nothing on a match; the file is left untouched even with
+    `--update-a11y-baselines`. Otherwise it raises AssertionError, so the test
+    fails in its call phase, when the baseline is missing or the violations
+    differ: the message lists new and fixed violations separately, and the full
+    axe response is saved as `<name>-axe-response.json` in pytest-playwright's
+    per-test output directory. With `--update-a11y-baselines` a missing or
+    differing baseline is written instead, and the test passes.
+
+    Raises (inside the callable):
+        ValueError: The baseline file exists but is malformed.
+    """
+    def check(page, name):
+        response = Axe().run(page).response
+        current = accessibility_baseline.violations_from_axe(response)
+        current_version = accessibility_baseline.axe_version(response)
+        baseline_path = a11y_baseline_dir / browser_name / request.node.path.stem / request.node.originalname / f"{name}.json"
+
+        def fail(message):
+            failure_dir = Path(output_path)
+            failure_dir.mkdir(parents=True, exist_ok=True)
+            response_path = failure_dir / f"{name}-axe-response.json"
+            response_path.write_text(json.dumps(response, indent=2))
+            raise AssertionError(f"{message}\nFull axe response saved to {response_path}.")
+
+        if not baseline_path.is_file():
+            if update_a11y_baselines:
+                accessibility_baseline.save_baseline(baseline_path, current_version, current)
+                return
+            fail(f"No baseline at {baseline_path}. Run with --update-a11y-baselines to create it.")
+
+        baseline = accessibility_baseline.load_baseline(baseline_path)
+        comparison = accessibility_baseline.compare(baseline.violations, current)
+        if comparison.matches:
+            return
+        if update_a11y_baselines:
+            accessibility_baseline.save_baseline(baseline_path, current_version, current)
+            return
+        fail(accessibility_baseline.format_failure(name, baseline_path, comparison, baseline.axe_version, current_version))
 
     return check
 

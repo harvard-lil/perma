@@ -21,34 +21,7 @@ from pathlib import Path
 
 import pytest
 
-from functional_tests.page_settling import settle_page
-
-HEIGHT = 900
-WIDTHS = [320, 375, 768, 990, 1200]
-
-# slug -> (role, view name); "archive" is the WARC-backed playback page
-PAGES = {
-    "landing": ("anonymous", "landing"),
-    "about": ("anonymous", "about"),
-    "contact": ("anonymous", "contact"),
-    "docs": ("anonymous", "docs"),
-    "docs-faq": ("anonymous", "docs_faq"),
-    "docs-registrars": ("anonymous", "docs_registrars"),
-    "sign-up": ("anonymous", "sign_up"),
-    "login": ("anonymous", "user_management_limited_login"),
-    "create-link": ("user", "create_link"),
-    "settings-profile": ("user", "settings_profile"),
-    "settings-password": ("user", "settings_password"),
-    "settings-tools": ("user", "settings_tools"),
-    "settings-usage-plan": ("user", "settings_usage_plan"),
-    "admin-stats": ("staff", "admin_stats"),
-    "manage-organizations": ("staff", "user_management_manage_organization"),
-    "manage-registrars": ("staff", "user_management_manage_registrar"),
-    "manage-users": ("staff", "user_management_manage_user"),
-    "manage-admin-users": ("staff", "user_management_manage_admin_user"),
-    "archive-anonymous": ("anonymous", "archive"),
-    "archive-logged-in": ("user", "archive"),
-}
+from functional_tests.control_pages import PAGES, WIDTHS, open_control_page
 
 
 @pytest.fixture(scope="session")
@@ -64,25 +37,7 @@ def screenshot_dir():
 @pytest.mark.parametrize("width", WIDTHS)
 @pytest.mark.parametrize("slug", PAGES)
 def test_capture(page, request, browser_name, screenshot_dir, slug, width, ui_urls, user, staff_user, log_in):
-    role, view_name = PAGES[slug]
-
-    # `urls` builds a stored WARC, so only the archive pages pay for it.
-    if view_name == "archive":
-        urls = request.getfixturevalue("urls")
-        target = urls.perma_link_with_warc
-        log_in_as = request.getfixturevalue("log_in_user")
-    else:
-        target = ui_urls(view_name)
-        log_in_as = log_in
-
-    page.set_viewport_size({"width": width, "height": HEIGHT})
-    if role == "user":
-        log_in_as(page, user)
-    elif role == "staff":
-        log_in(page, staff_user)
-
-    page.goto(target)
-    settle_page(page)
+    open_control_page(page, request, slug, width)
 
     out = screenshot_dir / browser_name / f"{slug}@{width}.png"
     out.parent.mkdir(parents=True, exist_ok=True)

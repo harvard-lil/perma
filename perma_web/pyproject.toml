@@ -43,6 +43,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "axe-playwright-python~=0.1.8",
     "beautifulsoup4~=4.15.0",
     "coverage~=7.15.4",
     "django-admin-smoke-tests~=0.3.0",
@@ -79,6 +80,8 @@ timeout_method = "thread"
 filterwarnings = ["ignore:Unverified HTTPS request"]
 markers = [
     "uses_storage: marks tests that write to S3 storage (cleanup_storage teardown is skipped for unmarked tests)",
+    "sweep: visits every control page at every width; slow, so deselected unless --all is passed",
+    "visual: full-page screenshot comparison against a stored baseline set; selected alone by the baselines capture workflow",
 ]
 
 [tool.coverage.run]

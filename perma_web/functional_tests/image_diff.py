@@ -13,6 +13,10 @@ _DIFF_COLOR = (255, 0, 0)
 _PADDING_COLOR = (0, 120, 255)
 _FADE_TOWARD_WHITE = 0.3  # share of the actual image kept in the diff image
 
+# Per channel, out of 255; must stay above the 1-2/255 colour rounding seen between arm64 and amd64 renders.
+# Defined here, not in conftest, so the review report can use the suite's tolerance without importing Django.
+SNAPSHOT_TOLERANCE = 3
+
 
 @dataclass(frozen=True)
 class ImageComparison:

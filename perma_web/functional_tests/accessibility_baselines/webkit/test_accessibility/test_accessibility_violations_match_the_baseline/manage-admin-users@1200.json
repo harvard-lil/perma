@@ -1,0 +1,205 @@
+{
+  "axe_version": "4.12.1",
+  "violations": [
+    {
+      "rule": "color-contrast",
+      "target": [
+        "#results > strong"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "#results"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "._verbose"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".action-heading"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".boilerplate-item:nth-child(1) > a"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".boilerplate-item:nth-child(2) > a"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".boilerplate-item:nth-child(3) > a"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".boilerplate-item:nth-child(4) > a"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".boilerplate-item:nth-child(5) > a"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".btn-large"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".col-xs-4.admin-data-point.col-no-gutter:nth-child(2) > .count-label"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".col-xs-4.admin-data-point.col-no-gutter:nth-child(3) > .count-label"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".col-xs-4.admin-data-point.col-no-gutter:nth-child(4) > .count-label"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".dropdown:nth-child(2) > .btn-transparent[aria-haspopup=\"true\"][data-toggle=\"dropdown\"]"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".dropdown:nth-child(3) > .btn-transparent[aria-haspopup=\"true\"][data-toggle=\"dropdown\"]"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".footer-nav-item:nth-child(3) > a"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".footer-nav-item:nth-child(4) > a"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".footer-nav-item:nth-child(5) > a"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".item-container:nth-child(1) > .col-sm-4.sm-align-right.admin-actions > div:nth-child(2) > .item-status:nth-child(1) > .action-delete.action[href$=\"remove\"]"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".item-container:nth-child(2) > .col-sm-4.sm-align-right.admin-actions > div:nth-child(2) > .item-status:nth-child(1) > .action-delete.action[href$=\"remove\"]"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".sort-filter-bar > strong"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "a[href$=\"about\"]"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "a[href$=\"admin-users\"] > span"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "a[href$=\"docs\"]"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "a[href$=\"status.perma.cc/\"]"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    }
+  ]
+}

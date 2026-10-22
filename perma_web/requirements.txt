@@ -10,6 +10,9 @@ asgiref==3.12.1 \
     # via
     #   django
     #   django-axes
+axe-playwright-python==0.1.8 \
+    --hash=sha256:97de160210fd5ce51e552d21d3b0a1cabb850235942737643ee3b9398de81a47 \
+    --hash=sha256:fdd263c998388f1a8e67cad02677e612d946248bd44d163be5e8650ea31f95f8
 beautifulsoup4==4.15.0 \
     --hash=sha256:288e3ca7d54b06f2ac191970bc275c1939cb46d450b255bf6718b04aa37ab4f7 \
     --hash=sha256:d6f88de62e1d4e38ecb1077eb9724cd0eff29d2a08ca16a401e9b9e93f117cf9
@@ -511,7 +514,9 @@ playwright==1.62.0 \
     --hash=sha256:db755ab27db21a04186f1fe8169888e42356086e439b1059b923ef417f0b6034 \
     --hash=sha256:e5614fa89355d7081457680324bb219f79f69c423c5cb6fa250e30b0d8aebf1c \
     --hash=sha256:ea8d3055aa9d5a9f1832ac82517bd8b42c78fac7ebcbebb0107116735c8cb6a1
-    # via pytest-playwright
+    # via
+    #   axe-playwright-python
+    #   pytest-playwright
 pluggy==1.6.0 \
     --hash=sha256:7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3 \
     --hash=sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746
