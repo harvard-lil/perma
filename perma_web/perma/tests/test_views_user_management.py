@@ -23,7 +23,7 @@ from django.utils.encoding import force_bytes
 from django.utils.html import escape
 from django.utils.http import urlsafe_base64_encode
 
-from perma.models import LinkUser, Organization, Registrar, Sponsorship, UserOrganizationAffiliation
+from perma.models import Link, LinkUser, Organization, Registrar, Sponsorship, UserOrganizationAffiliation
 from perma.tests.utils import PermaTestCase
 from perma.forms import MultipleUsersFormWithOrganization
 
@@ -391,6 +391,27 @@ class UserManagementViewsTestCase(PermaTestCase):
                 response = self.get('user_management_manage_organization_user', user=viewer,
                                     request_kwargs={'data': {'q': self.unrelated_organization.name}})
                 self.assertNotContains(response, current.email)
+
+    def test_organization_user_list_counts_only_links_in_visible_orgs(self):
+        """ Link counts should include only the links users created in the organizations shown """
+        _, current, _, _ = self._organization_scope_scenario()
+
+        for organization, count in [(self.organization, 2), (self.unrelated_organization, 3), (None, 1)]:
+            for _ in range(count):
+                Link(created_by=current, organization=organization).save()
+
+        deleted = Link(created_by=current, organization=self.organization)
+        deleted.save()
+        deleted.safe_delete()
+        deleted.save()
+
+        for viewer, expected in [(self.registrar_user, 2), (self.organization_user, 2), (self.admin_user, 5)]:
+            with self.subTest(viewer=viewer.pk):
+                response = self.get('user_management_manage_organization_user', user=viewer,
+                                    request_kwargs={'data': {'q': current.email}})
+                [listed] = response.context['users']
+                self.assertEqual(listed.visible_link_count, expected)
+                self.assertEqual(response.context['total_created_links_count'], expected)
 
     def test_organization_user_exports_scope_affiliation_fields(self):
         historical, current, visible_expiry, outside_expiry = self._organization_scope_scenario()
