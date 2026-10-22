@@ -139,6 +139,9 @@ def manage_registrar(request):
 
     # handle sorting
     registrars, sort = apply_sort_order(request, registrars, valid_registrar_sorts)
+    if sort.endswith('link_count'):
+        total_link_count = F('link_count') + F('sponsored_link_count')
+        registrars = registrars.order_by(total_link_count.desc() if sort.startswith('-') else total_link_count.asc())
 
     # handle search
     registrars, search_query = apply_search_query(request, registrars, ['name', 'email', 'website'])
