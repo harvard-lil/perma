@@ -311,6 +311,11 @@ from the staged cutover release without dispatching a deployment; subsequent
 promotions use the workflow above. Confirm a successful deployment run and its
 image digest before treating a branch tip as proof of what is running.
 
+Tags are not part of the release flow. The repository has one tag namespace,
+`baselines/<name>`, which asks CI to render a set of visual baselines and nothing
+else; see [Publishing a set](#publishing-a-set). Those tags are never moved or reused,
+and only maintainers should create them.
+
 GitHub's `staging` and `prod` environments are restricted to their matching
 branches. Each needs `AWS_ROLE_TO_ASSUME`, `STATIC_BUCKET`,
 `CLOUDFLARE_ZONE_ID`, `MAINTENANCE_SCRIPT`, `MAINTENANCE_HOSTNAMES`, and
