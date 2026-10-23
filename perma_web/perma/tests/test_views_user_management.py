@@ -413,6 +413,21 @@ class UserManagementViewsTestCase(PermaTestCase):
                 self.assertEqual(listed.visible_link_count, expected)
                 self.assertEqual(response.context['total_created_links_count'], expected)
 
+    def test_organization_user_search_for_org_name_suggests_org_filter(self):
+        """ Searching for an organization's name should point to the organization filter """
+        hint = 'To filter within a single Organization, use the Organization filter.'
+        for data, expected in [({'q': self.organization.name}, True),
+                               ({'q': self.organization.name, 'org': self.organization.pk}, False),
+                               ({'q': self.organization_user.email}, False)]:
+            with self.subTest(data=data):
+                response = self.get('user_management_manage_organization_user', user=self.registrar_user,
+                                    request_kwargs={'data': data})
+                self.assertEqual(response.context['search_matches_org'], expected)
+                if expected:
+                    self.assertContains(response, hint)
+                else:
+                    self.assertNotContains(response, hint)
+
     def test_organization_user_exports_scope_affiliation_fields(self):
         historical, current, visible_expiry, outside_expiry = self._organization_scope_scenario()
         for viewer in [self.registrar_user, self.organization_user, self.admin_user]:

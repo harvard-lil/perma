@@ -78,6 +78,11 @@
           {% if search_query %}<span class="filter-label">Search</span> <strong>{{search_query}}</strong>{% endif %}
           <a class="action remove-filters" href="?sort=last_name"><i aria-hidden="true" class="icon-remove-sign"></i> Clear all filters</a>
          </div>
+        {% if search_matches_org %}
+        <div class="org-search-hint">
+          <p>Total link count and the user link counts include links across all organizations you have access to. To filter within a single Organization, use the Organization filter.</p>
+        </div>
+        {% endif %}
       </div>
     </div>
   {% endif %}
