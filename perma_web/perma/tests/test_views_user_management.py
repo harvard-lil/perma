@@ -415,7 +415,7 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def test_organization_user_search_for_org_name_suggests_org_filter(self):
         """ Searching for an organization's name should point to the organization filter """
-        hint = 'For a single organization, use the organization filter.'
+        hint = 'To filter within a single Organization, use the Organization filter.'
         for data, expected in [({'q': self.organization.name}, True),
                                ({'q': self.organization.name, 'org': self.organization.pk}, False),
                                ({'q': self.organization_user.email}, False)]:
