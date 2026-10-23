@@ -1,7 +1,7 @@
 # Node is copied from the official image rather than bootstrapped through the
 # mutable NodeSource setup script. Keep the Debian suite matched to the Python
 # base below so the glibc the binary was linked against is the one it runs on.
-FROM node:24.20.0-trixie-slim@sha256:50c3b2f6988dfc307b86e5301d69611af31f4789bdf232863b07d3b02fe55ae0 AS node
+FROM node:24.22.1-trixie-slim@sha256:43b9ba1142b8dcf33fa8f922ca1be85714adc444e0586c7cf7726daaeabc1bea AS node
 
 # Extract Playwright version from uv.lock prior to building main image
 FROM python:3.14-slim-trixie@sha256:cae66f2ef0ec51a9891263eeee7f987dacf0a9879e8aa9353d5606e0530619a5 AS extract-playwright-version
