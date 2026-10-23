@@ -181,6 +181,7 @@ class Link(DeletableModel):
             GinIndex(OpClass(Upper('guid'), name='gin_trgm_ops'), name='guid_case_insensitive_idx'),
             # Personal links, for LinkUser.links_remaining_in_period.
             models.Index(fields=['created_by', 'creation_timestamp'], condition=Q(organization=None), name='perma_link_personal_idx'),
+            models.Index(fields=['created_by', 'organization'], condition=Q(user_deleted=False, organization__isnull=False), name='perma_link_creator_org_idx'),
         ]
 
     DISCOVERABLE_FILTER = Q(is_unlisted=False, is_private=False)

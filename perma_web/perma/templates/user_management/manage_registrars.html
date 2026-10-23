@@ -124,7 +124,7 @@
           <div class="row row-half-bleed item-count-groups">
             <div class="col col-xs-12 col-md-4 col-half-gutter">
               <div class="item-count-group">
-                <strong class="list-count-number">{{ registrar.link_count|intcomma }}</strong>
+                <strong class="list-count-number">{{ registrar.link_count|add:registrar.sponsored_link_count|intcomma }}</strong>
                 <span class="item-count-label">links</span>
               </div>
             </div>
