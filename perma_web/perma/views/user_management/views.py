@@ -636,7 +636,7 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
     # Searching for an org name lists its members, but their link counts still include all orgs the viewer can see. 
     # If the search matches an org, suggest the org filter, which will limit the counts to that org.
     search_matches_org = False
-    if group_name == 'organization_user' and search_query and not org_filter:
+    if group_name == 'organization_user' and search_query and not org_filter and visible_orgs.count() > 1:
         matching_orgs = visible_orgs
 
         for word in search_query.split():
