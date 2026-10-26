@@ -16,13 +16,13 @@
 # Pinned tool images, named once so every stage below agrees on them. uv is
 # copied out of its image as a static binary; node is both the `assets`
 # builder and the source of the Node runtime copied into `base`.
-FROM ghcr.io/astral-sh/uv:0.12.7@sha256:95f2aa1fe59274951cfe9b0cbc7972e879ff1004bc8945d130a32eb0dbd85945 AS uv
+FROM ghcr.io/astral-sh/uv:0.13.5@sha256:32a7bb39b496babbd997b0a39a4d66c126bdaf5661b302bf6f06abda8deca6ff AS uv
 FROM node:24.22.1-trixie-slim@sha256:43b9ba1142b8dcf33fa8f922ca1be85714adc444e0586c7cf7726daaeabc1bea AS node
 
 # =====================================================================
 # base -- shared Python/node dependency layer. No app code. Not run directly.
 # =====================================================================
-FROM python:3.14-slim-trixie@sha256:cae66f2ef0ec51a9891263eeee7f987dacf0a9879e8aa9353d5606e0530619a5 AS base
+FROM python:3.14-slim-trixie@sha256:35caba83af2fe6da9a5d922f9b0156f21d1246a48278c58a08bd253303ba42e8 AS base
 
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
