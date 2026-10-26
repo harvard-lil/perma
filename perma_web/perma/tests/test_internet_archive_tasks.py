@@ -1,21 +1,38 @@
 from contextlib import nullcontext
 from datetime import timedelta
+import logging
 from io import BytesIO
 from types import SimpleNamespace
-from unittest.mock import Mock, patch
+from unittest.mock import ANY, Mock, patch
 
+import fakeredis
 import pytest
 import requests
+from celery.exceptions import SoftTimeLimitExceeded
 from django.conf import settings
+from django.core.files.storage import storages
+from django.utils import timezone
 from psycopg2.extras import DateTimeTZRange
 
 from perma.celery_tasks import (
+    IA_CLAIM_HEADER,
+    IA_UPLOAD_QUEUING_LOCK,
+    conditionally_queue_internet_archive_uploads_for_date_range,
     confirm_file_deleted_from_daily_item,
     confirm_file_uploaded_to_internet_archive,
+    confirm_files_uploaded_to_internet_archive_item,
     delete_link_from_daily_item,
+    ia_confirmation_interval,
+    ia_rate_limit_countdown,
+    queue_file_uploaded_confirmation_tasks,
+    queue_internet_archive_deletions,
+    queue_internet_archive_uploads_for_date,
     upload_link_to_internet_archive,
 )
 from perma.models import InternetArchiveFile, InternetArchiveItem, Link
+
+# a retry of an IA task, passing on its claim
+CLAIMED = {IA_CLAIM_HEADER: ANY}
 
 
 def _s3_details():
@@ -43,10 +60,27 @@ def _daily_item(link):
     )
 
 
-def _fake_session(ia_item):
-    session = Mock()
+# Responses from IA's metadata read API, recorded 2026-09-30 with public GETs
+# (daily_perma_cc_2026-09-28 and an identifier that does not exist), and the
+# extended error shape documented at https://archive.org/developers/md-read.html
+PENDING_TASKS_READ = {"result": True}
+TASKS_READ = {"result": [
+    {"task_id": 5673426558, "cmd": "derive.php", "priority": 0, "wait_admin": 1, "color": "blue", "status": "running"},
+    {"task_id": 5673505920, "cmd": "book_op.php", "priority": 0, "wait_admin": 0, "color": "green", "status": "queued"},
+]}
+MISSING_ITEM_READ = {"error": "Couldn't get 'pending_tasks' for item perma_nonexistent_item_zzq_20260930"}
+NO_TASKS_READ = {"error": "Couldn't get 'tasks' for item daily_perma_cc_2026-09-25"}
+
+
+def _extended_error(errcode):
+    return {"errcode": errcode, "error": "extended error"}
+
+
+def _fake_session(ia_item, metadata_part=PENDING_TASKS_READ):
+    session = Mock(protocol="https:", host="archive.org")
     session.get_s3_load_info.return_value = (False, _s3_details())
     session.get_item.return_value = ia_item
+    session.get.return_value.json.return_value = metadata_part
     return session
 
 
@@ -88,6 +122,7 @@ def test_upload_to_internet_archive_sends_expected_file_and_metadata(complete_li
         "access_key": settings.INTERNET_ARCHIVE_ACCESS_KEY,
         "secret_key": settings.INTERNET_ARCHIVE_SECRET_KEY,
         "queue_derive": False,
+        "verify": True,
         "retries": 0,
         "retries_sleep": 0,
         "verbose": False,
@@ -105,49 +140,274 @@ def test_upload_to_internet_archive_requeues_failed_upload(complete_link):
     with (
         patch("perma.celery_tasks.get_ia_session", return_value=session),
         patch.object(Link, "get_warc", return_value=nullcontext(BytesIO(b"warc"))),
-        patch.object(upload_link_to_internet_archive, "delay") as delay,
+        patch.object(upload_link_to_internet_archive, "apply_async") as apply_async,
     ):
         upload_link_to_internet_archive.run(complete_link.guid)
 
-    delay.assert_called_once_with(complete_link.guid, 1, 0)
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=None, headers=CLAIMED)
 
 
-@pytest.mark.django_db
-def test_upload_confirmation_caches_remote_metadata(complete_link):
-    perma_item = _daily_item(complete_link)
-    perma_file = InternetArchiveFile.objects.create(
-        item=perma_item,
-        link=complete_link,
-        status="upload_submitted",
-    )
-    metadata = InternetArchiveFile.standard_metadata_for_link(complete_link)
-    ia_file = SimpleNamespace(exists=True, metadata=metadata, size=123)
-    ia_item = Mock(
-        metadata={
+def _ia_file_entry(link, **overrides):
+    return {
+        "name": InternetArchiveFile.WARC_FILENAME.format(guid=link.guid),
+        "size": "123",
+        **InternetArchiveFile.standard_metadata_for_link(link),
+        **overrides,
+    }
+
+
+def _ia_item(files, tasks=None):
+    item_metadata = {
+        "metadata": {
             "addeddate": "2024-01-02 03:04:05",
             "title": "Daily captures",
             "description": "Remote item description",
         },
-        files_count=7,
-    )
-    ia_item.get_file.return_value = ia_file
-    session = _fake_session(ia_item)
+        "files": files,
+        "files_count": len(files) + 2,
+    }
+    if tasks is not None:
+        item_metadata["tasks"] = tasks
+    return Mock(item_metadata=item_metadata)
+
+
+def _submitted_file(item, link, age=timedelta(0)):
+    perma_file = InternetArchiveFile.objects.create(item=item, link=link, status="upload_submitted")
+    InternetArchiveFile.objects.filter(pk=perma_file.pk).update(status_updated=timezone.now() - age)
+    perma_file.refresh_from_db()
+    return perma_file
+
+
+@pytest.mark.django_db
+def test_upload_confirmation_checks_all_of_an_items_files_with_one_fetch(complete_link_factory):
+    present, missing = complete_link_factory(), complete_link_factory()
+    perma_item = _daily_item(present)
+    present_file = _submitted_file(perma_item, present, age=timedelta(minutes=20))
+    missing_file = _submitted_file(perma_item, missing, age=timedelta(minutes=20))
+    perma_item.tasks_in_progress = 50
+    perma_item.save()
+    session = _fake_session(_ia_item([_ia_file_entry(present)]))
 
     with patch("perma.celery_tasks.get_ia_session", return_value=session):
-        confirm_file_uploaded_to_internet_archive.run(perma_file.id)
+        confirm_files_uploaded_to_internet_archive_item.run(perma_item.identifier)
+
+    session.get_item.assert_called_once_with(perma_item.identifier, request_kwargs={"params": {"extended_err": 1}})
+    present_file.refresh_from_db()
+    missing_file.refresh_from_db()
+    perma_item.refresh_from_db()
+    assert present_file.status == "confirmed_present"
+    assert present_file.cached_size == 123
+    assert present_file.cached_title == InternetArchiveFile.standard_metadata_for_link(present)["title"]
+    assert missing_file.status == "upload_submitted"
+    assert perma_item.confirmed_exists is True
+    assert perma_item.cached_title == "Daily captures"
+    assert perma_item.cached_file_count == 3
+    assert perma_item.derive_required is True
+    # the missing file is still in flight; the stale count of 50 is replaced
+    assert perma_item.tasks_in_progress == 1
+    # backoff: a quarter of the newest pending file's 20-minute age
+    expected_next = timezone.now() + timedelta(minutes=5)
+    assert abs(perma_item.next_confirmation_check - expected_next) < timedelta(seconds=30)
+
+
+@pytest.mark.django_db
+def test_upload_confirmation_rejects_mismatched_metadata(complete_link):
+    perma_item = _daily_item(complete_link)
+    perma_file = _submitted_file(perma_item, complete_link)
+    session = _fake_session(_ia_item([_ia_file_entry(complete_link, title="an older title")]))
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        confirm_files_uploaded_to_internet_archive_item.run(perma_item.identifier)
+
+    perma_file.refresh_from_db()
+    assert perma_file.status == "upload_submitted"
+
+
+@pytest.mark.django_db
+def test_upload_confirmation_gives_up_after_max_age(complete_link, caplog):
+    perma_item = _daily_item(complete_link)
+    perma_file = _submitted_file(
+        perma_item, complete_link, age=settings.INTERNET_ARCHIVE_UPLOAD_CONFIRMATION_MAX_AGE
+    )
+    perma_item.tasks_in_progress = 1
+    perma_item.save()
+    session = _fake_session(_ia_item([_ia_file_entry(complete_link, title="an older title")]))
+
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=session),
+        caplog.at_level(logging.ERROR, logger="celery.django"),
+    ):
+        confirm_files_uploaded_to_internet_archive_item.run(perma_item.identifier)
 
     perma_file.refresh_from_db()
     perma_item.refresh_from_db()
-    assert perma_file.status == "confirmed_present"
-    assert perma_file.cached_size == 123
-    assert perma_file.cached_title == metadata["title"]
-    assert perma_item.confirmed_exists is True
-    assert perma_item.cached_file_count == 7
-    assert perma_item.derive_required is True
-    session.get_item.assert_called_once_with(perma_item.identifier)
-    ia_item.get_file.assert_called_once_with(
-        InternetArchiveFile.WARC_FILENAME.format(guid=complete_link.guid)
+    assert perma_file.status == "upload_unconfirmed"
+    assert perma_item.next_confirmation_check is None
+    assert perma_item.tasks_in_progress == 0
+    [record] = [r for r in caplog.records if r.levelname == "ERROR"]
+    assert complete_link.guid in record.getMessage()
+    assert "an older title" in record.getMessage()
+
+
+@pytest.mark.django_db
+def test_upload_confirmation_starts_the_clock_for_files_without_a_status_time(complete_link):
+    perma_item = _daily_item(complete_link)
+    perma_file = InternetArchiveFile.objects.create(item=perma_item, link=complete_link, status="upload_submitted")
+    InternetArchiveFile.objects.filter(pk=perma_file.pk).update(status_updated=None)
+    session = _fake_session(_ia_item([]))
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        confirm_files_uploaded_to_internet_archive_item.run(perma_item.identifier)
+
+    perma_file.refresh_from_db()
+    assert perma_file.status == "upload_submitted"
+    assert timezone.now() - perma_file.status_updated < timedelta(minutes=1)
+
+
+@pytest.mark.django_db
+def test_upload_confirmation_waits_longer_when_ia_tasks_are_stuck(complete_link):
+    perma_item = _daily_item(complete_link)
+    _submitted_file(perma_item, complete_link)
+    session = _fake_session(_ia_item([], tasks=[{"cmd": "archive.php", "wait_admin": 2}]))
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        confirm_files_uploaded_to_internet_archive_item.run(perma_item.identifier)
+
+    perma_item.refresh_from_db()
+    assert perma_item.next_confirmation_check - timezone.now() > (
+        settings.INTERNET_ARCHIVE_CONFIRMATION_BLOCKED_TASKS_INTERVAL - timedelta(minutes=1)
     )
+
+
+@pytest.mark.django_db
+def test_upload_confirmation_connection_error_leaves_item_due(complete_link):
+    perma_item = _daily_item(complete_link)
+    perma_file = _submitted_file(perma_item, complete_link)
+    session = Mock()
+    session.get_item.side_effect = requests.exceptions.ConnectionError
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        confirm_files_uploaded_to_internet_archive_item.run(perma_item.identifier)
+
+    perma_file.refresh_from_db()
+    perma_item.refresh_from_db()
+    assert perma_file.status == "upload_submitted"
+    assert perma_item.next_confirmation_check is None
+
+
+def test_confirmation_interval_backs_off_with_age():
+    assert ia_confirmation_interval(timedelta(minutes=4), []) == timedelta(minutes=1)
+    assert ia_confirmation_interval(timedelta(hours=4), []) == timedelta(hours=1)
+    assert ia_confirmation_interval(timedelta(days=3), []) == settings.INTERNET_ARCHIVE_CONFIRMATION_MAX_INTERVAL
+    queued = [{"cmd": "archive.php", "wait_admin": 0}]
+    assert ia_confirmation_interval(timedelta(minutes=4), queued) == settings.INTERNET_ARCHIVE_CONFIRMATION_PENDING_TASKS_INTERVAL
+    paused = [{"cmd": "archive.php", "wait_admin": "9"}]
+    assert ia_confirmation_interval(timedelta(minutes=4), paused) == settings.INTERNET_ARCHIVE_CONFIRMATION_BLOCKED_TASKS_INTERVAL
+
+
+@pytest.mark.django_db
+def test_confirmation_queue_task_queues_each_due_item_once(complete_link_factory):
+    due_links = [complete_link_factory(), complete_link_factory()]
+    due_item = _daily_item(due_links[0])
+    for link in due_links:
+        _submitted_file(due_item, link)
+
+    later_link = complete_link_factory()
+    later_item = InternetArchiveItem.objects.create(
+        identifier="daily_perma_cc_1999-01-01",
+        span=DateTimeTZRange(InternetArchiveItem.datetime("1999-01-01 00:00:00"), InternetArchiveItem.datetime("1999-01-02 00:00:00")),
+        next_confirmation_check=timezone.now() + timedelta(hours=1),
+    )
+    _submitted_file(later_item, later_link)
+
+    redis_client = fakeredis.FakeStrictRedis()
+    with (
+        patch("perma.celery_tasks.redis.from_url", return_value=redis_client),
+        patch.object(confirm_files_uploaded_to_internet_archive_item, "delay") as delay,
+    ):
+        queue_file_uploaded_confirmation_tasks.run()
+
+    delay.assert_called_once_with(due_item.identifier)
+
+
+@pytest.mark.django_db
+def test_superseded_per_file_confirmation_task_does_not_fetch(complete_link):
+    perma_file = _submitted_file(_daily_item(complete_link), complete_link)
+
+    with patch("perma.celery_tasks.get_ia_session") as get_ia_session:
+        confirm_file_uploaded_to_internet_archive.run(perma_file.id)
+
+    get_ia_session.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_tasks_in_progress_is_derived_from_file_statuses(complete_link_factory):
+    links = [complete_link_factory() for _ in range(6)]
+    perma_item = _daily_item(links[0])
+    perma_item.tasks_in_progress = 100
+    perma_item.save()
+    statuses = [
+        ("upload_attempted", timedelta(0)),
+        ("upload_submitted", timedelta(days=2)),
+        ("deletion_submitted", timedelta(0)),
+        # an attempt whose task ended without recording a result
+        ("upload_attempted", settings.INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER + timedelta(minutes=1)),
+        ("upload_unconfirmed", timedelta(0)),
+        ("confirmed_present", timedelta(0)),
+    ]
+    for link, (status, age) in zip(links, statuses):
+        perma_file = InternetArchiveFile.objects.create(item=perma_item, link=link, status=status)
+        InternetArchiveFile.objects.filter(pk=perma_file.pk).update(status_updated=timezone.now() - age)
+    idle_item = InternetArchiveItem.objects.create(identifier="idle", tasks_in_progress=5)
+    reset_item = InternetArchiveItem.objects.create(identifier="reset", tasks_in_progress=-2)
+
+    InternetArchiveItem.refresh_tasks_in_progress()
+
+    perma_item.refresh_from_db()
+    idle_item.refresh_from_db()
+    reset_item.refresh_from_db()
+    assert perma_item.tasks_in_progress == 3
+    assert idle_item.tasks_in_progress == 0
+    assert reset_item.tasks_in_progress == 0
+    assert InternetArchiveItem.inflight_task_count() == 3
+
+
+@pytest.mark.django_db
+def test_saving_a_file_status_records_when(complete_link):
+    perma_file = InternetArchiveFile.objects.create(
+        item=_daily_item(complete_link), link=complete_link, status="upload_attempted"
+    )
+    InternetArchiveFile.objects.filter(pk=perma_file.pk).update(status_updated=None)
+    perma_file.cached_title = "unrelated"
+    perma_file.save(update_fields=["cached_title"])
+    perma_file.refresh_from_db()
+    assert perma_file.status_updated is None
+
+    perma_file.save(update_fields=["status"])
+    perma_file.refresh_from_db()
+    assert timezone.now() - perma_file.status_updated < timedelta(minutes=1)
+
+
+@pytest.mark.django_db
+def test_upload_queueing_ignores_an_inflated_counter(complete_link, complete_link_factory):
+    perma_item = _daily_item(complete_link)
+    perma_item.tasks_in_progress = 100
+    perma_item.save()
+    # IA has accepted an upload to the item
+    _file_with_status(perma_item, complete_link_factory(), "confirmed_present")
+    date_string = complete_link.creation_timestamp.strftime("%Y-%m-%d")
+
+    redis_client = fakeredis.FakeStrictRedis()
+    with (
+        patch("perma.celery_tasks.redis.from_url", return_value=redis_client),
+        patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(Mock())),
+        patch("perma.celery_tasks.queue_internet_archive_uploads_for_date", return_value=1) as queue_for_date,
+    ):
+        conditionally_queue_internet_archive_uploads_for_date_range.run(date_string, date_string, daily_limit=100)
+
+    queue_for_date.assert_called_once_with(date_string, 100)
+    perma_item.refresh_from_db()
+    assert perma_item.tasks_in_progress == 0
 
 
 @pytest.mark.django_db
@@ -168,7 +428,7 @@ def test_delete_from_internet_archive_sends_expected_request(complete_link):
         delete_link_from_daily_item.run(complete_link.guid)
 
     ia_file.delete.assert_called_once_with(
-        cascade_delete=False,
+        cascade_delete=True,
         access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY,
         secret_key=settings.INTERNET_ARCHIVE_SECRET_KEY,
         verbose=False,
@@ -196,3 +456,1126 @@ def test_deletion_confirmation_requeues_connection_errors(complete_link):
         confirm_file_deleted_from_daily_item.run(perma_file.id)
 
     delay.assert_called_once_with(perma_file.id, 0, 1)
+
+
+def test_upload_task_has_its_own_time_limits():
+    assert upload_link_to_internet_archive.soft_time_limit == settings.INTERNET_ARCHIVE_UPLOAD_SOFT_TIME_LIMIT
+    assert upload_link_to_internet_archive.time_limit == settings.INTERNET_ARCHIVE_UPLOAD_TIME_LIMIT
+    assert settings.CELERY_TASK_SOFT_TIME_LIMIT < upload_link_to_internet_archive.soft_time_limit < upload_link_to_internet_archive.time_limit
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("timeouts, requeued", [(0, True), (settings.INTERNET_ARCHIVE_UPLOAD_MAX_TIMEOUTS - 1, False)])
+def test_upload_timeouts_are_retried_a_limited_number_of_times(complete_link, timeouts, requeued):
+    assert settings.INTERNET_ARCHIVE_UPLOAD_MAX_TIMEOUTS
+    ia_item = Mock()
+    ia_item.upload_file.side_effect = SoftTimeLimitExceeded
+    session = _fake_session(ia_item)
+
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=session),
+        patch.object(Link, "get_warc", return_value=nullcontext(BytesIO(b"warc"))),
+        patch.object(upload_link_to_internet_archive, "apply_async") as apply_async,
+    ):
+        upload_link_to_internet_archive.run(complete_link.guid, 0, timeouts)
+
+    if requeued:
+        apply_async.assert_called_once_with((complete_link.guid, 0, timeouts + 1), countdown=None, headers=CLAIMED)
+    else:
+        apply_async.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_upload_does_not_touch_the_stored_counter(complete_link):
+    perma_item = _daily_item(complete_link)
+    ia_item = Mock()
+    ia_item.upload_file.return_value = SimpleNamespace(status_code=200, text="")
+
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(ia_item)),
+        patch.object(Link, "get_warc", return_value=nullcontext(BytesIO(b"warc"))),
+    ):
+        upload_link_to_internet_archive.run(complete_link.guid)
+
+    perma_item.refresh_from_db()
+    assert perma_item.tasks_in_progress == 0
+    perma_file = InternetArchiveFile.objects.get(item=perma_item, link=complete_link)
+    assert perma_file.status == "upload_submitted"
+    assert perma_file.status_updated is not None
+
+
+def test_s3_reads_spill_to_disk_above_the_memory_limit():
+    storage = storages[settings.WARC_STORAGE]
+    assert storage.max_memory_size == settings.AWS_S3_MAX_MEMORY_SIZE > 0
+
+    name = "ia-tests/spill.bin"
+    storage.save(name, BytesIO(b"x" * (settings.AWS_S3_MAX_MEMORY_SIZE + 1)))
+    try:
+        with storage.open(name, "rb") as f:
+            f.read(1)
+            assert f.file._rolled
+    finally:
+        storage.delete(name)
+
+
+def _overloaded_session():
+    session = Mock()
+    session.get_s3_load_info.return_value = (True, _s3_details())
+    return session
+
+
+@pytest.mark.django_db
+def test_rate_limited_upload_retries_after_a_delay(complete_link):
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_overloaded_session()),
+        patch("perma.celery_tasks.ia_rate_limit_countdown", return_value=42) as countdown,
+        patch.object(upload_link_to_internet_archive, "apply_async") as apply_async,
+        patch.object(upload_link_to_internet_archive, "delay") as delay,
+    ):
+        upload_link_to_internet_archive.run(complete_link.guid, 3, 1)
+
+    countdown.assert_called_once_with(3)
+    apply_async.assert_called_once_with((complete_link.guid, 4, 1), countdown=42, headers=CLAIMED)
+    delay.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_rate_limited_deletion_retries_after_a_delay(complete_link):
+    perma_item = _daily_item(complete_link)
+    InternetArchiveFile.objects.create(
+        item=perma_item,
+        link=complete_link,
+        status="confirmed_present",
+    )
+
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_overloaded_session()),
+        patch("perma.celery_tasks.ia_rate_limit_countdown", return_value=42),
+        patch.object(delete_link_from_daily_item, "apply_async") as apply_async,
+        patch.object(delete_link_from_daily_item, "delay") as delay,
+    ):
+        delete_link_from_daily_item.run(complete_link.guid)
+
+    apply_async.assert_called_once_with((complete_link.guid, 1), countdown=42, headers=CLAIMED)
+    delay.assert_not_called()
+
+
+@pytest.mark.parametrize("attempts, low, high", [(0, 15, 30), (2, 60, 120), (1_000, 300, 600)])
+def test_rate_limit_countdown_doubles_up_to_the_maximum(settings, attempts, low, high):
+    settings.INTERNET_ARCHIVE_RATE_LIMIT_RETRY_BASE_DELAY = 30
+    settings.INTERNET_ARCHIVE_RATE_LIMIT_RETRY_MAX_DELAY = 600
+
+    assert low <= ia_rate_limit_countdown(attempts) <= high
+
+
+def _http_error(status_code, message=""):
+    return requests.exceptions.HTTPError(
+        f" error uploading to item, {message}",
+        response=SimpleNamespace(status_code=status_code),
+    )
+
+
+def _upload_raising(link, error, attempts=0, timeouts=0):
+    ia_item = Mock()
+    ia_item.upload_file.side_effect = error
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(ia_item)),
+        patch.object(Link, "get_warc", return_value=nullcontext(BytesIO(b"warc"))),
+        patch("perma.celery_tasks.ia_rate_limit_countdown", return_value=42),
+        patch.object(upload_link_to_internet_archive, "apply_async") as apply_async,
+        patch.object(upload_link_to_internet_archive, "delay") as delay,
+    ):
+        upload_link_to_internet_archive.run(link.guid, attempts, timeouts)
+    return apply_async, delay
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("error", [
+    _http_error(503, "Please reduce your request rate."),
+    _http_error(503),
+])
+def test_rate_limited_upload_http_error_retries_after_a_delay(complete_link, error):
+    apply_async, delay = _upload_raising(complete_link, error, attempts=2, timeouts=1)
+
+    apply_async.assert_called_once_with((complete_link.guid, 3, 1), countdown=42, headers=CLAIMED)
+    delay.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_upload_http_error_counts_as_an_attempt(complete_link):
+    apply_async, delay = _upload_raising(complete_link, _http_error(500, "We encountered an internal error."))
+
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=None, headers=CLAIMED)
+
+
+@pytest.mark.django_db
+def test_upload_http_error_is_not_retried_past_the_error_limit(complete_link):
+    apply_async, delay = _upload_raising(
+        complete_link,
+        _http_error(500, "We encountered an internal error."),
+        attempts=settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT - 1,
+    )
+
+    delay.assert_not_called()
+    apply_async.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_upload_bucket_lock_error_is_retried_without_counting(complete_link):
+    apply_async, delay = _upload_raising(
+        complete_link,
+        _http_error(503, "Failed to get necessary short term bucket lock"),
+        attempts=1,
+    )
+
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=None, headers=CLAIMED)
+
+
+@pytest.mark.django_db
+def test_upload_connection_error_is_retried_without_counting(complete_link):
+    apply_async, delay = _upload_raising(complete_link, requests.exceptions.ConnectionError(), attempts=1)
+
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=None, headers=CLAIMED)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("error", [_http_error(502), requests.exceptions.ChunkedEncodingError()])
+def test_upload_metadata_read_error_counts_as_an_attempt(complete_link, error):
+    session = _fake_session(Mock())
+    session.get_item.side_effect = error
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=session),
+        patch.object(upload_link_to_internet_archive, "apply_async") as apply_async,
+    ):
+        upload_link_to_internet_archive.run(complete_link.guid)
+
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=None, headers=CLAIMED)
+
+
+def _deletion_raising(link, error):
+    InternetArchiveFile.objects.create(item=_daily_item(link), link=link, status="confirmed_present")
+    ia_file = Mock()
+    ia_file.delete.side_effect = error
+    ia_item = Mock()
+    ia_item.get_file.return_value = ia_file
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(ia_item)),
+        patch("perma.celery_tasks.ia_rate_limit_countdown", return_value=42),
+        patch.object(delete_link_from_daily_item, "apply_async") as apply_async,
+        patch.object(delete_link_from_daily_item, "delay") as delay,
+    ):
+        delete_link_from_daily_item.run(link.guid)
+    return apply_async, delay
+
+
+@pytest.mark.django_db
+def test_rate_limited_deletion_http_error_retries_after_a_delay(complete_link):
+    apply_async, delay = _deletion_raising(complete_link, _http_error(503))
+
+    apply_async.assert_called_once_with((complete_link.guid, 1), countdown=42, headers=CLAIMED)
+    delay.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_deletion_http_error_counts_as_an_attempt(complete_link):
+    apply_async, delay = _deletion_raising(complete_link, _http_error(500))
+
+    apply_async.assert_called_once_with((complete_link.guid, 1), countdown=None, headers=CLAIMED)
+
+
+@pytest.mark.django_db
+def test_upload_confirmation_http_error_leaves_item_due(complete_link):
+    perma_item = _daily_item(complete_link)
+    perma_file = _submitted_file(perma_item, complete_link)
+    session = Mock()
+    session.get_item.side_effect = _http_error(502)
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        confirm_files_uploaded_to_internet_archive_item.run(perma_item.identifier)
+
+    perma_file.refresh_from_db()
+    perma_item.refresh_from_db()
+    assert perma_file.status == "upload_submitted"
+    assert perma_item.next_confirmation_check is None
+
+
+def _file_with_status(item, link, status, age=timedelta(0)):
+    perma_file = InternetArchiveFile.objects.create(item=item, link=link, status=status)
+    status_updated = None if age is None else timezone.now() - age
+    InternetArchiveFile.objects.filter(pk=perma_file.pk).update(status_updated=status_updated)
+    return perma_file
+
+
+@pytest.mark.django_db
+def test_upload_pending_includes_stale_attempts(complete_link_factory):
+    stale_age = settings.INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER + timedelta(minutes=1)
+    new, stale, legacy, running, submitted, present = [complete_link_factory() for _ in range(6)]
+    perma_item = _daily_item(new)
+    _file_with_status(perma_item, stale, "upload_attempted", stale_age)
+    _file_with_status(perma_item, legacy, "upload_attempted", None)
+    _file_with_status(perma_item, running, "upload_attempted")
+    _file_with_status(perma_item, submitted, "upload_submitted", stale_age)
+    _file_with_status(perma_item, present, "confirmed_present", stale_age)
+    date_string = new.creation_timestamp.strftime("%Y-%m-%d")
+
+    pending = set(Link.objects.ia_upload_pending(date_string, limit=None).values_list("guid", flat=True))
+
+    assert pending == {new.guid, stale.guid, legacy.guid}
+
+
+@pytest.mark.django_db
+def test_upload_queueing_requeues_stale_attempts_but_leaves_complete_items_alone(complete_link):
+    perma_item = _daily_item(complete_link)
+    _file_with_status(perma_item, complete_link, "upload_attempted", None)
+    date_string = complete_link.creation_timestamp.strftime("%Y-%m-%d")
+    redis_client = fakeredis.FakeStrictRedis()
+
+    def run_producer():
+        with (
+            patch("perma.celery_tasks.redis.from_url", return_value=redis_client),
+            patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(Mock())),
+            patch.object(upload_link_to_internet_archive, "delay") as delay,
+        ):
+            conditionally_queue_internet_archive_uploads_for_date_range.run(date_string, date_string)
+        return delay
+
+    InternetArchiveItem.objects.filter(pk=perma_item.pk).update(complete=True)
+    run_producer().assert_not_called()
+
+    InternetArchiveItem.objects.filter(pk=perma_item.pk).update(complete=False)
+    run_producer().assert_called_once_with(complete_link.guid)
+
+
+@pytest.mark.django_db
+def test_an_upload_attempt_can_be_claimed_by_one_task_at_a_time(complete_link):
+    perma_item = _daily_item(complete_link)
+
+    def claim(token):
+        return InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid, token)
+
+    assert claim("first") == InternetArchiveFile.CLAIM_NEW
+    assert claim("duplicate") is None
+    assert claim("first") == InternetArchiveFile.CLAIM_RESUMED
+
+    perma_file = InternetArchiveFile.objects.get(item=perma_item, link=complete_link)
+    assert (perma_file.status, perma_file.claim) == ("upload_attempted", "first")
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("status, age", [
+    ("upload_attempted", settings.INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER + timedelta(minutes=1)),
+    ("upload_attempted", None),
+    ("confirmed_absent", timedelta(0)),
+])
+def test_any_task_can_claim_a_stale_or_deleted_upload(complete_link, status, age):
+    perma_item = _daily_item(complete_link)
+    _file_with_status(perma_item, complete_link, status, age)
+
+    assert InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid, "claim") in (
+        InternetArchiveFile.CLAIM_STALE if status == "upload_attempted" else InternetArchiveFile.CLAIM_NEW,
+    )
+
+
+def _upload_session():
+    ia_item = Mock()
+    ia_item.upload_file.return_value = SimpleNamespace(status_code=200, text="")
+    return _fake_session(ia_item)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("status", ["upload_attempted", "upload_submitted"])
+def test_upload_task_leaves_an_upload_held_by_another_task_alone(complete_link, status):
+    perma_file = _file_with_status(_daily_item(complete_link), complete_link, status)
+    perma_file.refresh_from_db()
+    session = _upload_session()
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        upload_link_to_internet_archive.run(complete_link.guid)
+
+    session.get_s3_load_info.assert_not_called()
+    session.get_item.return_value.upload_file.assert_not_called()
+    unchanged = InternetArchiveFile.objects.get(pk=perma_file.pk)
+    assert (unchanged.status, unchanged.status_updated) == (status, perma_file.status_updated)
+
+
+@pytest.mark.django_db
+def test_upload_retry_reclaims_its_own_attempt(complete_link):
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_overloaded_session()),
+        patch.object(upload_link_to_internet_archive, "apply_async") as apply_async,
+    ):
+        upload_link_to_internet_archive.run(complete_link.guid)
+    retry_args = apply_async.call_args.args[0]
+    retry_headers = apply_async.call_args.kwargs["headers"]
+
+    # a duplicate message for the same link, arriving while the retry waits
+    session = _upload_session()
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        upload_link_to_internet_archive.run(complete_link.guid)
+    session.get_s3_load_info.assert_not_called()
+
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=session),
+        patch.object(Link, "get_warc", return_value=nullcontext(BytesIO(b"warc"))),
+    ):
+        upload_link_to_internet_archive.push_request(**retry_headers)
+        try:
+            upload_link_to_internet_archive.run(*retry_args)
+        finally:
+            upload_link_to_internet_archive.pop_request()
+
+    session.get_item.return_value.upload_file.assert_called_once()
+    assert InternetArchiveFile.objects.get(link=complete_link).status == "upload_submitted"
+
+
+@pytest.mark.django_db
+def test_upload_retry_yields_to_a_task_that_reclaimed_its_stale_attempt(complete_link):
+    perma_item = _daily_item(complete_link)
+    old_claim = "old"
+    InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid, old_claim)
+    InternetArchiveFile.objects.filter(link=complete_link).update(
+        status_updated=timezone.now() - settings.INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER - timedelta(minutes=1)
+    )
+    assert InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid, "new")
+    session = _upload_session()
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        upload_link_to_internet_archive.push_request(**{IA_CLAIM_HEADER: old_claim})
+        try:
+            upload_link_to_internet_archive.run(complete_link.guid, 1, 0)
+        finally:
+            upload_link_to_internet_archive.pop_request()
+
+    session.get_s3_load_info.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_upload_queueing_runs_one_at_a_time():
+    broker = fakeredis.FakeStrictRedis()
+
+    with (
+        patch("perma.celery_tasks.redis.from_url", return_value=broker),
+        patch("perma.celery_tasks.queue_internet_archive_uploads_for_date_range", return_value={"decision": "nothing_pending"}) as queue_uploads,
+    ):
+        broker.set(IA_UPLOAD_QUEUING_LOCK, 1)
+        conditionally_queue_internet_archive_uploads_for_date_range.run(None, None)
+        queue_uploads.assert_not_called()
+
+        broker.delete(IA_UPLOAD_QUEUING_LOCK)
+        conditionally_queue_internet_archive_uploads_for_date_range.run(None, None)
+        queue_uploads.assert_called_once()
+
+        # the lock is released even when a run fails
+        queue_uploads.side_effect = SoftTimeLimitExceeded
+        with pytest.raises(SoftTimeLimitExceeded):
+            conditionally_queue_internet_archive_uploads_for_date_range.run(None, None)
+    assert not broker.exists(IA_UPLOAD_QUEUING_LOCK)
+
+
+@pytest.mark.django_db
+def test_upload_queueing_lock_outlasts_a_run():
+    broker = fakeredis.FakeStrictRedis()
+
+    def check_lock(*args):
+        assert 0 < broker.ttl(IA_UPLOAD_QUEUING_LOCK) <= settings.CELERY_TASK_TIME_LIMIT
+        return {"decision": "nothing_pending"}
+
+    with (
+        patch("perma.celery_tasks.redis.from_url", return_value=broker),
+        patch("perma.celery_tasks.queue_internet_archive_uploads_for_date_range", side_effect=check_lock) as queue_uploads,
+    ):
+        conditionally_queue_internet_archive_uploads_for_date_range.run(None, None)
+    queue_uploads.assert_called_once()
+
+
+def _producer_run(link, session):
+    date_string = link.creation_timestamp.strftime("%Y-%m-%d")
+    redis_client = fakeredis.FakeStrictRedis()
+    with (
+        patch("perma.celery_tasks.redis.from_url", return_value=redis_client),
+        patch("perma.celery_tasks.get_ia_session", return_value=session),
+        patch.object(upload_link_to_internet_archive, "delay") as delay,
+    ):
+        conditionally_queue_internet_archive_uploads_for_date_range.run(date_string, date_string)
+    return delay
+
+
+@pytest.mark.django_db
+def test_upload_queueing_checks_ia_load_once(complete_link_factory):
+    links = [complete_link_factory() for _ in range(3)]
+    session = _fake_session(Mock())
+
+    delay = _producer_run(links[0], session)
+
+    session.get_s3_load_info.assert_called_once_with(access_key=settings.INTERNET_ARCHIVE_ACCESS_KEY)
+    # one upload, to create the day's item
+    assert delay.call_count == 1
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("over_limit, detail", [
+    (True, {}),
+    (False, {"accesskey_tasks_queued": 99}),
+    (False, {"total_tasks_queued": 990}),
+])
+def test_upload_queueing_waits_while_ia_is_near_its_limits(complete_link, over_limit, detail):
+    s3_details = _s3_details()
+    s3_details["detail"].update(detail)
+    session = _fake_session(Mock())
+    session.get_s3_load_info.return_value = (over_limit, s3_details)
+
+    delay = _producer_run(complete_link, session)
+
+    delay.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_upload_queueing_waits_when_ia_load_is_unknown(complete_link):
+    session = _fake_session(Mock())
+    session.get_s3_load_info.return_value = (True, {})
+
+    _producer_run(complete_link, session).assert_not_called()
+
+
+def _stale(perma_file, attempts):
+    InternetArchiveFile.objects.filter(pk=perma_file.pk).update(
+        attempts=attempts,
+        status_updated=timezone.now() - settings.INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER - timedelta(minutes=1),
+    )
+
+
+@pytest.mark.django_db
+def test_claims_count_attempts_but_not_retries(complete_link):
+    perma_item = _daily_item(complete_link)
+
+    def attempts():
+        return InternetArchiveFile.objects.get(link=complete_link).attempts
+
+    def claim(token):
+        return InternetArchiveFile.claim_upload(perma_item.identifier, complete_link.guid, token)
+
+    claim("a")
+    assert attempts() == 1
+    claim("a")
+    assert attempts() == 1
+
+    _stale(InternetArchiveFile.objects.get(link=complete_link), 1)
+    claim("b")
+    assert attempts() == 2
+
+    InternetArchiveFile.objects.filter(link=complete_link).update(status="confirmed_absent", attempts=4)
+    claim("c")
+    assert attempts() == 1
+
+
+@pytest.mark.django_db
+def test_upload_queueing_gives_up_on_a_file_after_max_attempts(complete_link_factory, caplog):
+    retried, exhausted = complete_link_factory(), complete_link_factory()
+    perma_item = _daily_item(retried)
+    max_attempts = settings.INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE
+    retried_file = InternetArchiveFile.objects.create(item=perma_item, link=retried, status="upload_attempted")
+    exhausted_file = InternetArchiveFile.objects.create(item=perma_item, link=exhausted, status="upload_attempted")
+    _stale(retried_file, max_attempts - 1)
+    _stale(exhausted_file, max_attempts)
+
+    delay = _producer_run(retried, _fake_session(Mock()))
+
+    delay.assert_called_once_with(retried.guid)
+    exhausted_file.refresh_from_db()
+    assert exhausted_file.status == "upload_failed"
+    assert f"Please investigate {exhausted.guid}" in caplog.text
+    assert f"attempted {max_attempts} times" in caplog.text
+
+
+@pytest.mark.django_db
+def test_upload_task_leaves_a_failed_upload_alone(complete_link):
+    _file_with_status(_daily_item(complete_link), complete_link, "upload_failed")
+    session = _upload_session()
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        upload_link_to_internet_archive.run(complete_link.guid)
+
+    session.get_s3_load_info.assert_not_called()
+    assert InternetArchiveFile.objects.get(link=complete_link).status == "upload_failed"
+
+
+def _private(link):
+    Link.objects.filter(pk=link.pk).update(is_private=True)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("status", ["deletion_attempted", "deletion_submitted"])
+def test_deletion_task_leaves_a_deletion_held_by_another_task_alone(complete_link, status):
+    _file_with_status(_daily_item(complete_link), complete_link, status)
+    session = _fake_session(Mock())
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        delete_link_from_daily_item.run(complete_link.guid)
+
+    session.get_s3_load_info.assert_not_called()
+    assert InternetArchiveFile.objects.get(link=complete_link).status == status
+
+
+@pytest.mark.django_db
+def test_deletion_retry_reclaims_its_own_attempt(complete_link):
+    InternetArchiveFile.objects.create(item=_daily_item(complete_link), link=complete_link, status="confirmed_present")
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_overloaded_session()),
+        patch.object(delete_link_from_daily_item, "apply_async") as apply_async,
+    ):
+        delete_link_from_daily_item.run(complete_link.guid)
+    retry_args = apply_async.call_args.args[0]
+    retry_headers = apply_async.call_args.kwargs["headers"]
+
+    ia_file = Mock()
+    ia_file.delete.return_value = SimpleNamespace(status_code=204, text="")
+    ia_item = Mock()
+    ia_item.get_file.return_value = ia_file
+    session = _fake_session(ia_item)
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        # a duplicate message for the same link, arriving while the retry waits
+        delete_link_from_daily_item.run(complete_link.guid)
+        ia_file.delete.assert_not_called()
+
+        delete_link_from_daily_item.push_request(**retry_headers)
+        try:
+            delete_link_from_daily_item.run(*retry_args)
+        finally:
+            delete_link_from_daily_item.pop_request()
+
+    ia_file.delete.assert_called_once()
+    perma_file = InternetArchiveFile.objects.get(link=complete_link)
+    assert (perma_file.status, perma_file.attempts) == ("deletion_submitted", 1)
+
+
+@pytest.mark.django_db
+def test_deletion_queueing_skips_deletions_in_progress_and_gives_up_after_max_attempts(complete_link_factory, caplog):
+    present, running, stale, exhausted, public = [complete_link_factory() for _ in range(5)]
+    perma_item = _daily_item(present)
+    for link in (present, running, stale, exhausted):
+        _private(link)
+    _file_with_status(perma_item, present, "confirmed_present")
+    _file_with_status(perma_item, public, "confirmed_present")
+    _file_with_status(perma_item, running, "deletion_attempted")
+    _stale(_file_with_status(perma_item, stale, "deletion_attempted"), 1)
+    exhausted_file = _file_with_status(perma_item, exhausted, "deletion_attempted")
+    _stale(exhausted_file, settings.INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE)
+
+    with patch.object(delete_link_from_daily_item, "delay") as delay:
+        queue_internet_archive_deletions.run()
+
+    assert {c.args[0] for c in delay.call_args_list} == {present.guid, stale.guid}
+    exhausted_file.refresh_from_db()
+    assert exhausted_file.status == "deletion_failed"
+    assert f"Please investigate {exhausted.guid}" in caplog.text
+
+
+@pytest.mark.django_db
+def test_upload_queueing_does_not_mark_an_item_complete_during_an_upload_attempt(complete_link):
+    perma_item = _daily_item(complete_link)
+    InternetArchiveItem.objects.filter(pk=perma_item.pk).update(
+        span=DateTimeTZRange(perma_item.span.lower - timedelta(days=10), perma_item.span.upper - timedelta(days=10))
+    )
+    perma_file = InternetArchiveFile.objects.create(item=perma_item, link=complete_link, status="upload_attempted")
+    date_string = complete_link.creation_timestamp.strftime("%Y-%m-%d")
+
+    queue_internet_archive_uploads_for_date(date_string)
+    perma_item.refresh_from_db()
+    assert not perma_item.complete
+
+    InternetArchiveFile.objects.filter(pk=perma_file.pk).update(status="upload_submitted")
+    queue_internet_archive_uploads_for_date(date_string)
+    perma_item.refresh_from_db()
+    assert perma_item.complete
+
+
+@pytest.mark.django_db
+def test_upload_logs_distinguish_retries_from_stale_attempts(complete_link, caplog):
+    caplog.set_level(logging.INFO)
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_overloaded_session()),
+        patch.object(upload_link_to_internet_archive, "apply_async") as apply_async,
+    ):
+        upload_link_to_internet_archive.run(complete_link.guid)
+        assert f"Uploading {complete_link.guid} to " in caplog.text
+
+        upload_link_to_internet_archive.push_request(**apply_async.call_args.kwargs["headers"])
+        try:
+            upload_link_to_internet_archive.run(*apply_async.call_args.args[0])
+        finally:
+            upload_link_to_internet_archive.pop_request()
+        assert f"Retrying upload of {complete_link.guid} to " in caplog.text
+        assert "(attempts 1, timeouts 0)." in caplog.text
+
+        _stale(InternetArchiveFile.objects.get(link=complete_link), 1)
+        upload_link_to_internet_archive.run(complete_link.guid)
+    assert f"Re-attempting stale upload of {complete_link.guid} to " in caplog.text
+    assert f"(attempt 2 of {settings.INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE})." in caplog.text
+
+
+@pytest.mark.django_db
+def test_upload_logs_bucket_lock_retries(complete_link, caplog):
+    caplog.set_level(logging.INFO)
+    _upload_raising(complete_link, _http_error(503, "Failed to get necessary short term bucket lock"))
+
+    assert f"Re-queued 'upload_link_to_internet_archive' for {complete_link.guid} after an IA bucket lock: " in caplog.text
+
+
+@pytest.mark.django_db
+def test_upload_queueing_logs_ia_load_every_run(complete_link, caplog):
+    caplog.set_level(logging.INFO)
+    _producer_run(complete_link, _fake_session(Mock()))
+
+    assert "IA load before queuing: {'detail': " in caplog.text
+
+
+@pytest.mark.django_db
+def test_deletion_queueing_with_nothing_to_delete(caplog):
+    caplog.set_level(logging.INFO)
+    with patch.object(delete_link_from_daily_item, "delay") as delay:
+        queue_internet_archive_deletions.run()
+
+    delay.assert_not_called()
+    assert "Queued 0 links for deletion." in caplog.text
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("age, status", [
+    (timedelta(days=1), "deletion_submitted"),
+    (settings.INTERNET_ARCHIVE_DELETION_CONFIRMATION_MAX_AGE, "deletion_unconfirmed"),
+])
+def test_deletion_confirmation_gives_up_after_max_age(complete_link, caplog, age, status):
+    perma_item = _daily_item(complete_link)
+    perma_file = _file_with_status(perma_item, complete_link, "deletion_submitted", age)
+    ia_item = Mock(files_count=3, item_metadata={"files": [{"name": f"{complete_link.guid}.warc.gz"}]})
+    session = _fake_session(ia_item)
+
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=session),
+        patch.object(confirm_file_deleted_from_daily_item, "delay") as delay,
+    ):
+        confirm_file_deleted_from_daily_item.run(perma_file.id)
+
+    perma_file.refresh_from_db()
+    assert perma_file.status == status
+    if status == "deletion_unconfirmed":
+        delay.assert_not_called()
+        assert f"Please investigate the deletion of {complete_link.guid}" in caplog.text
+        assert not InternetArchiveFile.in_flight().filter(pk=perma_file.pk).exists()
+    else:
+        delay.assert_called_once_with(perma_file.id, 1)
+
+
+@pytest.mark.django_db
+def test_deletion_confirmation_starts_the_clock_for_files_without_a_status_time(complete_link):
+    perma_file = _file_with_status(_daily_item(complete_link), complete_link, "deletion_submitted", None)
+    ia_item = Mock(files_count=3, item_metadata={"files": [{"name": f"{complete_link.guid}.warc.gz"}]})
+
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(ia_item)),
+        patch.object(confirm_file_deleted_from_daily_item, "delay"),
+    ):
+        confirm_file_deleted_from_daily_item.run(perma_file.id)
+
+    perma_file.refresh_from_db()
+    assert perma_file.status == "deletion_submitted"
+    assert timezone.now() - perma_file.status_updated < timedelta(minutes=1)
+
+
+@pytest.mark.django_db
+def test_deletion_task_leaves_an_unconfirmed_deletion_alone(complete_link):
+    _file_with_status(_daily_item(complete_link), complete_link, "deletion_unconfirmed")
+    session = _fake_session(Mock())
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        delete_link_from_daily_item.run(complete_link.guid)
+
+    session.get_s3_load_info.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_a_message_delivered_again_resumes_its_own_attempt(complete_link, caplog):
+    caplog.set_level(logging.INFO)
+    session = _upload_session()
+
+    def deliver(message_id):
+        upload_link_to_internet_archive.push_request(id=message_id)
+        try:
+            with (
+                patch("perma.celery_tasks.get_ia_session", return_value=session),
+                patch.object(Link, "get_warc", return_value=nullcontext(BytesIO(b"warc"))),
+            ):
+                upload_link_to_internet_archive.run(complete_link.guid)
+        finally:
+            upload_link_to_internet_archive.pop_request()
+
+    # the first delivery's worker stops after claiming, before uploading
+    InternetArchiveFile.claim_upload(_daily_item(complete_link).identifier, complete_link.guid, "message-1")
+    deliver("message-2")  # a duplicate message for the same link
+    session.get_s3_load_info.assert_not_called()
+
+    deliver("message-1")
+
+    session.get_item.return_value.upload_file.assert_called_once()
+    assert f"Resuming interrupted upload of {complete_link.guid}" in caplog.text
+    perma_file = InternetArchiveFile.objects.get(link=complete_link)
+    assert (perma_file.status, perma_file.attempts) == ("upload_submitted", 1)
+
+
+WARC_MD5 = "4d0c73014e20c2cbc80523240f43ce0b"  # md5(b"warc")
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("etag", [f'"{WARC_MD5}"', f'"{WARC_MD5.upper()}"', WARC_MD5])
+def test_upload_checks_ias_etag_against_the_warcs_md5(complete_link, etag):
+    ia_item = Mock()
+    ia_item.upload_file.return_value = SimpleNamespace(status_code=200, text="", headers={"ETag": etag})
+
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(ia_item)),
+        patch.object(Link, "get_warc", return_value=nullcontext(BytesIO(b"warc"))),
+    ):
+        upload_link_to_internet_archive.run(complete_link.guid)
+
+    assert InternetArchiveFile.objects.get(link=complete_link).status == "upload_submitted"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("response, error", [
+    (SimpleNamespace(status_code=200, text="", headers={"ETag": '"0123456789abcdef0123456789abcdef"'}), None),
+    (None, _http_error(400, "The Content-MD5 you specified did not match what we received.")),
+])
+def test_upload_integrity_failures_count_as_attempts(complete_link, response, error):
+    ia_item = Mock()
+    ia_item.upload_file.return_value = response
+    ia_item.upload_file.side_effect = error
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(ia_item)),
+        patch.object(Link, "get_warc", return_value=nullcontext(BytesIO(b"warc"))),
+        patch.object(upload_link_to_internet_archive, "apply_async") as apply_async,
+        patch("perma.ia_metrics.flow") as flow,
+    ):
+        upload_link_to_internet_archive.run(complete_link.guid)
+
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=None, headers=CLAIMED)
+    flow.assert_any_call("upload_retry", item=ANY, reason="integrity")
+    assert InternetArchiveFile.objects.get(link=complete_link).status == "upload_attempted"
+
+
+# Observed on 2026-09-30 in ten parallel first PUTs to a new IA item: the raw bodies,
+# and the exception text as internetarchive re-raises it (Message and Resource joined).
+ITEM = "perma-ia-apitest-20260930-32f62c-1"
+SPAM_503_BODY = (
+    b"<Error><Code>SlowDown</Code><Message>Please reduce your request rate.</Message>"
+    b"<Resource>Your upload of " + ITEM.encode() + b" from username someone@example.com appears to be spam. "
+    b"If you believe this is a mistake, contact info@archive.org and include this entire message in your email.</Resource></Error>"
+)
+SPAM_503_TEXT = (
+    f" error uploading race-00.warc.gz to {ITEM}, Please reduce your request rate. - Your upload of {ITEM} "
+    "from username someone@example.com appears to be spam. If you believe this is a mistake, contact "
+    "info@archive.org and include this entire message in your email."
+)
+LOCK_500_TEXT = (
+    f" error uploading race-04.warc.gz to {ITEM}, We encountered an internal error. Please try again. - "
+    f"Failed to get necessary short term bucket lock for {ITEM}, please try again"
+)
+NAMESPACE_409_TEXT = (
+    f" error uploading race-07.warc.gz to {ITEM}, The requested bucket name is not available. The bucket "
+    "namespace is shared by all users of the system. Please select a different name and try again."
+)
+
+
+def _spam_503(text=SPAM_503_TEXT):
+    return requests.exceptions.HTTPError(text, response=SimpleNamespace(status_code=503, content=SPAM_503_BODY))
+
+
+def _item_exists_at_ia(link, link_factory):
+    # IA accepted an earlier upload to the link's item
+    _file_with_status(_daily_item(link), link_factory(), "confirmed_present")
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("error", [
+    _spam_503(),
+    # the flag found only in the response body
+    _spam_503(" error uploading to item, Please reduce your request rate."),
+])
+def test_ia_refusing_to_create_an_item_holds_it_back_without_counting_an_attempt(complete_link_factory, caplog, error):
+    first, second = complete_link_factory(), complete_link_factory()
+
+    with patch("perma.ia_metrics.flow") as flow:
+        apply_async, delay = _upload_raising(first, error)
+        _upload_raising(second, error)
+
+    apply_async.assert_not_called()
+    delay.assert_not_called()
+    flow.assert_any_call("http_error", item=ANY, status=503, reason="spam")
+    item = InternetArchiveItem.objects.get(pk=InternetArchiveFile.objects.get(link=first).item_id)
+    assert item.ia_creation_refused_at is not None
+    for link in (first, second):
+        perma_file = InternetArchiveFile.objects.get(link=link)
+        assert (perma_file.status, perma_file.attempts) == ("upload_attempted", 0)
+        assert not InternetArchiveFile.in_flight().filter(pk=perma_file.pk).exists()
+    # one error for the item, not one per file
+    assert len([r for r in caplog.records if r.levelname == "ERROR" and "refused to create it" in r.getMessage()]) == 1
+    assert "IA again refused to create" in caplog.text
+
+
+@pytest.mark.django_db
+def test_spam_refusals_for_an_existing_item_are_counted_retries(complete_link, complete_link_factory):
+    _item_exists_at_ia(complete_link, complete_link_factory)
+
+    with patch("perma.ia_metrics.flow") as flow:
+        apply_async, delay = _upload_raising(complete_link, _spam_503())
+
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=42, headers=CLAIMED)
+    flow.assert_any_call("upload_retry", item=ANY, reason="spam")
+    item = InternetArchiveItem.objects.get(pk=InternetArchiveFile.objects.get(link=complete_link).item_id)
+    assert item.ia_creation_refused_at is None
+
+
+@pytest.mark.django_db
+def test_spam_refusals_for_an_existing_item_stop_at_the_error_limit(complete_link, complete_link_factory):
+    _item_exists_at_ia(complete_link, complete_link_factory)
+
+    apply_async, delay = _upload_raising(complete_link, _spam_503(), attempts=settings.INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT - 1)
+
+    apply_async.assert_not_called()
+    assert InternetArchiveFile.objects.get(link=complete_link).status == "upload_attempted"
+
+
+@pytest.mark.django_db
+def test_items_ia_refused_to_create_get_one_probe_upload_an_hour(complete_link_factory, caplog):
+    caplog.set_level(logging.INFO)
+    links = [complete_link_factory() for _ in range(3)]
+    perma_item = _daily_item(links[0])
+    refused_at = timezone.now() - timedelta(minutes=10)
+    InternetArchiveItem.objects.filter(pk=perma_item.pk).update(ia_creation_refused_at=refused_at)
+
+    _producer_run(links[0], _fake_session(Mock())).assert_not_called()
+    assert f"Held back uploads to IA Items that IA refused to create: {perma_item.identifier}." in caplog.text
+
+    InternetArchiveItem.objects.filter(pk=perma_item.pk).update(
+        ia_creation_refused_at=timezone.now() - settings.INTERNET_ARCHIVE_CREATION_REFUSED_PROBE_INTERVAL
+    )
+    probe = _producer_run(links[0], _fake_session(Mock()))
+    assert probe.call_count == 1
+    assert f"Allowed one upload to test IA Items that IA refused to create: {perma_item.identifier}." in caplog.text
+
+    # the probe goes through: IA created the item, and uploads to it resume
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_upload_session()),
+        patch.object(Link, "get_warc", return_value=nullcontext(BytesIO(b"warc"))),
+    ):
+        upload_link_to_internet_archive.run(probe.call_args.args[0])
+    perma_item.refresh_from_db()
+    assert perma_item.ia_creation_refused_at is None
+    assert _producer_run(links[0], _fake_session(Mock())).call_count == 2
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("status, text", [(500, LOCK_500_TEXT), (409, NAMESPACE_409_TEXT)])
+def test_item_creation_race_errors_are_retried_without_counting(complete_link, status, text):
+    error = requests.exceptions.HTTPError(text, response=SimpleNamespace(status_code=status, content=b""))
+
+    apply_async, delay = _upload_raising(complete_link, error, attempts=1)
+
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=None, headers=CLAIMED)
+
+
+@pytest.mark.django_db
+def test_a_plain_slowdown_is_still_a_rate_limit(complete_link):
+    error = requests.exceptions.HTTPError(
+        " error uploading to item, Please reduce your request rate.",
+        response=SimpleNamespace(status_code=503, content=b"<Error><Code>SlowDown</Code></Error>"),
+    )
+    apply_async, delay = _upload_raising(complete_link, error)
+
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=42, headers=CLAIMED)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("part_read, full_read_errcode, checked", [
+    (PENDING_TASKS_READ, None, True),
+    (MISSING_ITEM_READ, None, True),
+    (_extended_error(101), None, False),
+    (_extended_error(102), None, False),
+    (PENDING_TASKS_READ, 106, False),
+])
+def test_upload_confirmation_waits_while_ia_metadata_is_not_ready(complete_link, caplog, part_read, full_read_errcode, checked):
+    caplog.set_level(logging.INFO)
+    perma_item = _daily_item(complete_link)
+    perma_file = _submitted_file(perma_item, complete_link, age=timedelta(minutes=20))
+    ia_item = _ia_item([_ia_file_entry(complete_link)])
+    if full_read_errcode:
+        ia_item.item_metadata["errcode"] = full_read_errcode
+    session = _fake_session(ia_item, part_read)
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        confirm_files_uploaded_to_internet_archive_item.run(perma_item.identifier)
+
+    assert session.get.call_args.args[0] == f"https://archive.org/metadata/{perma_item.identifier}/pending_tasks"
+    assert session.get.call_args.kwargs["params"] == {"extended_err": 1}
+    perma_file.refresh_from_db()
+    perma_item.refresh_from_db()
+    if checked:
+        assert perma_file.status == "confirmed_present"
+        session.get_item.assert_called_once_with(perma_item.identifier, request_kwargs={"params": {"extended_err": 1}})
+    else:
+        assert perma_file.status == "upload_submitted"
+        assert "Not checking uploads to" in caplog.text
+        assert perma_item.next_confirmation_check - timezone.now() > settings.INTERNET_ARCHIVE_CONFIRMATION_PENDING_TASKS_INTERVAL - timedelta(minutes=1)
+        if not full_read_errcode:
+            session.get_item.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_upload_queueing_holds_back_items_with_blocked_ia_tasks(complete_link, caplog):
+    caplog.set_level(logging.INFO)
+    perma_item = _daily_item(complete_link)
+    InternetArchiveItem.objects.filter(pk=perma_item.pk).update(ia_tasks_blocked_since=timezone.now())
+
+    _producer_run(complete_link, _fake_session(Mock())).assert_not_called()
+    assert f"Held back uploads to IA Items with IA tasks in error or paused: {perma_item.identifier}." in caplog.text
+
+    InternetArchiveItem.objects.filter(pk=perma_item.pk).update(ia_tasks_blocked_since=None)
+    _producer_run(complete_link, _fake_session(Mock())).assert_called_once_with(complete_link.guid)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("tasks, blocked", [
+    ([{"cmd": "archive.php", "wait_admin": 2}], True),
+    ([{"cmd": "archive.php", "wait_admin": "9"}], True),
+    ([{"cmd": "archive.php", "wait_admin": 1}], False),
+    ([], False),
+])
+def test_upload_confirmation_records_blocked_ia_tasks(complete_link_factory, tasks, blocked):
+    confirmed, pending = complete_link_factory(), complete_link_factory()
+    perma_item = _daily_item(confirmed)
+    InternetArchiveItem.objects.filter(pk=perma_item.pk).update(ia_tasks_blocked_since=None if blocked else timezone.now())
+    _submitted_file(perma_item, confirmed, age=timedelta(minutes=20))
+    _submitted_file(perma_item, pending, age=timedelta(minutes=20))
+    session = _fake_session(_ia_item([_ia_file_entry(confirmed)], tasks=tasks))
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        confirm_files_uploaded_to_internet_archive_item.run(perma_item.identifier)
+
+    perma_item.refresh_from_db()
+    assert (perma_item.ia_tasks_blocked_since is not None) == blocked
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("tasks_read, still_blocked", [
+    ({"result": [{"task_id": 1, "cmd": "archive.php", "wait_admin": 2, "color": "red", "status": "error"}]}, True),
+    (TASKS_READ, False),
+    (NO_TASKS_READ, False),
+])
+def test_items_held_back_are_rechecked_until_their_ia_tasks_clear(complete_link, tasks_read, still_blocked):
+    perma_item = _daily_item(complete_link)
+    InternetArchiveItem.objects.filter(pk=perma_item.pk).update(ia_tasks_blocked_since=timezone.now())
+    redis_client = fakeredis.FakeStrictRedis()
+    with (
+        patch("perma.celery_tasks.redis.from_url", return_value=redis_client),
+        patch.object(confirm_files_uploaded_to_internet_archive_item, "delay") as delay,
+    ):
+        queue_file_uploaded_confirmation_tasks.run()
+    delay.assert_called_once_with(perma_item.identifier)
+
+    session = _fake_session(Mock(), tasks_read)
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        confirm_files_uploaded_to_internet_archive_item.run(perma_item.identifier)
+
+    assert session.get.call_args.args[0] == f"https://archive.org/metadata/{perma_item.identifier}/tasks"
+    session.get_item.assert_not_called()
+    perma_item.refresh_from_db()
+    assert (perma_item.ia_tasks_blocked_since is not None) == still_blocked
+    assert (perma_item.next_confirmation_check is not None) == still_blocked
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("listed, confirmed", [
+    ([], True),
+    (["{guid}.warc.gz"], False),
+    # left behind by a deletion without cascade
+    (["{guid}.warc.os.cdx.gz"], False),
+    (["{guid}.warc.gz_meta.txt"], False),
+    # another link's files
+    (["OTHER-LINK.warc.gz", "OTHER-LINK.warc.os.cdx.gz"], True),
+])
+def test_deletion_is_confirmed_once_the_warc_and_its_derivatives_are_gone(complete_link, listed, confirmed):
+    perma_file = _file_with_status(_daily_item(complete_link), complete_link, "deletion_submitted")
+    files = [{"name": name.format(guid=complete_link.guid)} for name in listed]
+    ia_item = Mock(files_count=3, item_metadata={"files": files})
+
+    with (
+        patch("perma.celery_tasks.get_ia_session", return_value=_fake_session(ia_item)),
+        patch.object(confirm_file_deleted_from_daily_item, "delay"),
+    ):
+        confirm_file_deleted_from_daily_item.run(perma_file.id)
+
+    perma_file.refresh_from_db()
+    assert perma_file.status == ("confirmed_absent" if confirmed else "deletion_submitted")
+
+
+# IA's simulated SlowDown (x-archive-simulate-error: SlowDown), recorded 2026-09-30:
+# the same Code and Message as a real one, with its own Resource
+SIMULATED_SLOWDOWN_BODY = (
+    b"<Error><Code>SlowDown</Code><Message>Please reduce your request rate.</Message>"
+    b"<Resource>simulated error caused by x-(amz|archive)-simulate-error, try x-archive-simulate-error:help</Resource></Error>"
+)
+SIMULATED_SLOWDOWN_TEXT = (
+    " error uploading q6-slowdown-lib.warc.gz to perma-ia-apitest-20260930-32f62c-1, Please reduce your request rate. - "
+    "simulated error caused by x-(amz|archive)-simulate-error, try x-archive-simulate-error:help"
+)
+
+
+@pytest.mark.django_db
+def test_a_simulated_slowdown_takes_the_rate_limit_path(complete_link):
+    error = requests.exceptions.HTTPError(
+        SIMULATED_SLOWDOWN_TEXT, response=SimpleNamespace(status_code=503, content=SIMULATED_SLOWDOWN_BODY)
+    )
+    with patch("perma.ia_metrics.flow") as flow:
+        apply_async, delay = _upload_raising(complete_link, error)
+
+    apply_async.assert_called_once_with((complete_link.guid, 1, 0), countdown=42, headers=CLAIMED)
+    flow.assert_any_call("upload_retry", item=ANY, reason="rate_limit")
+
+
+@pytest.mark.django_db
+def test_a_new_items_first_upload_goes_alone(complete_link_factory, caplog):
+    caplog.set_level(logging.INFO)
+    links = [complete_link_factory() for _ in range(3)]
+
+    # no item yet: one upload, to create it
+    first = _producer_run(links[0], _fake_session(Mock()))
+    assert first.call_count == 1
+    assert "Sent one upload to create each of these IA Items: daily_perma_cc_" in caplog.text
+
+    # its upload in flight: nothing more
+    creator = Link.objects.get(guid=first.call_args.args[0])
+    perma_item = _daily_item(creator)
+    InternetArchiveFile.claim_upload(perma_item.identifier, creator.guid, "creator")
+    assert _producer_run(links[0], _fake_session(Mock())).call_count == 0
+
+    # accepted by IA: the rest go
+    InternetArchiveFile.objects.filter(link=creator).update(status="upload_submitted")
+    rest = _producer_run(links[0], _fake_session(Mock()))
+    assert {c.args[0] for c in rest.call_args_list} == {link.guid for link in links} - {creator.guid}
+
+
+@pytest.mark.django_db
+def test_an_existing_item_without_accepted_uploads_also_gets_one_upload(complete_link_factory):
+    links = [complete_link_factory() for _ in range(3)]
+    _daily_item(links[0])
+
+    assert _producer_run(links[0], _fake_session(Mock())).call_count == 1
+
+
+@pytest.mark.django_db
+def test_deletion_task_does_nothing_for_a_link_without_a_daily_file(complete_link):
+    session = _fake_session(Mock())
+
+    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+        delete_link_from_daily_item.run(complete_link.guid)
+
+    session.get_s3_load_info.assert_not_called()
