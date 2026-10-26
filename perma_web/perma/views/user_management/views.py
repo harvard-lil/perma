@@ -236,6 +236,8 @@ def manage_organization(request):
     # get total user count (count each person once, even if they belong to more than one org)
     users_count = LinkUser.objects.filter(organizations__in=orgs.order_by().values('pk')).distinct().count()
 
+    links_count = Organization.objects.filter(pk__in=orgs.order_by().values('pk')).aggregate(count=Sum('link_count'))['count']
+
     # handle pagination
     orgs = apply_pagination(request, orgs)
 
@@ -244,6 +246,7 @@ def manage_organization(request):
         'this_page': 'users_orgs',
         'search_query': search_query,
         'users_count': users_count,
+        'links_count': links_count,
         'registrars': Registrar.objects.all().order_by('name'),
         'registrar_filter': registrar_filter,
         'sort': sort,

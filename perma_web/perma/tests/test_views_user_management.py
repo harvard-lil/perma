@@ -262,6 +262,20 @@ class UserManagementViewsTestCase(PermaTestCase):
         count = soup.select('.sort-filter-count')[0].text
         self.assertEqual("Found: 1 organization", count)
 
+    def test_organization_list_links_total(self):
+        """ The Links total should add up the link counts of the organizations listed """
+        Organization.objects.update(link_count=0)
+        Organization.objects.filter(pk=self.organization.pk).update(link_count=3)
+        Organization.objects.filter(pk=self.unrelated_organization.pk).update(link_count=10)
+
+        for viewer, data, expected in [(self.admin_user, {}, 13),
+                                       (self.registrar_user, {}, 3),
+                                       (self.admin_user, {'q': self.organization.name}, 3)]:
+            with self.subTest(viewer=viewer.pk, data=data):
+                response = self.get('user_management_manage_organization', user=viewer,
+                                    request_kwargs={'data': data})
+                self.assertEqual(response.context['links_count'], expected)
+
     def test_missing_list_filter_ids_are_not_found(self):
         """ A filter id that is a valid integer but matches no record should return 404 instead of raising an error """
         missing = 999999999
