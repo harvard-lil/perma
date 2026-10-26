@@ -236,6 +236,8 @@ def manage_organization(request):
     # get total user count (count each person once, even if they belong to more than one org)
     users_count = LinkUser.objects.filter(organizations__in=orgs.order_by().values('pk')).distinct().count()
 
+    links_count = Organization.objects.filter(pk__in=orgs.order_by().values('pk')).aggregate(count=Sum('link_count'))['count']
+
     # handle pagination
     orgs = apply_pagination(request, orgs)
 
@@ -244,6 +246,7 @@ def manage_organization(request):
         'this_page': 'users_orgs',
         'search_query': search_query,
         'users_count': users_count,
+        'links_count': links_count,
         'registrars': Registrar.objects.all().order_by('name'),
         'registrar_filter': registrar_filter,
         'sort': sort,
@@ -633,6 +636,17 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
         for user in users:
             user.visible_link_count = link_counts.get(user.pk, 0)
 
+    # Searching for an org name lists its members, but their link counts still include all orgs the viewer can see. 
+    # If the search matches an org, suggest the org filter, which will limit the counts to that org.
+    search_matches_org = False
+    if group_name == 'organization_user' and search_query and not org_filter and visible_orgs.count() > 1:
+        matching_orgs = visible_orgs
+
+        for word in search_query.split():
+            matching_orgs = matching_orgs.filter(name__icontains=word)
+
+        search_matches_org = matching_orgs.exists()
+
     context = {
         'this_page': f'users_{group_name}s',
         'users': users,
@@ -652,6 +666,7 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
         'add_multiple_users_url': f'user_management_{group_name}_add_multiple_users',
         'sort': sort,
         'search_query': search_query,
+        'search_matches_org': search_matches_org,
         'registrar_filter': registrar_filter,
         'org_filter': org_filter,
         'status': status,

@@ -21,7 +21,7 @@
 
   <div class="row row-no-bleed admin-data">
     <h3 class="sr-only">Stats</h3>
-    <div class="col col-xs-6 col-no-gutter admin-data-point">
+    <div class="col col-xs-4 col-no-gutter admin-data-point">
       <div class="count-label">Users</div>
       <div class="count-number">{{ users_count }}</div>
     </div>
@@ -35,9 +35,13 @@
       <div class="count-number">{{ unactivated_users }}</div>
     </div>
     {% endcomment %}
-    <div class="col col-xs-6 col-no-gutter admin-data-point">
+    <div class="col col-xs-4 col-no-gutter admin-data-point">
       <div class="count-label">Organizations</div>
       <div class="count-number">{{ orgs.paginator.count }}</div>
+    </div>
+    <div class="col col-xs-4 col-no-gutter admin-data-point">
+      <div class="count-label">Links</div>
+      <div class="count-number">{{ links_count|default:0|intcomma }}</div>
     </div>
   </div>
 
