@@ -152,6 +152,7 @@ def manage_registrar(request):
         registrars = registrars.filter(status=status)
 
     orgs_count = Organization.objects.filter(registrar__in=registrars).count()
+    links_count = Registrar.objects.filter(pk__in=registrars.order_by().values('pk')).aggregate(count=Sum(F('link_count') + F('sponsored_link_count'), default=0))['count']
 
     # handle pagination
     registrars = apply_pagination(request, registrars)
@@ -159,6 +160,7 @@ def manage_registrar(request):
     return render_user_management(request, 'user_management/manage_registrars.html', {
         'registrars': registrars,
         'orgs_count': orgs_count,
+        'links_count': links_count,
         'this_page': 'users_registrars',
         'search_query': search_query,
         'status': status,
@@ -236,7 +238,7 @@ def manage_organization(request):
     # get total user count (count each person once, even if they belong to more than one org)
     users_count = LinkUser.objects.filter(organizations__in=orgs.order_by().values('pk')).distinct().count()
 
-    links_count = Organization.objects.filter(pk__in=orgs.order_by().values('pk')).aggregate(count=Sum('link_count'))['count']
+    links_count = Organization.objects.filter(pk__in=orgs.order_by().values('pk')).aggregate(count=Sum('link_count', default=0))['count']
 
     # handle pagination
     orgs = apply_pagination(request, orgs)
@@ -617,7 +619,7 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
             visible_link_count = links_created_in_orgs_count(visible_orgs)
             users = users.order_by(visible_link_count.desc() if sort.startswith('-') else visible_link_count.asc())
     else:
-        total_created_links_count = users.aggregate(count=Sum('link_count'))['count']
+        total_created_links_count = users.aggregate(count=Sum('link_count', default=0))['count']
 
     # handle pagination
     users = apply_pagination(request, users)
@@ -737,7 +739,14 @@ def list_sponsored_users(
     deactivated_users = users.filter(is_confirmed=True, is_active=False).count()
     unactivated_users = users.count() - active_users - deactivated_users
 
-    total_created_links_count = users.aggregate(count=Sum('link_count'))['count']
+    sponsored_links = Link.objects.filter(created_by__in=users.order_by().values('pk'))
+    if request.user.is_registrar_user():
+        sponsored_links = sponsored_links.filter(folders__sponsored_by=request.user.registrar)
+    elif registrar_filter:
+        sponsored_links = sponsored_links.filter(folders__sponsored_by=registrar_filter)
+    else:
+        sponsored_links = sponsored_links.filter(folders__sponsored_by__isnull=False)
+    total_created_links_count = sponsored_links.count()
 
     # handle pagination
     users = apply_pagination(request, users)

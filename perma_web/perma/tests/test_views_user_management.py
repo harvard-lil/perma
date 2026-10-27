@@ -710,6 +710,23 @@ class UserManagementViewsTestCase(PermaTestCase):
 
         # user status filter tested in test_registrar_user_list_filters
 
+    def test_sponsored_user_list_counts_only_sponsored_links(self):
+        """ Link counts should include only links in sponsored folders, not the user's personal links """
+        sponsored_folder = self.sponsored_user.sponsorships.get(registrar=self.registrar).folders.first()
+        Link.objects.filter(created_by=self.sponsored_user).delete()
+
+        sponsored = Link(created_by=self.sponsored_user)
+        sponsored.save()
+        sponsored.move_to_folder_for_user(sponsored_folder, self.sponsored_user)
+        personal = Link(created_by=self.sponsored_user)
+        personal.save()
+        personal.move_to_folder_for_user(self.sponsored_user.root_folder, self.sponsored_user)
+
+        for viewer in [self.admin_user, self.registrar_user]:
+            with self.subTest(viewer=viewer.pk):
+                response = self.get('user_management_manage_sponsored_user', user=viewer,
+                                    request_kwargs={'data': {'q': self.sponsored_user.email}})
+                self.assertEqual(response.context['total_created_links_count'], 1)
 
 
     def test_admin_can_create_organization(self):
