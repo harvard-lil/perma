@@ -23,7 +23,7 @@ from django.utils.encoding import force_bytes
 from django.utils.html import escape
 from django.utils.http import urlsafe_base64_encode
 
-from perma.models import LinkUser, Organization, Registrar, Sponsorship, UserOrganizationAffiliation
+from perma.models import Link, LinkUser, Organization, Registrar, Sponsorship, UserOrganizationAffiliation
 from perma.tests.utils import PermaTestCase
 from perma.forms import MultipleUsersFormWithOrganization
 
@@ -262,6 +262,20 @@ class UserManagementViewsTestCase(PermaTestCase):
         count = soup.select('.sort-filter-count')[0].text
         self.assertEqual("Found: 1 organization", count)
 
+    def test_organization_list_links_total(self):
+        """ The Links total should add up the link counts of the organizations listed """
+        Organization.objects.update(link_count=0)
+        Organization.objects.filter(pk=self.organization.pk).update(link_count=3)
+        Organization.objects.filter(pk=self.unrelated_organization.pk).update(link_count=10)
+
+        for viewer, data, expected in [(self.admin_user, {}, 13),
+                                       (self.registrar_user, {}, 3),
+                                       (self.admin_user, {'q': self.organization.name}, 3)]:
+            with self.subTest(viewer=viewer.pk, data=data):
+                response = self.get('user_management_manage_organization', user=viewer,
+                                    request_kwargs={'data': data})
+                self.assertEqual(response.context['links_count'], expected)
+
     def test_missing_list_filter_ids_are_not_found(self):
         """ A filter id that is a valid integer but matches no record should return 404 instead of raising an error """
         missing = 999999999
@@ -391,6 +405,42 @@ class UserManagementViewsTestCase(PermaTestCase):
                 response = self.get('user_management_manage_organization_user', user=viewer,
                                     request_kwargs={'data': {'q': self.unrelated_organization.name}})
                 self.assertNotContains(response, current.email)
+
+    def test_organization_user_list_counts_only_links_in_visible_orgs(self):
+        """ Link counts should include only the links users created in the organizations shown """
+        _, current, _, _ = self._organization_scope_scenario()
+
+        for organization, count in [(self.organization, 2), (self.unrelated_organization, 3), (None, 1)]:
+            for _ in range(count):
+                Link(created_by=current, organization=organization).save()
+
+        deleted = Link(created_by=current, organization=self.organization)
+        deleted.save()
+        deleted.safe_delete()
+        deleted.save()
+
+        for viewer, expected in [(self.registrar_user, 2), (self.organization_user, 2), (self.admin_user, 5)]:
+            with self.subTest(viewer=viewer.pk):
+                response = self.get('user_management_manage_organization_user', user=viewer,
+                                    request_kwargs={'data': {'q': current.email}})
+                [listed] = response.context['users']
+                self.assertEqual(listed.visible_link_count, expected)
+                self.assertEqual(response.context['total_created_links_count'], expected)
+
+    def test_organization_user_search_for_org_name_suggests_org_filter(self):
+        """ Searching for an organization's name should point to the organization filter """
+        hint = 'To filter within a single Organization, use the Organization filter.'
+        for data, expected in [({'q': self.organization.name}, True),
+                               ({'q': self.organization.name, 'org': self.organization.pk}, False),
+                               ({'q': self.organization_user.email}, False)]:
+            with self.subTest(data=data):
+                response = self.get('user_management_manage_organization_user', user=self.registrar_user,
+                                    request_kwargs={'data': data})
+                self.assertEqual(response.context['search_matches_org'], expected)
+                if expected:
+                    self.assertContains(response, hint)
+                else:
+                    self.assertNotContains(response, hint)
 
     def test_organization_user_exports_scope_affiliation_fields(self):
         historical, current, visible_expiry, outside_expiry = self._organization_scope_scenario()
