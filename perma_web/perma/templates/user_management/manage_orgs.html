@@ -23,25 +23,25 @@
     <h3 class="sr-only">Stats</h3>
     <div class="col col-xs-4 col-no-gutter admin-data-point">
       <div class="count-label">Users</div>
-      <div class="count-number">{{ users_count }}</div>
+      <div class="count-number">{{ users_count|intcomma }}</div>
     </div>
     {% comment %}
     <div class="col col-no-gutter admin-data-point">
       <div class="count-label">Deactivated Users</div>
-      <div class="count-number">{{ deactivated_users }}</div>
+      <div class="count-number">{{ deactivated_users|intcomma }}</div>
     </div>
     <div class="col col-no-gutter admin-data-point">
       <div class="count-label">Unactivated Users</div>
-      <div class="count-number">{{ unactivated_users }}</div>
+      <div class="count-number">{{ unactivated_users|intcomma }}</div>
     </div>
     {% endcomment %}
     <div class="col col-xs-4 col-no-gutter admin-data-point">
       <div class="count-label">Organizations</div>
-      <div class="count-number">{{ orgs.paginator.count }}</div>
+      <div class="count-number">{{ orgs.paginator.count|intcomma }}</div>
     </div>
     <div class="col col-xs-4 col-no-gutter admin-data-point">
       <div class="count-label">Links</div>
-      <div class="count-number">{{ links_count|default:0|intcomma }}</div>
+      <div class="count-number">{{ links_count|intcomma }}</div>
     </div>
   </div>
 
@@ -68,7 +68,7 @@
   <div class="row row-no-bleed">
     <div class="col admin-found col-no-gutter">
       <h3 class="sr-only">Organization List</h3>
-      <div class="sort-filter-count"><strong>Found:</strong> {{ orgs.paginator.count }} organization{{ orgs.paginator.count|pluralize }}</div>
+      <div class="sort-filter-count"><strong>Found:</strong> {{ orgs.paginator.count|intcomma }} organization{{ orgs.paginator.count|pluralize }}</div>
       <div class="sort-filter-bar">
         <strong>Filter &amp; Sort:</strong>
         <div class="btn-transparent dropdown">
@@ -157,7 +157,7 @@
             </div>
             <div class="col col-xs-12 col-md-4 col-half-gutter">
               <div class="item-count-group">
-                <strong class="list-count-number">{{ org.organization_users|default_if_none:"0" }}</strong>
+                <strong class="list-count-number">{{ org.organization_users|default_if_none:0|intcomma }}</strong>
                 <span class="item-count-label">users <a href="{% url 'user_management_manage_organization_user' %}?org={{org.id}}">View <div class="sr-wrapper"><span class="sr-only">users</span></div> </a></span>
                 <span class="item-export-download-label pull-right"><a href="{% url 'user_management_manage_single_organization_export_user_list' org.id %}?format=csv" id="export-org-{{ org.id }}-csv" class="icon-download-alt" title="Export CSV"></a></span>
               </div>

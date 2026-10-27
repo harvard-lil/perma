@@ -1,5 +1,6 @@
 {% extends "manage-layout.html" %}
 {% load current_query_string %}
+{% load intcomma from humanize %}
 
 {% block title %} | Approve pending registrar{% endblock %}
 
@@ -52,7 +53,7 @@
           <div class="row row-no-bleed">
             <div class="col admin-found col-no-gutter">
               <h3 class="sr-only">User List</h3>
-              <div id="results" class="sort-filter-count"><strong>Found:</strong> {{ users.paginator.count }} user{{ users.paginator.count|pluralize }}</div>
+              <div id="results" class="sort-filter-count"><strong>Found:</strong> {{ users.paginator.count|intcomma }} user{{ users.paginator.count|pluralize }}</div>
               <div class="sort-filter-bar">
                 <strong>Filter &amp; Sort:</strong>
                 <div class="dropdown">
@@ -110,10 +111,10 @@
                 <div class="col col-sm-4 col-no-gutter sm-align-right admin-actions">
                   <div>
                     <div class="item-activity">
-                      created {{ listed_user.date_joined|date:'F j, Y' }}
+                      created {{ listed_user.date_joined|date:'N j, Y' }}
                       {% if listed_user.is_confirmed %}
                         <br>
-                        last active {{ listed_user.last_login|date:'F j, Y' }}
+                        last active {{ listed_user.last_login|date:'N j, Y' }}
                       {% endif %}
                     </div>
                   </div>
