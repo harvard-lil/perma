@@ -291,6 +291,25 @@
 
     <script id="rate_limits-template" type="text/x-handlebars-template">
       <div class="row">
+        <div class="col-sm-4">Pipeline state recorded by the upload producer:</div>
+        <div class="col-sm-8">
+          {{#if ia_state}}
+            {{ ia_state_age_seconds }} seconds ago (run decision: {{ ia_state.decision }})
+            <dl class="dl-horizontal">
+              <dt>in flight (derived)</dt><dd>{{ ia_state.in_flight_derived }}</dd>
+              <dt>attempts: fresh / stale</dt><dd>{{ ia_state.attempted_fresh }} / {{ ia_state.attempted_stale }}</dd>
+              <dt>submitted (over 24 h)</dt><dd>{{ ia_state.submitted }} ({{ ia_state.submitted_over_24h }})</dd>
+              <dt>unconfirmed / failed</dt><dd>{{ ia_state.unconfirmed }} / {{ ia_state.failed_upload }}</dd>
+              <dt>pending, last 30 days</dt><dd>{{ ia_state.pending_recent_total }}</dd>
+              <dt>pending by day</dt><dd>{{#each ia_state.pending_by_day}}{{ @key }}: {{this}}<br>{{/each}}</dd>
+            </dl>
+          {{else}}
+            none recorded in the last 15 minutes; the figures below are read directly.
+          {{/if}}
+        </div>
+      </div>
+      <hr>
+      <div class="row">
         <div class="col-sm-4">Explicitly scheduled tasks in progress:<br><small>(not including any automatic/followup/derivative tasks)</small></div>
         <div class="col-sm-8">{{ inflight }}</div>
       </div>

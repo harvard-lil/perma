@@ -38,7 +38,7 @@
 #   WACZ_BUCKET                  S3 bucket for WACZs (STORAGES["secondary"]).
 #   AWS_ACCESS_KEY_ID            Optional. Static S3 credentials, as the Salt
 #   AWS_SECRET_ACCESS_KEY        hosts use. Omit both to use the task role.
-#   CELERY_BROKER_URL            The existing broker (CloudAMQP).
+#   CELERY_BROKER_URL            The existing broker (Redis, on ElastiCache).
 #   CACHE_LOCATION               Redis URL for Django's cache.
 #   STRIPE_PAYMENTS_APP_INTERNAL_URL   perma-payments, from inside the VPC.
 #   STRIPE_PAYMENTS_APP_EXTERNAL_URL   perma-payments, as browsers reach it.
@@ -141,13 +141,25 @@ if "AWS_ACCESS_KEY_ID" in config:
         STORAGES[_storage]["OPTIONS"]["secret_key"] = config["AWS_SECRET_ACCESS_KEY"]  # noqa: F405
     del _storage
 
-# Celery. The broker tunables are the Salt template's, per
-# https://www.cloudamqp.com/docs/celery.html
+# Celery. The broker is Redis. The tunables are the Salt template's, which
+# took them from https://www.cloudamqp.com/docs/celery.html for a CloudAMQP
+# broker; the heartbeat setting has no effect on Redis. Redis redelivers a
+# message that is unacknowledged after the visibility timeout (Celery's
+# default, one hour), which bounds how long an acks_late task may run or wait.
 CELERY_BROKER_URL = config["CELERY_BROKER_URL"]
 CELERY_BROKER_CONNECTION_TIMEOUT = 30
 CELERY_BROKER_HEARTBEAT = None
 CELERY_WORKER_SEND_TASK_EVENTS = False
 CELERY_RESULT_BACKEND = None
+# Soft shutdown, for workers whose task definition sets REMAP_SIGTERM=SIGQUIT
+# (read by Celery from the environment at import, so it cannot be set here). On
+# SIGTERM such a worker stops taking work, gives running tasks this long to
+# finish, then cancels them and returns their messages, and any held for a
+# countdown, to the queue. It is under ECS's 120-second stop timeout, after which
+# ECS kills the container and running acks_late tasks wait for the visibility
+# timeout instead. Workers without REMAP_SIGTERM keep Celery's warm shutdown.
+CELERY_WORKER_SOFT_SHUTDOWN_TIMEOUT = 90
+CELERY_WORKER_ENABLE_SOFT_SHUTDOWN_ON_IDLE = True
 
 # The beat schedule differs by tier, as it does in the Salt template: staging
 # does not sync subscriptions or talk to the Internet Archive.
@@ -157,6 +169,7 @@ if tier == "prod":
         "sync_subscriptions_from_perma_payments",
         "cache_playback_status_for_new_links",
         "conditionally_queue_internet_archive_uploads_for_date_range",
+        "reconcile_internet_archive_files",
         "confirm_files_uploaded_to_internet_archive",
         "confirm_files_deleted_from_internet_archive",
         "deactivate_expired_sponsored_users",

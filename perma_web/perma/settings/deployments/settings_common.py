@@ -1,6 +1,7 @@
 # Core settings used by all deployments.
 import os, sys
 from copy import deepcopy
+from datetime import timedelta
 
 from botocore.config import Config
 
@@ -76,6 +77,12 @@ STORAGES = {
         "BACKEND": 'perma.storage_backends.StaticStorage',
     },
 }
+
+# S3Boto3Storage reads a whole object into a SpooledTemporaryFile before the first
+# read; above this size it moves to a temporary file on disk. django-storages'
+# default of 0 never moves it, so every archive a worker or download request
+# opens would be held in memory in full.
+AWS_S3_MAX_MEMORY_SIZE = 16 * 1024 * 1024
 
 # static files
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static-collected')                # where to store collected static files
@@ -416,6 +423,14 @@ LOGGING['handlers'] = {
         'filters': ['ignore_503', 'require_debug_false'],
         'class': 'perma.reporter.CustomAdminEmailHandler'
     },
+    # IA metrics lines: the message alone, on the real stdout rather than the
+    # sys.stdout that Celery redirects into logging (see perma/ia_metrics.py)
+    'ia_metrics': {
+        'level': 'INFO',
+        'class': 'logging.StreamHandler',
+        'stream': 'ext://sys.__stdout__',
+        'formatter': 'bare',
+    },
     # log to file
     'file': {
         'level':'INFO',
@@ -459,12 +474,20 @@ LOGGING['loggers'] = {
     # show info for our invoke tasks
     'tasks': {
         'level': 'INFO'
-    }
+    },
+    'perma.ia_metrics': {
+        'level': 'INFO',
+        'handlers': ['ia_metrics'],
+        'propagate': False,
+    },
 }
 LOGGING['formatters'] = {
     **LOGGING['formatters'],
     'standard': {
         'format': '%(asctime)s [%(levelname)s] %(filename)s %(lineno)d: %(message)s'
+    },
+    'bare': {
+        'format': '%(message)s'
     },
 }
 
@@ -517,9 +540,11 @@ CELERY_TASK_ROUTES = {
     # the 'ia-readonly' queue is for internal tasks that only affect our database
     'perma.celery_tasks.queue_file_uploaded_confirmation_tasks': {'queue': 'ia-readonly'},
     'perma.celery_tasks.confirm_file_uploaded_to_internet_archive': {'queue': 'ia-readonly'},
+    'perma.celery_tasks.confirm_files_uploaded_to_internet_archive_item': {'queue': 'ia-readonly'},
     'perma.celery_tasks.queue_file_deleted_confirmation_tasks': {'queue': 'ia-readonly'},
     'perma.celery_tasks.confirm_file_deleted_from_daily_item': {'queue': 'ia-readonly'},
     'perma.celery_tasks.conditionally_queue_internet_archive_uploads_for_date_range': {'queue': 'ia-readonly'},
+    'perma.celery_tasks.reconcile_internet_archive_files': {'queue': 'ia-readonly'},
     'perma.celery_tasks.queue_internet_archive_deletions': {'queue': 'ia-readonly'},
     'perma.celery_tasks.convert_warc_to_wacz': {'queue': 'wacz-conversion'},
     'perma.celery_tasks.deactivate_expired_sponsored_users': {'queue': 'background'},
@@ -546,14 +571,65 @@ INTERNET_ARCHIVE_MAX_SIMULTANEOUS_UPLOADS = 499  # as of 2023-03-21, this is our
 INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_GLOBAL_RATE_LIMIT = 500
 INTERNET_ARCHIVE_PERMITTED_PROXIMITY_TO_RATE_LIMIT = 50
 INTERNET_ARCHIVE_RETRY_FOR_RATELIMITING_LIMIT = None
+# Delay before a rate-limited retry, doubling per attempt up to the maximum.
+# A delayed task waits unacknowledged in a worker, and the Redis broker
+# redelivers anything unacknowledged for an hour, so the maximum stays well
+# under that.
+INTERNET_ARCHIVE_RATE_LIMIT_RETRY_BASE_DELAY = 30
+INTERNET_ARCHIVE_RATE_LIMIT_RETRY_MAX_DELAY = 600
 INTERNET_ARCHIVE_RETRY_FOR_ERROR_LIMIT = 2
+# The upload producer records the IA pipeline's state (perma.ia_metrics) each run;
+# each query for it may take this long, and /manage/stats shows it for this long.
+INTERNET_ARCHIVE_STATE_STATEMENT_TIMEOUT_MS = 5000
+INTERNET_ARCHIVE_STATE_CACHE_SECONDS = 15 * 60
+# Each of reconcile_internet_archive_files' queries may take this long; the largest
+# reads all of perma_link (about 6.5 s in production, September 2026).
+INTERNET_ARCHIVE_RECONCILE_STATEMENT_TIMEOUT_MS = 60_000
+# How long /manage/stats reuses IA's rate-limit figures before asking IA again
+INTERNET_ARCHIVE_RATE_LIMITS_STATS_CACHE_SECONDS = 60
 INTERNET_ARCHIVE_EXCEPTION_IF_RETRIES_EXCEEDED = False
 INTERNET_ARCHIVE_ITEM_LOCK_RETRIES = 4
 INTERNET_ARCHIVE_RETRY_FOR_CONFIRMATION_CONNECTION_ERROR = 3
-INTERNET_ARCHIVE_UPLOAD_MAX_TIMEOUTS = None
+# Uploads get longer than the default time limits: the largest WACZs are around
+# 250 MB. The gap between the two leaves time to re-queue after the soft limit.
+INTERNET_ARCHIVE_UPLOAD_SOFT_TIME_LIMIT = 900
+INTERNET_ARCHIVE_UPLOAD_TIME_LIMIT = 1020
+# After this many soft time limits the task stops re-queuing itself; the upload
+# producer queues the link again once its attempt is stale.
+INTERNET_ARCHIVE_UPLOAD_MAX_TIMEOUTS = 2
+# An upload or deletion attempt not saved again within this long is no longer
+# counted in InternetArchiveItem.tasks_in_progress: its task has ended without
+# recording a result. A stale upload attempt is queued for upload again.
+# Must be longer than INTERNET_ARCHIVE_UPLOAD_TIME_LIMIT.
+INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER = timedelta(hours=1)
+# A file whose upload or deletion has gone stale this many times is marked
+# 'upload_failed' or 'deletion_failed' and left for a human. Each attempt has its
+# own retries (above), and attempts are at least INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER
+# apart, so reaching this takes repeated failures over hours.
+INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE = 5
+# The upload producer queues at most this many deletions marked by reconciliation per
+# run (every 5 minutes): 1,200 an hour, so the 6,363 found in September 2026 drain in
+# about 5.5 hours. IA makes two tasks of each deletion, so a run adds up to 200 to
+# Perma's queued IA tasks, inside the producer's in-flight budget.
+INTERNET_ARCHIVE_DELETIONS_PER_RUN = 100
+# After IA refuses to create a daily item (a 503 saying the upload "appears to be
+# spam"), the producer sends one upload to it at most this often, until IA accepts one.
+INTERNET_ARCHIVE_CREATION_REFUSED_PROBE_INTERVAL = timedelta(hours=1)
+# Upload confirmation. An item is checked again after its newest pending file's
+# age times the backoff factor, bounded by the max interval; items with IA tasks
+# queued or running, or stopped in error or paused, wait at least the longer
+# intervals. Files not confirmed within the max age become 'upload_unconfirmed'.
+INTERNET_ARCHIVE_CONFIRMATION_BACKOFF_FACTOR = 0.25
+INTERNET_ARCHIVE_CONFIRMATION_MAX_INTERVAL = timedelta(hours=6)
+# Files awaiting confirmation hold their item's upload slots (the producer's
+# daily_limit), so while uploads flow, this interval paces each item's uploads.
+INTERNET_ARCHIVE_CONFIRMATION_PENDING_TASKS_INTERVAL = timedelta(minutes=5)
+INTERNET_ARCHIVE_CONFIRMATION_BLOCKED_TASKS_INTERVAL = timedelta(hours=6)
+INTERNET_ARCHIVE_UPLOAD_CONFIRMATION_MAX_AGE = timedelta(days=7)
+# Deletions still listed this long after IA accepted them become 'deletion_unconfirmed'.
+INTERNET_ARCHIVE_DELETION_CONFIRMATION_MAX_AGE = timedelta(days=7)
 # Other
 INTERNET_ARCHIVE_EXCEPTION_IF_NO_ITEM = False
-INTERNET_ARCHIVE_UPLOAD_MAX_TMEOUTS = 2
 
 #
 # Hosts
@@ -618,7 +694,6 @@ TESTING = False
 
 ### MIRRORS ###
 
-from datetime import timedelta
 ARCHIVE_DELAY = timedelta(hours=24)
 
 #

@@ -70,6 +70,10 @@ def post_process_settings(settings):
                 os.environ.get('IA_UPLOAD_END_DATESTRING') or None
             )
         },
+        'reconcile_internet_archive_files': {
+            'task': 'perma.celery_tasks.reconcile_internet_archive_files',
+            'schedule': crontab(minute='17'),
+        },
         'confirm_files_uploaded_to_internet_archive': {
             'task': 'perma.celery_tasks.queue_file_uploaded_confirmation_tasks',
             'schedule': crontab(minute="2-59/5"),

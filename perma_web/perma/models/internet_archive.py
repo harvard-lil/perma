@@ -4,14 +4,45 @@ from datetime import timezone as tz
 from django.conf import settings
 from django.contrib.postgres.fields import DateTimeRangeField
 from django.contrib.postgres.indexes import GistIndex
-from django.db import models
-from django.db.models import Sum
+from django.db import IntegrityError, models, transaction
+from django.db.models import Count, F, OuterRef, Q, Subquery, Sum
+from django.db.models.functions import Coalesce
 from django.template.defaultfilters import truncatechars
 from django.urls import reverse
+from django.utils import timezone
 from model_utils import FieldTracker
 from psycopg2.extras import DateTimeTZRange
 
 from perma.utils import protocol, remove_control_characters
+
+
+# Daily items with span at or before this range are excluded from backlog scheduling
+# (early daily-item era, before the current pipeline): the upload producer starts at
+# the oldest incomplete daily item after it.
+DAILY_ITEM_BACKLOG_SPAN_FLOOR = ('2021-11-10', '2021-11-11')
+
+# Links created after this date were only uploaded to daily IA items, not legacy per-link items.
+LAST_INDIVIDUAL_LINK_IA_UPLOAD_DATE = '2022-10-03'
+
+# Daily IA items Perma cannot edit on Internet Archive; skip uploads and confirmation tasks.
+# We need IA's help to resolve the situation; once they transfer ownership of these items,
+# we should be able to remove all references to this value.
+UNEDITABLE_DAILY_ITEM_DATE_STRINGS = frozenset({
+    '2022-07-19',
+    '2022-07-20',
+    '2022-07-21',
+    '2022-07-25',
+})
+
+
+def uneditable_daily_item_identifiers():
+    return [
+        InternetArchiveItem.DAILY_IDENTIFIER.format(
+            prefix=settings.INTERNET_ARCHIVE_DAILY_IDENTIFIER_PREFIX,
+            date_string=date_string,
+        )
+        for date_string in sorted(UNEDITABLE_DAILY_ITEM_DATE_STRINGS)
+    ]
 
 
 def get_empty_datetime_range():
@@ -71,10 +102,18 @@ class InternetArchiveItem(models.Model):
     cached_title = models.TextField(null=True, blank=True, default=None)
     cached_description = models.TextField(null=True, blank=True, default=None)
 
-    tasks_in_progress = models.IntegerField(default=0, db_index=True, help_text="We have asked Internet Archive to run appx this many tasks for this item and have not yet confirmed that those tasks are complete; derivative tasks not counted.")
-    complete = models.BooleanField(default=False, help_text="Has all the files it ought to have; has no files it ought not have.")
+    tasks_in_progress = models.IntegerField(default=0, db_index=True, help_text="We have asked Internet Archive to run appx this many tasks for this item and have not yet confirmed that those tasks are complete; derivative tasks not counted. Recomputed from file statuses by refresh_tasks_in_progress.")
+    complete = models.BooleanField(default=False, help_text=(
+        "Initial uploads complete: True when the upload producer found no eligible links for this "
+        "daily item's day without an InternetArchiveFile, and no upload being attempted, once the "
+        "day was more than three days past. The producer's day-by-day walk skips items marked True. "
+        "It does not reflect later changes in links' eligibility, such as privacy changes."
+    ))
     last_derived = models.DateTimeField(null=True, blank=True)
     derive_required = models.BooleanField(default=False)
+    ia_creation_refused_at = models.DateTimeField(null=True, blank=True, help_text="When IA last refused to create this item, answering an upload as spam; cleared when IA accepts an upload to it. The upload producer sends only an occasional single upload to the item meanwhile.")
+    ia_tasks_blocked_since = models.DateTimeField(null=True, blank=True, help_text="When a check first saw IA tasks for this item in error or paused, until a check sees none. The upload producer queues no uploads to the item meanwhile.")
+    next_confirmation_check = models.DateTimeField(null=True, blank=True, help_text="Uploads to this item awaiting confirmation are not checked again before this time.")
 
     class Meta:
         verbose_name = "Internet Archive Item"
@@ -84,6 +123,18 @@ class InternetArchiveItem(models.Model):
             # We are adding it via a SQL migration instead. See 0007_auto_20221024_2049.py
             # models.Index(IsEmpty('span'), 'identifier', name='empty_span_idx'),
             GistIndex(fields=['span']),
+            # the few items IA refused to create
+            models.Index(
+                fields=['ia_creation_refused_at'],
+                condition=Q(ia_creation_refused_at__isnull=False),
+                name='perma_iaitem_refused_idx',
+            ),
+            # the few items held back for IA tasks in error or paused
+            models.Index(
+                fields=['ia_tasks_blocked_since'],
+                condition=Q(ia_tasks_blocked_since__isnull=False),
+                name='perma_iaitem_blocked_idx',
+            ),
         ]
 
     def __str__(self):
@@ -110,7 +161,35 @@ class InternetArchiveItem(models.Model):
 
     @classmethod
     def inflight_task_count(cls):
-        return cls.objects.aggregate(Sum('tasks_in_progress'))['tasks_in_progress__sum']
+        # The filter lets Postgres read only the few items with tasks from the
+        # index on tasks_in_progress, which refresh_tasks_in_progress keeps >= 0.
+        return cls.objects.filter(tasks_in_progress__gt=0).aggregate(Sum('tasks_in_progress'))['tasks_in_progress__sum']
+
+    @classmethod
+    def refresh_tasks_in_progress(cls, identifier=None):
+        """
+        Set tasks_in_progress to the number of this item's files that are in flight
+        (see InternetArchiveFile.in_flight), for every item whose count is nonzero
+        or should be, or for the one item named.
+        """
+        in_flight = InternetArchiveFile.in_flight()
+        count = in_flight.filter(
+            item_id=OuterRef('identifier')
+        ).order_by().values('item_id').annotate(n=Count('*')).values('n')
+        if identifier:
+            identifiers = [identifier]
+        else:
+            # Two index lookups: combined into one filter with OR, or written as
+            # "tasks_in_progress != 0", this reads the whole item table, most of
+            # which is legacy single-link items.
+            identifiers = set(
+                cls.objects.filter(
+                    Q(tasks_in_progress__gt=0) | Q(tasks_in_progress__lt=0)
+                ).values_list('identifier', flat=True)
+            ) | set(
+                in_flight.values_list('item_id', flat=True).distinct()
+            )
+        cls.objects.filter(identifier__in=identifiers).update(tasks_in_progress=Coalesce(Subquery(count), 0))
 
 
 class InternetArchiveFile(models.Model):
@@ -123,13 +202,32 @@ class InternetArchiveFile(models.Model):
     link = models.ForeignKey("Link", on_delete=models.DO_NOTHING, related_name='internet_archive_files')
     item = models.ForeignKey("InternetArchiveItem", on_delete=models.CASCADE, related_name='internet_archive_files')
 
+    # Statuses set by reconcile_internet_archive_files, for the upload producer to act on
+    # (not in flight):
+    # - deletion_needed: the file is at IA, but its link is no longer public (deleted,
+    #   private or unlisted).
+    # - upload_needed: the link is public and playable, but the file is not at IA:
+    #   deleted earlier, or never uploaded because the link became eligible after its
+    #   day's uploads were complete.
+    #
+    # Statuses that end the pipeline's work on a file and need a human:
+    # - upload_unconfirmed: IA accepted the upload, but the file did not appear with the
+    #   expected metadata within INTERNET_ARCHIVE_UPLOAD_CONFIRMATION_MAX_AGE, so we
+    #   stopped checking.
+    # - deletion_unconfirmed: IA accepted the deletion, but the file was still listed
+    #   INTERNET_ARCHIVE_DELETION_CONFIRMATION_MAX_AGE later, so we stopped checking.
+    # - upload_failed, deletion_failed: INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE attempts
+    #   ended without a result, so we stopped trying.
     status = models.CharField(
-        max_length=19,
+        max_length=20,
         null=True,
         blank=True,
-        choices=((s, s) for s in ('upload_attempted', 'upload_submitted', 'confirmed_present', 'deletion_attempted', 'deletion_submitted', 'confirmed_absent')),
-        db_index=True
+        choices=((s, s) for s in ('upload_needed', 'upload_attempted', 'upload_submitted', 'upload_unconfirmed', 'upload_failed', 'confirmed_present', 'deletion_needed', 'deletion_attempted', 'deletion_submitted', 'deletion_unconfirmed', 'deletion_failed', 'confirmed_absent')),
+        db_index=True,
     )
+    status_updated = models.DateTimeField(null=True, blank=True, help_text="When status was last saved, even if unchanged: an upload retry saves 'upload_attempted' again.")
+    claim = models.CharField(max_length=255, null=True, blank=True, help_text="Identifies the task attempting the current upload or deletion: the id of the task message that started it.")
+    attempts = models.IntegerField(default=0, db_default=0, help_text="How many times the current upload or deletion has been started: 1 when it begins, plus 1 each time it is taken up again after going stale. A task's own retries are not counted.")
 
     cached_size = models.IntegerField(null=True, blank=True, default=None)
 
@@ -149,9 +247,118 @@ class InternetArchiveFile(models.Model):
     class Meta:
         verbose_name = "Internet Archive File"
         unique_together = (("link", "item"),)
+        indexes = [
+            # For in_flight(), per item and overall: a small index, since nearly
+            # all files are 'confirmed_present'.
+            models.Index(
+                fields=['item', 'status_updated'],
+                condition=Q(status__in=['upload_attempted', 'upload_submitted', 'deletion_attempted', 'deletion_submitted']),
+                name='perma_iafile_in_flight_idx',
+            ),
+        ]
 
     def __str__(self):
         return f"IA File {self.pk}: {self.item_id} > {self.link_id}"
+
+    def save(self, *args, **kwargs):
+        update_fields = kwargs.get('update_fields')
+        if update_fields is None or 'status' in update_fields:
+            self.status_updated = timezone.now()
+            if update_fields is not None:
+                kwargs['update_fields'] = [*update_fields, 'status_updated']
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def in_flight(cls):
+        """
+        Files with an IA task we started and have not seen finish. An upload or
+        deletion attempt that has not been saved again within
+        INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER belongs to a task that was killed or
+        gave up, and is not counted.
+        """
+        stale_before = timezone.now() - settings.INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER
+        return cls.objects.filter(
+            Q(status__in=['upload_submitted', 'deletion_submitted']) |
+            Q(status__in=['upload_attempted', 'deletion_attempted'], status_updated__gte=stale_before)
+        )
+
+    @classmethod
+    def stale_attempt(cls, status='upload_attempted'):
+        """
+        A Q matching upload (or deletion) attempts that are not in flight: not saved
+        again within INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER, or saved before
+        status_updated was recorded at all. Their tasks were killed, gave up, or
+        were lost from the queue.
+        """
+        stale_before = timezone.now() - settings.INTERNET_ARCHIVE_ATTEMPT_STALE_AFTER
+        return Q(status=status) & (
+            Q(status_updated__lt=stale_before) | Q(status_updated__isnull=True)
+        )
+
+    @classmethod
+    def retryable_stale_attempt(cls, status='upload_attempted'):
+        """
+        A stale attempt that should be queued again: one started fewer than
+        INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE times.
+        """
+        return cls.stale_attempt(status) & Q(attempts__lt=settings.INTERNET_ARCHIVE_MAX_ATTEMPTS_PER_FILE)
+
+    # What a claim did (see claim_upload)
+    CLAIM_NEW = 'new'
+    CLAIM_RESUMED = 'resumed'
+    CLAIM_STALE = 'stale'
+
+    @classmethod
+    def _claim(cls, item_id, link_id, attempting, starting_from, claim):
+        """
+        Claim an existing file for the attempt identified by `claim`: resume it if
+        the file is already `attempting` under that claim, start a new attempt if
+        the file is in one of the `starting_from` statuses, or take up a stale
+        `attempting` attempt. Each step is one conditional UPDATE, so two callers
+        cannot both succeed. Returns CLAIM_RESUMED, CLAIM_NEW, CLAIM_STALE or None.
+        """
+        if not claim:
+            raise ValueError("A claim is required.")
+        file = cls.objects.filter(item_id=item_id, link_id=link_id)
+        now = timezone.now()
+        if file.filter(status=attempting, claim=claim).update(status_updated=now):
+            return cls.CLAIM_RESUMED
+        if file.filter(status__in=starting_from).update(status=attempting, status_updated=now, claim=claim, attempts=1):
+            return cls.CLAIM_NEW
+        if file.filter(cls.stale_attempt(attempting)).update(status=attempting, status_updated=now, claim=claim, attempts=F('attempts') + 1):
+            return cls.CLAIM_STALE
+        return None
+
+    @classmethod
+    def claim_upload(cls, item_id, link_id, claim):
+        """
+        Mark this link's file in this item 'upload_attempted' for the calling task,
+        unless another task holds the attempt. Returns what the claim did (see
+        _claim), or None if the upload is not the caller's to attempt.
+
+        `claim` identifies the attempt: the id of the task message that started it,
+        which the task's own retries carry in a message header. A message that is
+        delivered again after its worker stopped keeps its id, so it resumes its
+        attempt too. Any task may start a new attempt on a file that does not exist
+        yet, was deleted from IA, or is marked 'upload_needed', or take up a stale
+        one; no other task may claim an attempt in progress.
+        """
+        try:
+            with transaction.atomic():
+                cls.objects.create(item_id=item_id, link_id=link_id, status='upload_attempted', claim=claim, attempts=1)
+            return cls.CLAIM_NEW
+        except IntegrityError:
+            pass
+        return cls._claim(item_id, link_id, 'upload_attempted', ['confirmed_absent', 'upload_needed'], claim)
+
+    @classmethod
+    def claim_deletion(cls, item_id, link_id, claim):
+        """
+        The deletion counterpart of claim_upload: mark the file 'deletion_attempted'
+        for the attempt `claim` if it is 'confirmed_present' or 'deletion_needed', its
+        deletion attempt is stale, or it is already that attempt's.
+        """
+        return cls._claim(item_id, link_id, 'deletion_attempted', ['confirmed_present', 'deletion_needed'], claim)
 
     WARC_FILENAME = '{guid}.warc.gz'
 

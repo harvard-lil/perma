@@ -16,7 +16,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.indexes import GinIndex, OpClass
 from django.core.files.storage import storages
 from django.db import models, transaction
-from django.db.models import F, JSONField, Max, Q, QuerySet
+from django.db.models import Exists, F, JSONField, Max, OuterRef, Q, QuerySet
 from django.db.models.functions import Now, TruncDate, Upper
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -28,6 +28,7 @@ from perma.utils import preserve_perma_wacz
 
 from . import link_counts
 from .folder import Folder
+from .internet_archive import LAST_INDIVIDUAL_LINK_IA_UPLOAD_DATE, InternetArchiveFile
 from .organization import Organization
 from .user import LinkUser
 from .utils import DeletableManager, DeletableModel, GenericStringTaggedItem
@@ -89,22 +90,29 @@ class LinkQuerySet(QuerySet):
     def ia_upload_pending(self, date_string, limit=100):
         # Get all Links we think should have been uploaded to IA,
         # and then filter out the ones that have already been uploaded
-        # to a "daily" item.
-        if date_string > "2022-10-03":
-            # No links created after 2022-10-03 were uploaded to IA as individual Items:
+        # to a "daily" item, or that are being uploaded now. A Link whose
+        # upload attempt has gone stale (see InternetArchiveFile.retryable_stale_attempt)
+        # is pending again.
+        uploaded_or_in_progress = InternetArchiveFile.objects.filter(
+            link_id=OuterRef('guid')
+        ).exclude(
+            InternetArchiveFile.retryable_stale_attempt()
+        )
+        if date_string > LAST_INDIVIDUAL_LINK_IA_UPLOAD_DATE:
+            # No links created after this date were uploaded to IA as individual Items:
             # use a simplified query
             logger.debug("Running simple IA eligibility query.")
             query = Link.objects.filter(
                 creation_timestamp__date=date_string
             ).visible_to_ia().filter(
-                internet_archive_files=None
+                ~Exists(uploaded_or_in_progress)
             )
         else:
             logger.debug("Running full IA eligibility query.")
             query = Link.objects.filter(
                 creation_timestamp__date=date_string
-            ).visible_to_ia().exclude(
-                internet_archive_items__span__isempty=False
+            ).visible_to_ia().filter(
+                ~Exists(uploaded_or_in_progress.filter(item__span__isempty=False))
             )
         if limit:
             query = query[:limit]
