@@ -130,7 +130,8 @@ def test_link_count_do_not_increment_after_saving_a_deleted_link(org_user, link_
     """ Re-saving a user-deleted link must not count it as a new link """
     organization = org_user.organizations.first()
     registrar = organization.registrar
-    link = link_factory(created_by=org_user, submitted_url="http://example.com", organization=organization)
+    link = link_factory(created_by=org_user, submitted_url="http://example.com")
+    link.move_to_folder_for_user(organization.shared_folder, org_user)
     org_user.refresh_from_db()
     organization.refresh_from_db()
     registrar.refresh_from_db()
@@ -175,8 +176,8 @@ def test_link_count_for_orgs(org_user, link_factory):
     we're adjusting the counts on the orgs """
     organization = org_user.organizations.first()
     link_count = organization.link_count
-    link = link_factory(created_by=org_user, submitted_url="http://example.com", organization=organization)
-    link.save()
+    link = link_factory(created_by=org_user, submitted_url="http://example.com")
+    link.move_to_folder_for_user(organization.shared_folder, org_user)
 
     organization.refresh_from_db()
     assert link_count + 1 == organization.link_count
@@ -194,8 +195,8 @@ def test_link_count_for_registrars(registrar_user, link_factory):
 
     org_managed_by_registrar = registrar_user.registrar.organizations.first()
     link_count = registrar_user.registrar.link_count
-    link = link_factory(created_by=registrar_user, submitted_url="http://example.com", organization=org_managed_by_registrar)
-    link.save()
+    link = link_factory(created_by=registrar_user, submitted_url="http://example.com")
+    link.move_to_folder_for_user(org_managed_by_registrar.shared_folder, registrar_user)
 
     registrar_user.registrar.refresh_from_db()
     assert link_count + 1 == registrar_user.registrar.link_count
@@ -539,8 +540,8 @@ def test_changing_organization_registrar_updates_registrar_link_count(org_user, 
     source_registrar = organization.registrar
     dest_registrar = registrar_factory()
 
-    link_factory(created_by=org_user, submitted_url="http://example.com/a", organization=organization)
-    link_factory(created_by=org_user, submitted_url="http://example.com/b", organization=organization)
+    link_factory(created_by=org_user, submitted_url="http://example.com/a").move_to_folder_for_user(organization.shared_folder, org_user)
+    link_factory(created_by=org_user, submitted_url="http://example.com/b").move_to_folder_for_user(organization.shared_folder, org_user)
 
     organization.refresh_from_db()
     source_registrar.refresh_from_db()

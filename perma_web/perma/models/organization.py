@@ -1,11 +1,12 @@
 from django.db import models, transaction
-from django.db.models import F, Q, QuerySet
+from django.db.models import Q, QuerySet
 from django.utils import timezone
 from model_utils import FieldTracker
 from simple_history.models import HistoricalRecords
 
 from perma.utils import tz_datetime
 
+from . import link_counts
 from .folder import Folder
 from .registrar import Registrar
 from .utils import DeletableManager, DeletableModel, link_count_in_time_period
@@ -64,7 +65,7 @@ class Organization(DeletableModel):
                 super().save(*args, **kwargs)
 
                 if self.tracker.has_changed('registrar_id'):
-                    self._transfer_registrar_link_counts(self.tracker.previous('registrar_id'), self.registrar_id)
+                    link_counts.org_registrar_changed(self.pk, self.tracker.previous('registrar_id'), self.registrar_id)
 
                 if not self.shared_folder_id:
                     # Create a top-level folder for this org
@@ -82,14 +83,6 @@ class Organization(DeletableModel):
                     # Rename shared folder if org name changes.
                     self.shared_folder.name = self.name
                     self.shared_folder.save()
-
-    def _transfer_registrar_link_counts(self, old_registrar_id, new_registrar_id):
-        """ Move this org's link_count between registrars when registrar changes. """
-        if old_registrar_id == new_registrar_id or not self.link_count:
-            return
-
-        Registrar.objects.filter(pk=old_registrar_id).update(link_count=F('link_count') - self.link_count)
-        Registrar.objects.filter(pk=new_registrar_id).update(link_count=F('link_count') + self.link_count)
 
     def __str__(self):
         return self.name

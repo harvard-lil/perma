@@ -114,12 +114,10 @@ services:
   # wacz-exhibitor
   #
   wacz-exhibitor:
-    # Built locally, like filecheck; the release pins wacz-exhibitor and so
-    # the ReplayWeb.page version.
+    # Built locally, like filecheck; the Dockerfile's RELEASE pins
+    # wacz-exhibitor and so the ReplayWeb.page version.
     build:
       context: ./services/docker/wacz-exhibitor
-      args:
-        RELEASE: v0.2.18
     pull_policy: build
     ports:
       - "127.0.0.1:8080:8080"

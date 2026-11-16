@@ -27,7 +27,7 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError, BadRequest
 from django.core.files.storage import storages
 from django.core.paginator import EmptyPage, Page, Paginator
 from django.core.serializers.json import DjangoJSONEncoder
@@ -198,16 +198,11 @@ def apply_search_query(
     """
     # Support either GET or POST request params
     params = getattr(request, request.method)
-    search_string = params.get('q', '')
+    search_string = params.get('q', '').strip()
     if not search_string:
         return queryset, ''
 
-    # get words in search_string
-    required_words = search_string.strip().split()
-    if not required_words:
-        return queryset
-
-    for required_word in required_words:
+    for required_word in search_string.split():
         # apply the equivalent of queryset = queryset.filter(Q(field1__icontains=required_word) | Q(field2__icontains=required_word) | ...)
         query_parts = [Q(**{field+"__icontains":required_word}) for field in fields]
         query_parts_joined = reduce(operator.or_, query_parts, Q())
@@ -277,6 +272,14 @@ def export_queryset(
         case _:
             raise ValueError('export_format must be one of: csv, json')
     return response
+
+
+def parse_int_or_400(value):
+    """ Convert the value to an int, or raise 400 if can't be converted. """
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        raise BadRequest('Invalid value for numeric field')
 
 
 ### form view helpers ###

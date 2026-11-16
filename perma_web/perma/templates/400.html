@@ -1,0 +1,12 @@
+{% extends "base-responsive.html" %}
+{% block title %} | 400 Bad Request{% endblock %}
+
+{% block mainContent %}
+  <div class="col-xs-12 no-wide">
+    <h1 class="page-title">Bad Request</h1>
+    <p class="page-dek">
+      We couldn't process your request because something in it wasn't valid.
+      Please check the address or the information you submitted and try again, or <a href="{% url 'contact' %}?subject=Bad%20Request">contact us</a> for help.
+    </p>
+  </div>
+{% endblock %}

@@ -9,7 +9,7 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm
 from django.forms import Form
 from django.core.exceptions import PermissionDenied
-from django.db.models import Count, F, Max, Prefetch, Sum
+from django.db.models import Count, F, IntegerField, Max, OuterRef, Prefetch, Subquery, Sum
 from django.db.models.functions import Coalesce, Greatest
 from django.db.models.query import QuerySet
 from django.http import (
@@ -72,6 +72,7 @@ from perma.utils import (
     apply_sort_order,
     export_queryset,
     get_form_data,
+    parse_int_or_400,
     ratelimit_ip_key,
     remove_control_characters,
     user_passes_test_or_403,
@@ -138,6 +139,9 @@ def manage_registrar(request):
 
     # handle sorting
     registrars, sort = apply_sort_order(request, registrars, valid_registrar_sorts)
+    if sort.endswith('link_count'):
+        total_link_count = F('link_count') + F('sponsored_link_count')
+        registrars = registrars.order_by(total_link_count.desc() if sort.startswith('-') else total_link_count.asc())
 
     # handle search
     registrars, search_query = apply_search_query(request, registrars, ['name', 'email', 'website'])
@@ -148,7 +152,7 @@ def manage_registrar(request):
         registrars = registrars.filter(status=status)
 
     orgs_count = Organization.objects.filter(registrar__in=registrars).count()
-    #users_count = registrars.aggregate(count=Sum('registrar_users'))
+    links_count = Registrar.objects.filter(pk__in=registrars.order_by().values('pk')).aggregate(count=Sum(F('link_count') + F('sponsored_link_count'), default=0))['count']
 
     # handle pagination
     registrars = apply_pagination(request, registrars)
@@ -156,6 +160,7 @@ def manage_registrar(request):
     return render_user_management(request, 'user_management/manage_registrars.html', {
         'registrars': registrars,
         'orgs_count': orgs_count,
+        'links_count': links_count,
         'this_page': 'users_registrars',
         'search_query': search_query,
         'status': status,
@@ -226,11 +231,14 @@ def manage_organization(request):
     # handle registrar filter
     registrar_filter = request.GET.get('registrar', '')
     if registrar_filter:
+        registrar_filter = parse_int_or_400(registrar_filter)
         orgs = orgs.filter(registrar__id=registrar_filter)
-        registrar_filter = Registrar.objects.get(pk=registrar_filter)
+        registrar_filter = get_object_or_404(Registrar, pk=registrar_filter)
 
-    # get total user count
-    users_count = orgs.aggregate(count=Sum('organization_users'))['count']
+    # get total user count (count each person once, even if they belong to more than one org)
+    users_count = LinkUser.objects.filter(organizations__in=orgs.order_by().values('pk')).distinct().count()
+
+    links_count = Organization.objects.filter(pk__in=orgs.order_by().values('pk')).aggregate(count=Sum('link_count', default=0))['count']
 
     # handle pagination
     orgs = apply_pagination(request, orgs)
@@ -240,6 +248,7 @@ def manage_organization(request):
         'this_page': 'users_orgs',
         'search_query': search_query,
         'users_count': users_count,
+        'links_count': links_count,
         'registrars': Registrar.objects.all().order_by('name'),
         'registrar_filter': registrar_filter,
         'sort': sort,
@@ -462,6 +471,18 @@ def manage_single_organization_export_user_list(
     return response
 
 
+def links_created_in_orgs_count(orgs):
+    """ Count links each user created in the requested organizations. """
+    links_count = (
+        Link.objects.filter(created_by=OuterRef('pk'), organization__in=orgs)
+        .order_by()
+        .values('created_by')
+        .annotate(count=Count('*'))
+        .values('count')
+    )
+    return Coalesce(Subquery(links_count, output_field=IntegerField()), 0)
+
+
 @user_passes_test_or_403(allow_staff_registrar_or_org_user)
 def list_users_in_group(request: HttpRequest, group_name: str, export: bool = False):
     """
@@ -481,9 +502,11 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
                 visible_orgs = visible_orgs.filter(pk__in=request.user.organizations.all())
         org_filter = request.GET.get('org', '')
         if org_filter:
+            org_filter = parse_int_or_400(org_filter)
             visible_orgs = visible_orgs.filter(pk=org_filter)
         registrar_filter = request.GET.get('registrar', '')
         if registrar_filter:
+            registrar_filter = parse_int_or_400(registrar_filter)
             visible_orgs = visible_orgs.filter(registrar_id=registrar_filter)
         users = users.filter(userorganizationaffiliation__organization__in=visible_orgs).alias(
             # Bind search/export fields to this join before later filters can
@@ -500,6 +523,8 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
     users, search_query = apply_search_query(request, users, search_fields)
 
     registrar_filter = request.GET.get('registrar', '')
+    if registrar_filter:
+        registrar_filter = parse_int_or_400(registrar_filter)
 
     registrars = None
     orgs = None
@@ -550,11 +575,12 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
     # handle org filter
     org_filter = request.GET.get('org', '')
     if org_filter:
+        org_filter = parse_int_or_400(org_filter)
         if group_name == 'organization_user':
             org_filter = get_object_or_404(visible_orgs, pk=org_filter)
         else:
             users = users.filter(organizations__id=org_filter)
-            org_filter = Organization.objects.get(pk=org_filter)
+            org_filter = get_object_or_404(Organization, pk=org_filter)
 
     # handle registrar filter
     if registrar_filter:
@@ -569,7 +595,7 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
                 permitted_registrars = Registrar.objects.filter(organizations__in=request.user.organizations.all())
             registrar_filter = get_object_or_404(permitted_registrars.distinct(), pk=registrar_filter)
         else:
-            registrar_filter = Registrar.objects.get(pk=registrar_filter)
+            registrar_filter = get_object_or_404(Registrar, pk=registrar_filter)
 
     # handle sponsorship status filter:
     sponsorship_status = request.GET.get('sponsorship_status', '')
@@ -587,10 +613,41 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
     # of unactivated users instead of running the expensive SQL query generated by the ORM
     unactivated_users = users.count() - active_users - deactivated_users
 
-    total_created_links_count = users.aggregate(count=Sum('link_count'))['count']
+    if group_name == 'organization_user':
+        total_created_links_count = Link.objects.filter(organization__in=visible_orgs, created_by__in=users.order_by().values('pk')).count()
+        if sort.endswith('link_count'):
+            visible_link_count = links_created_in_orgs_count(visible_orgs)
+            users = users.order_by(visible_link_count.desc() if sort.startswith('-') else visible_link_count.asc())
+    else:
+        total_created_links_count = users.aggregate(count=Sum('link_count', default=0))['count']
 
     # handle pagination
     users = apply_pagination(request, users)
+
+    if group_name == 'organization_user':
+        user_ids = [user.pk for user in users]
+
+        link_counts = dict(
+            Link.objects.filter(organization__in=visible_orgs, created_by__in=user_ids)
+            .order_by()
+            .values('created_by')
+            .annotate(count=Count('*'))
+            .values_list('created_by', 'count')
+        )
+
+        for user in users:
+            user.visible_link_count = link_counts.get(user.pk, 0)
+
+    # Searching for an org name lists its members, but their link counts still include all orgs the viewer can see. 
+    # If the search matches an org, suggest the org filter, which will limit the counts to that org.
+    search_matches_org = False
+    if group_name == 'organization_user' and search_query and not org_filter and visible_orgs.count() > 1:
+        matching_orgs = visible_orgs
+
+        for word in search_query.split():
+            matching_orgs = matching_orgs.filter(name__icontains=word)
+
+        search_matches_org = matching_orgs.exists()
 
     context = {
         'this_page': f'users_{group_name}s',
@@ -611,6 +668,7 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
         'add_multiple_users_url': f'user_management_{group_name}_add_multiple_users',
         'sort': sort,
         'search_query': search_query,
+        'search_matches_org': search_matches_org,
         'registrar_filter': registrar_filter,
         'org_filter': org_filter,
         'status': status,
@@ -644,8 +702,9 @@ def list_sponsored_users(
 
         # handle registrar filter
         if registrar_filter:
+            registrar_filter = parse_int_or_400(registrar_filter)
             sponsorships = sponsorships.filter(registrar_id=registrar_filter)
-            registrar_filter = Registrar.objects.get(pk=registrar_filter)
+            registrar_filter = get_object_or_404(Registrar, pk=registrar_filter)
 
     # handle sponsorship status filter:
     sponsorship_status = request.GET.get('sponsorship_status', '')
@@ -680,7 +739,14 @@ def list_sponsored_users(
     deactivated_users = users.filter(is_confirmed=True, is_active=False).count()
     unactivated_users = users.count() - active_users - deactivated_users
 
-    total_created_links_count = users.aggregate(count=Sum('link_count'))['count']
+    sponsored_links = Link.objects.filter(created_by__in=users.order_by().values('pk'))
+    if request.user.is_registrar_user():
+        sponsored_links = sponsored_links.filter(folders__sponsored_by=request.user.registrar)
+    elif registrar_filter:
+        sponsored_links = sponsored_links.filter(folders__sponsored_by=registrar_filter)
+    else:
+        sponsored_links = sponsored_links.filter(folders__sponsored_by__isnull=False)
+    total_created_links_count = sponsored_links.count()
 
     # handle pagination
     users = apply_pagination(request, users)

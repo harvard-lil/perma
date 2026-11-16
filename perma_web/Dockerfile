@@ -1,15 +1,15 @@
 # Node is copied from the official image rather than bootstrapped through the
 # mutable NodeSource setup script. Keep the Debian suite matched to the Python
 # base below so the glibc the binary was linked against is the one it runs on.
-FROM node:24.20.0-trixie-slim@sha256:50c3b2f6988dfc307b86e5301d69611af31f4789bdf232863b07d3b02fe55ae0 AS node
+FROM node:24.22.1-trixie-slim@sha256:43b9ba1142b8dcf33fa8f922ca1be85714adc444e0586c7cf7726daaeabc1bea AS node
 
 # Extract Playwright version from uv.lock prior to building main image
-FROM python:3.14-slim-trixie@sha256:cae66f2ef0ec51a9891263eeee7f987dacf0a9879e8aa9353d5606e0530619a5 AS extract-playwright-version
+FROM python:3.14-slim-trixie@sha256:35caba83af2fe6da9a5d922f9b0156f21d1246a48278c58a08bd253303ba42e8 AS extract-playwright-version
 COPY perma_web/uv.lock /tmp/uv.lock
 RUN grep -A 1 '^name = "playwright"$' /tmp/uv.lock | grep version | cut -d'"' -f2 > /tmp/.playwright-version
 
 # Main image
-FROM python:3.14-slim-trixie@sha256:cae66f2ef0ec51a9891263eeee7f987dacf0a9879e8aa9353d5606e0530619a5
+FROM python:3.14-slim-trixie@sha256:35caba83af2fe6da9a5d922f9b0156f21d1246a48278c58a08bd253303ba42e8
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     PYTHONUNBUFFERED=1 \
@@ -58,7 +58,7 @@ RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
     && ln -s ../lib/node_modules/corepack/dist/corepack.js /usr/local/bin/corepack
 
 # uv package manager
-COPY --from=ghcr.io/astral-sh/uv:0.12.7@sha256:95f2aa1fe59274951cfe9b0cbc7972e879ff1004bc8945d130a32eb0dbd85945 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.13.5@sha256:32a7bb39b496babbd997b0a39a4d66c126bdaf5661b302bf6f06abda8deca6ff /uv /uvx /bin/
 
 # Copy Playwright version extracted in first stage
 COPY --from=extract-playwright-version /tmp/.playwright-version /tmp/.playwright-version
