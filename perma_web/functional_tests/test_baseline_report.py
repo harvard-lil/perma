@@ -12,8 +12,17 @@ import pytest
 from PIL import Image
 
 from functional_tests import baseline_report, baseline_sets, image_diff
-from functional_tests.baseline_report import ChangedImage, Counts, ReportError, ReportSummary, build_report, main
-from functional_tests.baseline_sets import Pointer, SetNotFoundError, format_pointer, read_stamp, write_stamp
+from functional_tests.baseline_report import (
+    ChangedImage,
+    Counts,
+    Previous,
+    ReportError,
+    ReportSummary,
+    build_report,
+    main,
+    resolve_previous,
+)
+from functional_tests.baseline_sets import BaselineSetError, Pointer, SetNotFoundError, format_pointer, read_stamp, write_stamp
 
 TOLERANCE = 3
 GREY = (100, 100, 100)
@@ -445,7 +454,7 @@ def test_fetch_previous_installs_the_committed_set_and_prints_its_name(committed
     assert main(["fetch-previous", "--into", str(into)]) == 0
 
     assert capsys.readouterr().out == f"{SET}\n"
-    assert fetch.urls == [f"{baseline_sets.DEFAULT_BASE_URL}{SET}.tar"]
+    assert fetch.urls == [f"{baseline_sets.DEFAULT_BASE_URL}baselines-{SET}/baselines-{SET}.tar"]
     assert (into / "chromium/t/f/page.png").read_bytes() == b"committed"
     assert read_stamp(into) == pointer
 
@@ -459,13 +468,13 @@ def test_fetch_previous_ignores_a_disabled_fetch_and_honours_the_url(committed, 
     assert main(["fetch-previous", "--into", str(tmp_path / "previous-set")]) == 0
 
     assert capsys.readouterr().out == f"{SET}\n"
-    assert fetch.urls == [f"https://fork.example/sets/{SET}.tar"]
+    assert fetch.urls == [f"https://fork.example/sets/baselines-{SET}/baselines-{SET}.tar"]
 
 
 def test_fetch_previous_fails_with_status_1_and_the_message(committed, tmp_path, capsys):
     pointer_path, fetch = committed
     _commit(pointer_path)
-    fetch.result = SetNotFoundError("answered HTTP 403")
+    fetch.result = SetNotFoundError("answered HTTP 404")
 
     assert main(["fetch-previous", "--into", str(tmp_path / "previous-set")]) == 1
 
@@ -483,3 +492,149 @@ def test_fetch_previous_refuses_a_set_whose_hash_differs(committed, tmp_path, ca
 
     assert "expects" in capsys.readouterr().err
     assert not (tmp_path / "previous-set").exists()
+
+
+# resolve_previous
+
+
+@pytest.fixture
+def working(tmp_path):
+    """A working copy holding NEW_SET, and an empty scratch directory beside it."""
+    baselines_dir = tmp_path / "functional_tests" / "baselines"
+    _png(baselines_dir / "chromium/t/f/page.png")
+    write_stamp(baselines_dir, Pointer(NEW_SET, "b" * 64))
+    scratch = tmp_path / "scratch"
+    scratch.mkdir()
+    return baselines_dir, scratch
+
+
+def _contents(root):
+    return {path.relative_to(root).as_posix(): path.read_bytes() for path in root.rglob("*") if path.is_file()}
+
+
+def _set_url(name, base=baseline_sets.DEFAULT_BASE_URL):
+    return f"{base}baselines-{name}/baselines-{name}.tar"
+
+
+def test_prev_is_the_copy_beside_the_working_copy_with_its_stamps_set(working):
+    baselines_dir, scratch = working
+    previous_dir = baselines_dir.with_name("baselines.prev")
+    _png(previous_dir / "chromium/t/f/page.png")
+    write_stamp(previous_dir, Pointer(SET, "a" * 64))
+    fetch = FakeFetch(AssertionError("prev needs no download"))
+
+    previous = resolve_previous("prev", baselines_dir, scratch, fetch=fetch, log=pytest.fail)
+
+    assert previous == Previous(previous_dir, f"baselines.prev (set {SET})")
+    assert fetch.urls == []
+
+
+def test_prev_without_a_stamp_says_so(working):
+    baselines_dir, scratch = working
+    previous_dir = baselines_dir.with_name("baselines.prev")
+    _png(previous_dir / "chromium/t/f/page.png")
+
+    previous = resolve_previous("prev", baselines_dir, scratch, fetch=FakeFetch(b""), log=pytest.fail)
+
+    assert previous == Previous(previous_dir, "baselines.prev (no stamp)")
+
+
+def test_a_missing_prev_means_there_is_nothing_to_compare_with(working):
+    baselines_dir, scratch = working
+
+    previous = resolve_previous("prev", baselines_dir, scratch, fetch=FakeFetch(b""), log=pytest.fail)
+
+    assert previous == Previous(None, "baselines.prev")
+
+
+def test_committed_installs_the_pointers_set_into_scratch_and_leaves_the_working_copy_alone(working, tmp_path):
+    baselines_dir, scratch = working
+    pointer_path = tmp_path / "BASELINE_SET"
+    pointer = _commit(pointer_path)
+    before = _contents(baselines_dir)
+    fetch, lines = FakeFetch(COMMITTED_TAR), []
+    environ = {baseline_sets.FETCH_ENV: "0", baseline_sets.URL_ENV: "https://fork.example/sets/"}
+
+    previous = resolve_previous(
+        "committed", baselines_dir, scratch, pointer_path=pointer_path, fetch=fetch, log=lines.append, environ=environ
+    )
+
+    assert previous == Previous(scratch / "previous", f"the committed set {SET}")
+    assert fetch.urls == [_set_url(SET, "https://fork.example/sets/")]
+    assert read_stamp(scratch / "previous") == pointer
+    assert (scratch / "previous/chromium/t/f/page.png").read_bytes() == b"committed"
+    [line] = lines
+    assert line.startswith(f"baselines: fetched set {SET} (2 files, ")
+    assert _contents(baselines_dir) == before
+    assert not baselines_dir.with_name("baselines.prev").exists()
+    # No lock file: the scratch directory is the caller's alone.
+    assert [path.name for path in scratch.iterdir()] == ["previous"]
+
+
+def test_committed_without_a_pointer_is_refused_without_a_download(working, tmp_path):
+    baselines_dir, scratch = working
+    pointer_path = tmp_path / "BASELINE_SET"
+    fetch = FakeFetch(COMMITTED_TAR)
+
+    with pytest.raises(ReportError, match="no committed set to compare with") as failure:
+        resolve_previous("committed", baselines_dir, scratch, pointer_path=pointer_path, fetch=fetch, log=pytest.fail)
+
+    assert str(pointer_path) in str(failure.value)
+    assert fetch.urls == []
+
+
+def test_committed_still_checks_the_pointers_hash(working, tmp_path):
+    baselines_dir, scratch = working
+    pointer_path = tmp_path / "BASELINE_SET"
+    _commit(pointer_path)
+    fetch = FakeFetch(_tar({"chromium/t/f/page.png": b"tampered"}))
+
+    with pytest.raises(BaselineSetError, match="expects"):
+        resolve_previous("committed", baselines_dir, scratch, pointer_path=pointer_path, fetch=fetch, log=pytest.fail)
+
+    assert not (scratch / "previous").exists()
+
+
+def test_a_set_name_is_installed_into_scratch(working, tmp_path):
+    baselines_dir, scratch = working
+    before = _contents(baselines_dir)
+    fetch, lines = FakeFetch(COMMITTED_TAR), []
+
+    previous = resolve_previous(SET, baselines_dir, scratch, pointer_path=tmp_path / "BASELINE_SET", fetch=fetch, log=lines.append)
+
+    assert previous == Previous(scratch / "previous", f"set {SET}")
+    assert fetch.urls == [_set_url(SET)]
+    assert read_stamp(scratch / "previous") == Pointer(SET, hashlib.sha256(COMMITTED_TAR).hexdigest())
+    assert len(lines) == 1
+    assert _contents(baselines_dir) == before
+    assert not (tmp_path / "BASELINE_SET").exists()
+
+
+def test_a_missing_set_raises_the_not_found_message(working):
+    baselines_dir, scratch = working
+    fetch = FakeFetch(SetNotFoundError("answered HTTP 404"))
+
+    with pytest.raises(SetNotFoundError, match=f"set {NEW_SET!r} is not at"):
+        resolve_previous(NEW_SET, baselines_dir, scratch, fetch=fetch, log=pytest.fail)
+
+
+def test_a_malformed_set_name_is_refused_without_a_download(working):
+    baselines_dir, scratch = working
+    fetch = FakeFetch(COMMITTED_TAR)
+
+    with pytest.raises(BaselineSetError, match="is not YYYY-MM-DD-<slug>"):
+        resolve_previous("previous", baselines_dir, scratch, fetch=fetch, log=pytest.fail)
+
+    assert fetch.urls == []
+
+
+@pytest.mark.parametrize("against", ["prev", "committed", SET])
+def test_a_missing_working_copy_is_refused_before_anything_else(against, tmp_path):
+    pointer_path = tmp_path / "BASELINE_SET"
+    _commit(pointer_path)
+    fetch = FakeFetch(COMMITTED_TAR)
+
+    with pytest.raises(ReportError, match="there is no working copy at .* to report on"):
+        resolve_previous(against, tmp_path / "baselines", tmp_path, pointer_path=pointer_path, fetch=fetch, log=pytest.fail)
+
+    assert fetch.urls == []

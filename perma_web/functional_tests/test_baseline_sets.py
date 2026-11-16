@@ -28,14 +28,21 @@ from functional_tests.baseline_sets import (
     read_pointer,
     read_stamp,
     set_not_found_message,
+    set_tag,
     set_url,
     write_stamp,
 )
 
+
+def _asset_url(name, base=baseline_sets.DEFAULT_BASE_URL):
+    """Where a set is published: the `<tag>.tar` asset of the release on tag `baselines-<name>`."""
+    return f"{base}baselines-{name}/baselines-{name}.tar"
+
+
 NAME = "2026-10-28-bootstrap3"
 OLD_NAME = "2026-09-01-before"
 HASH = "a" * 64
-URL = f"{baseline_sets.DEFAULT_BASE_URL}{NAME}.tar"
+URL = _asset_url(NAME)
 
 
 @pytest.fixture(autouse=True)
@@ -203,15 +210,40 @@ def test_unreadable_stamp_counts_as_no_stamp(tmp_path):
 # URLs
 
 
+@pytest.mark.parametrize("name", [NAME, "2026-10-28-a", "2026-10-28-0-firefox-fix"])
+def test_set_tag_prefixes_the_name(name):
+    assert set_tag(name) == f"baselines-{name}"
+
+
+@pytest.mark.parametrize("name", ["bootstrap3", f"baselines-{NAME}", "2026-10-28-a/b", "2026-10-28-Bootstrap3", ""])
+def test_set_tag_refuses_a_malformed_name(name):
+    with pytest.raises(BaselineSetError, match="is not YYYY-MM-DD-<slug>"):
+        set_tag(name)
+
+
 def test_set_url_uses_the_default_base():
+    assert set_url(NAME) == (
+        f"https://github.com/harvard-lil/perma/releases/download/baselines-{NAME}/baselines-{NAME}.tar"
+    )
     assert set_url(NAME) == URL
 
 
-@pytest.mark.parametrize("base", ["https://example.org/forks/sets", "https://example.org/forks/sets/", "https://example.org/forks/sets//"])
+@pytest.mark.parametrize("base", [
+    "https://github.com/example/perma/releases/download",
+    "https://github.com/example/perma/releases/download/",
+    "https://github.com/example/perma/releases/download//",
+])
 def test_set_url_takes_the_base_from_the_environment_with_one_slash(monkeypatch, base):
     monkeypatch.setenv(baseline_sets.URL_ENV, base)
 
-    assert set_url(NAME) == f"https://example.org/forks/sets/{NAME}.tar"
+    assert set_url(NAME) == f"https://github.com/example/perma/releases/download/baselines-{NAME}/baselines-{NAME}.tar"
+
+
+def test_set_url_names_the_tag_as_the_release_and_the_asset():
+    *_, release, asset = set_url(NAME).split("/")
+
+    assert release == set_tag(NAME)
+    assert asset == f"{set_tag(NAME)}.tar"
 
 
 def test_ensure_set_fetches_from_the_environment_base(monkeypatch, paths):
@@ -221,7 +253,7 @@ def test_ensure_set_fetches_from_the_environment_base(monkeypatch, paths):
 
     _ensure(paths, fetch)
 
-    assert fetch.urls == [f"https://example.org/sets/{NAME}.tar"]
+    assert fetch.urls == [f"https://example.org/sets/baselines-{NAME}/baselines-{NAME}.tar"]
 
 
 # ensure_set: when nothing happens
@@ -356,16 +388,17 @@ def test_hash_mismatch_raises_and_leaves_the_working_copy_and_stamp_alone(paths)
 def test_missing_set_names_the_set_the_url_and_the_likely_causes(paths):
     pointer_path, _ = paths
     _commit_pointer(paths, _pointer_for(NEW_SET))
-    # Built the way fetch_bytes builds it, so the fake raises exactly what a real 403 would.
-    forbidden = urllib.error.HTTPError(URL, 403, "Forbidden", email.message.Message(), None)
-    fetch = FakeFetch(baseline_sets._http_failure(URL, forbidden))
+    # Built the way fetch_bytes builds it, so the fake raises exactly what a real 404 would.
+    not_found = urllib.error.HTTPError(URL, 404, "Not Found", email.message.Message(), None)
+    fetch = FakeFetch(baseline_sets._http_failure(URL, not_found))
 
     with pytest.raises(SetNotFoundError) as failure:
         _ensure(paths, fetch)
 
     message = str(failure.value)
     assert NAME in message and URL in message and str(pointer_path) in message
-    assert "never uploaded" in message and baseline_sets.URL_ENV in message
+    assert f"no release was published on tag baselines-{NAME}" in message
+    assert "still a draft" in message and baseline_sets.URL_ENV in message
 
 
 def test_other_fetch_failures_propagate_unchanged(paths):
@@ -381,38 +414,26 @@ def test_other_fetch_failures_propagate_unchanged(paths):
 # HTTP error translation (the default fetcher's mapping; no request is made)
 
 
-def _http_error(code, reason="Error", **headers):
-    message = email.message.Message()
-    for key, value in headers.items():
-        message[key.replace("_", "-")] = value
-    return urllib.error.HTTPError(URL, code, reason, message, None)
+def _http_error(code, reason="Error"):
+    return urllib.error.HTTPError(URL, code, reason, email.message.Message(), None)
 
 
-def test_http_403_means_no_such_set():
-    error = baseline_sets._http_failure(URL, _http_error(403, "Forbidden", cf_cache_status="MISS"))
+def test_http_404_means_no_such_set():
+    error = baseline_sets._http_failure(URL, _http_error(404, "Not Found"))
 
     assert type(error) is SetNotFoundError
     assert URL in str(error)
     assert "baselines.fetch" not in str(error)
 
 
-def test_cloudflare_challenge_is_not_reported_as_a_missing_set():
-    error = baseline_sets._http_failure(URL, _http_error(403, "Forbidden", cf_mitigated="challenge"))
-
-    assert type(error) is BaselineSetError
-    assert "challenge" in str(error)
-    assert "baselines.fetch" not in str(error)  # retrying cannot pass the challenge
-
-
-@pytest.mark.parametrize("code, origin_hint", [(500, False), (404, False), (522, True)])
-def test_other_http_errors_give_the_status_and_the_way_to_run_offline(code, origin_hint):
+@pytest.mark.parametrize("code", [403, 429, 500])
+def test_other_http_errors_give_the_status_and_the_way_to_run_offline(code):
     error = baseline_sets._http_failure(URL, _http_error(code, "Bad"))
 
     assert type(error) is BaselineSetError
     assert f"HTTP {code} Bad" in str(error)
     assert f"{baseline_sets.FETCH_ENV}=0" in str(error)
     assert "`d invoke baselines.fetch`" in str(error)
-    assert ("origin rule" in str(error)) == origin_hint
 
 
 # Extraction
@@ -524,13 +545,13 @@ def _quiet(line):
     pass
 
 
-def _forbidden(url=URL):
-    """What the default fetcher raises for HTTP 403, built the way fetch_bytes builds it."""
-    return baseline_sets._http_failure(url, urllib.error.HTTPError(url, 403, "Forbidden", email.message.Message(), None))
+def _not_found(url=URL):
+    """What the default fetcher raises for HTTP 404, built the way fetch_bytes builds it."""
+    return baseline_sets._http_failure(url, urllib.error.HTTPError(url, 404, "Not Found", email.message.Message(), None))
 
 
 CANDIDATE = "2026-11-02-candidate"
-CANDIDATE_URL = f"{baseline_sets.DEFAULT_BASE_URL}{CANDIDATE}.tar"
+CANDIDATE_URL = _asset_url(CANDIDATE)
 CANDIDATE_SET = _tar({"chromium/test_x/test_y/page.png": b"candidate", "webkit/test_x/test_y/page.png": b"wk"})
 
 
@@ -609,7 +630,7 @@ def test_missing_set_from_the_pointer_raises_the_public_message(paths):
     _commit_pointer(paths, _pointer_for(NEW_SET))
 
     with pytest.raises(SetNotFoundError) as failure:
-        _ensure(paths, FakeFetch(_forbidden()))
+        _ensure(paths, FakeFetch(_not_found()))
 
     assert str(failure.value) == set_not_found_message(NAME, URL, pointer_path)
 
@@ -617,16 +638,20 @@ def test_missing_set_from_the_pointer_raises_the_public_message(paths):
 def test_set_not_found_message_for_a_pointer_names_the_pointer(tmp_path):
     message = set_not_found_message(NAME, URL, tmp_path / "BASELINE_SET")
 
-    assert f"set {NAME!r}, named in {tmp_path / 'BASELINE_SET'}, is not at {URL} (HTTP 403)" in message
-    assert "never uploaded" in message and baseline_sets.URL_ENV in message and "cached 403" in message
+    assert f"set {NAME!r}, named in {tmp_path / 'BASELINE_SET'}, is not at {URL} (HTTP 404)" in message
+    assert f"the pointer names a set for which no release was published on tag baselines-{NAME}" in message
+    assert "still a draft" in message
+    assert f"{baseline_sets.URL_ENV} points at the wrong repository" in message
 
 
 def test_set_not_found_message_for_a_name_points_to_the_catalog():
     message = set_not_found_message(NAME, URL)
 
-    assert message.startswith(f"baselines: set {NAME!r} is not at {URL} (HTTP 403)")
-    assert "git tag -l 'baselines/*'" in message
-    assert baseline_sets.URL_ENV in message and "cached 403" in message
+    assert message.startswith(f"baselines: set {NAME!r} is not at {URL} (HTTP 404)")
+    assert f"no release was published for tag baselines-{NAME}" in message
+    assert "`gh release list` or `git tag -l 'baselines-*'`" in message
+    assert "still a draft" in message
+    assert f"{baseline_sets.URL_ENV} points at the wrong repository" in message
 
 
 # install_set
@@ -719,7 +744,7 @@ def test_install_set_reports_a_missing_set_by_name_and_leaves_the_working_copy(p
     page = _old_copy(baselines_dir)
 
     with pytest.raises(SetNotFoundError) as failure:
-        install_set(NAME, baselines_dir, fetch=FakeFetch(_forbidden()), log=_quiet, lock=FakeLock())
+        install_set(NAME, baselines_dir, fetch=FakeFetch(_not_found()), log=_quiet, lock=FakeLock())
 
     assert str(failure.value) == set_not_found_message(NAME, URL)
     assert page.read_bytes() == b"old"
@@ -868,7 +893,7 @@ def test_adopt_of_a_missing_set_leaves_the_pointer_and_working_copy_alone(paths)
     _commit_pointer(paths, committed)
 
     with pytest.raises(SetNotFoundError) as failure:
-        _adopt(paths, CANDIDATE, FakeFetch(_forbidden(CANDIDATE_URL)))
+        _adopt(paths, CANDIDATE, FakeFetch(_not_found(CANDIDATE_URL)))
 
     assert str(failure.value) == set_not_found_message(CANDIDATE, CANDIDATE_URL)
     assert read_pointer(pointer_path) == committed

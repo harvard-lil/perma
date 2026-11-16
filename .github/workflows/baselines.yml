@@ -1,60 +1,70 @@
 name: Baselines
 
 # Renders a set of visual baselines when a maintainer pushes a tag
-# `baselines/YYYY-MM-DD-<slug>`, attaches a review report, and uploads the set
-# once. See "Publishing a set" in developer.md.
+# `baselines-YYYY-MM-DD-<slug>`, and publishes the set and its review report as
+# a pre-release on that tag. See "Publishing a set" in developer.md.
 
 on:
   push:
-    tags: ['baselines/**']
+    tags: ['baselines-*']
 
-# Runs for one tag queue: none is cancelled, since it may be mid-upload.
+# Runs for one tag queue: none is cancelled, since it may be mid-publish.
 concurrency:
   group: perma-baselines-${{ github.ref }}
   cancel-in-progress: false
 
+# Creating the release needs contents: write. The same token could also push,
+# which is why the tag ruleset limits who can start this workflow.
 permissions:
-  id-token: write   # assume the baselines AWS role
-  contents: read
+  contents: write
 
 jobs:
-  # No `environment:` anywhere: it would replace the tag ref in the OIDC
-  # subject, and the role trusts only `ref:refs/tags/baselines/*`.
+  # No `environment:`: the job needs no variable or secret, only its own token.
   capture:
-    name: Capture, report and upload
+    name: Capture, report and publish
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
       # Compose reads this itself; it also keeps docker-compose.override.yml, which is developer-only, out.
       COMPOSE_FILE: docker-compose.yml:docker-compose.ci.yml
-      # Only the upstream repository's role can write here. A fork that keeps
-      # its own sets points PERMA_BASELINES_URL at them; it does not change this.
-      BASELINES_BUCKET: lil-perma-test-baselines
 
     steps:
-      # Before checkout, so a fork or a malformed tag stops in seconds. IAM
-      # would accept a nested name such as baselines/a/b; the tag ruleset does not cover it.
-      - name: Check the repository and the tag name
+      # Before checkout, so a malformed tag stops in seconds. No repository
+      # check: a fork's run publishes to the fork's own releases.
+      - name: Check the tag name
         env:
-          ROLE: ${{ vars.BASELINES_AWS_ROLE_TO_ASSUME }}
           REF_NAME: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          if [ -z "${ROLE}" ]; then
-            echo "::error::BASELINES_AWS_ROLE_TO_ASSUME is not set: this workflow uploads only from the upstream repository; forks have no role."
-            exit 1
-          fi
           # C locale: elsewhere [a-z] can match capitals.
           export LC_ALL=C
-          pattern='^baselines/[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9][a-z0-9-]*$'
+          pattern='^baselines-[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9][a-z0-9-]*$'
           if ! [[ "${REF_NAME}" =~ ${pattern} ]]; then
-            echo "::error::Tag '${REF_NAME}' is not baselines/YYYY-MM-DD-<slug> (lowercase letters, digits and hyphens, and no further slash)."
+            echo "::error::Tag '${REF_NAME}' is not baselines-YYYY-MM-DD-<slug> (lowercase letters, digits and hyphens)."
             exit 1
           fi
-          echo "SET_NAME=${REF_NAME#baselines/}" >> "$GITHUB_ENV"
+          echo "SET_NAME=${REF_NAME#baselines-}" >> "$GITHUB_ENV"
+          echo "TAG=${REF_NAME}" >> "$GITHUB_ENV"
 
+      # A read, and the only `gh` call before the last steps. `gh release view`
+      # finds a draft by its pending tag too. If this lookup itself fails,
+      # `gh release create` still refuses a tag that has a release.
+      - name: Refuse a tag that already has a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft >/dev/null 2>&1; then
+            echo "::error::A release already exists for ${TAG}, possibly a draft left by a failed run. A person must delete it by hand before this tag is retried."
+            exit 1
+          fi
+
+      # The job's token can write to the repository (it creates the release), and
+      # nothing after checkout uses git credentials, so they are not left in .git/config.
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       # As in lint_test.yml: `test` is FROM `prod`, so the suite renders with the
       # layers that ship, and the same PERMA_VERSION keeps the collectstatic layer shared.
@@ -140,8 +150,8 @@ jobs:
           fi
 
       # The committed pointer's set is what this one would replace. Fetching it
-      # through the public hostname also exercises the read path. With no
-      # pointer this is the first set, and every image counts as added.
+      # from its release also exercises the read path. With no pointer this is
+      # the first set, and every image counts as added.
       - name: Build the review report
         shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
         run: |
@@ -169,29 +179,23 @@ jobs:
 
       # Sorted names, one mtime and numeric root ownership, so a tree packs to
       # the same bytes; packing twice checks it. `.set` is a fetched copy's stamp, never part of a set.
-      - name: Pack the set
+      # The archive's name is the release asset's, which the fetch builds from the tag.
+      - name: Pack the set and zip the report
         run: |
           set -euxo pipefail
           tar --version | sed -n 1p
-          for archive in set.tar set.again.tar; do
+          archive="baselines-${SET_NAME}.tar"
+          for output in "${archive}" set.again.tar; do
             tar --format=gnu --sort=name --mtime='1970-01-01 00:00:00Z' \
               --owner=0 --group=0 --numeric-owner --exclude=.set \
-              -cf "${archive}" -C baselines-out .
+              -cf "${output}" -C baselines-out .
           done
-          cmp set.tar set.again.tar
+          cmp "${archive}" set.again.tar
           rm set.again.tar
-          sha256="$(sha256sum set.tar | cut -d' ' -f1)"
+          sha256="$(sha256sum "${archive}" | cut -d' ' -f1)"
           echo "SET_SHA256=${sha256}" >> "$GITHUB_ENV"
-          ls -l set.tar
-
-      - name: Upload the review report
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: baseline-report-${{ env.SET_NAME }}
-          path: baseline-report/
-          if-no-files-found: error
-          # A re-run of this job uploads the report again under the same name.
-          overwrite: true
+          zip -r "baselines-${SET_NAME}-report.zip" baseline-report
+          ls -l "${archive}" "baselines-${SET_NAME}-report.zip"
 
       - name: Write the job summary
         run: |
@@ -207,30 +211,58 @@ jobs:
             echo '```'
             echo
             jq -r .markdown baseline-report/summary.json
-            echo "Report artifact: \`baseline-report-${SET_NAME}\` (expected, actual and diff for every changed image)."
+            echo "The report, \`baselines-${SET_NAME}-report.zip\` (expected, actual and diff for every changed image), is on the release: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/${TAG}"
             echo
-            echo "Once the upload step has succeeded, adopt the set with \`d invoke baselines.adopt ${SET_NAME}\` and commit the pointer."
+            echo "Once the last step has published the release, adopt the set with \`d invoke baselines.adopt ${SET_NAME}\` and commit the pointer."
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Show the AWS CLI version
-        run: aws --version
+      # The release page is the set's record: what rendered it, its pointer lines and what changed.
+      - name: Write the release notes
+        run: |
+          set -euo pipefail
+          {
+            echo "## Visual baselines ${SET_NAME}"
+            echo
+            echo "Rendered from commit ${GITHUB_SHA} by ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}."
+            echo
+            echo "Pointer lines for \`perma_web/functional_tests/BASELINE_SET\`:"
+            echo
+            echo '```'
+            echo "set=${SET_NAME}"
+            echo "sha256=${SET_SHA256}"
+            echo '```'
+            echo
+            jq -r .markdown baseline-report/summary.json
+            echo "\`baselines-${SET_NAME}-report.zip\` holds the review report: expected, actual and diff for every changed image."
+            echo
+            echo "Adopt the set with \`d invoke baselines.adopt ${SET_NAME}\` and commit the pointer."
+          } > release-notes.md
+          cat release-notes.md
 
-      - name: Configure upload credentials
-        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
-        with:
-          role-to-assume: ${{ vars.BASELINES_AWS_ROLE_TO_ASSUME }}
-          aws-region: us-east-1
-
-      # Nothing may follow this step: a re-run after a successful upload gets
-      # 412 from the conditional put, so a later step would never run again.
-      # One put-object, never `aws s3 cp`: the role's policy refuses multipart uploads.
-      - name: Upload the set
+      # Draft first: once immutable releases are on, a published release takes
+      # no more assets. Pre-release, so no set becomes the repository's latest release.
+      - name: Create the release as a draft
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euxo pipefail
-          aws s3api put-object \
-            --bucket "${BASELINES_BUCKET}" \
-            --key "sets/${SET_NAME}.tar" \
-            --body set.tar \
-            --if-none-match '*' \
-            --cache-control 'public, max-age=31536000, immutable' \
-            --content-type application/x-tar
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --draft --prerelease --verify-tag \
+            --title "Visual baselines ${SET_NAME}" --notes-file release-notes.md
+
+      # Never --clobber: an uploaded asset is the set its tag names.
+      - name: Upload the set and the report
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euxo pipefail
+          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" "baselines-${SET_NAME}.tar" "baselines-${SET_NAME}-report.zip"
+
+      # Nothing may follow this step. Publishing last means a re-run after
+      # success stops at the existing-release check, and a run that failed
+      # between create and here leaves a draft that check names.
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euxo pipefail
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false

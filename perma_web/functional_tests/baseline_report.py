@@ -22,6 +22,10 @@ in the test container:
 pointer (the first set). The report command prints the totals and exits 0
 whether or not anything changed: the report informs a review; it is not a gate.
 
+`d invoke baselines.report` (`tasks/baselines.py`) builds the same page for a
+developer's working copy; `resolve_previous` finds or installs what it is
+compared with: `baselines.prev`, the committed set or a named one.
+
 Pillow and the stdlib only, so it runs without Django.
 """
 
@@ -33,7 +37,8 @@ import os
 import shutil
 import sys
 from collections import Counter
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
+from contextlib import AbstractContextManager, nullcontext
 from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
@@ -49,6 +54,7 @@ from functional_tests.baseline_sets import (
     Pointer,
     ensure_set,
     fetch_bytes,
+    install_set,
     read_stamp,
 )
 from functional_tests.image_diff import SNAPSHOT_TOLERANCE, ImageComparison, compare_images
@@ -60,6 +66,10 @@ _CHANGED_DIR = "changed"
 _ADDED_DIR = "added"
 _TOP_LEVEL = "(top level)"
 _PROG = "python -m functional_tests.baseline_report"
+
+# The values of `resolve_previous`'s `against` that are not set names.
+PREVIOUS_COPY = "prev"
+COMMITTED_SET = "committed"
 
 
 class ReportError(ValueError):
@@ -395,6 +405,90 @@ def _render_page(summary: ReportSummary) -> str:
 """
 
 
+@dataclass(frozen=True)
+class Previous:
+    """
+    What `resolve_previous` found to compare the working copy with.
+
+    `directory` is None when there is nothing to compare with, so every image
+    counts as added. `label` says which it is, for a person: `baselines.prev
+    (set <name>)`, `baselines.prev (no stamp)`, `the committed set <name>` or
+    `set <name>`; when there is no previous copy, just `baselines.prev`.
+    """
+
+    directory: Path | None
+    label: str
+
+
+def _ignoring_fetch_switch(environ: Mapping[str, str] | None) -> dict[str, str]:
+    # The set was asked for by name or as the committed one, so PERMA_BASELINES_FETCH=0 must not make it a no-op.
+    return {key: value for key, value in (os.environ if environ is None else environ).items() if key != FETCH_ENV}
+
+
+def _unlocked(path: Path) -> AbstractContextManager:
+    # The scratch directory is the caller's alone: no other process installs into it.
+    return nullcontext()
+
+
+def resolve_previous(
+    against: str,
+    baselines_dir: Path,
+    scratch: Path,
+    *,
+    pointer_path: Path = POINTER_PATH,
+    fetch: Callable[[str], bytes],
+    log: Callable[[str], None],
+    environ: Mapping[str, str] | None = None,
+) -> Previous:
+    """
+    Find or install the baselines a report compares the working copy with; the working copy is never touched.
+
+    Args:
+        against: `prev` (`PREVIOUS_COPY`) for the copy the last install displaced,
+            `<baselines_dir>.prev`, which may be absent; `committed`
+            (`COMMITTED_SET`) for the set the pointer file names; any other value
+            is a set name. Sets are installed into `scratch / "previous"`.
+        baselines_dir: The working copy, which must exist.
+        scratch: An existing directory the caller owns and removes afterwards.
+        pointer_path: The pointer file, read for `committed`.
+        fetch, log: As for `baseline_sets.ensure_set`; `log` gets one line per install.
+        environ: Where to read `PERMA_BASELINES_URL`; `os.environ` by default.
+            `PERMA_BASELINES_FETCH` is ignored, since a set is asked for explicitly.
+
+    Returns the Previous.
+
+    Raises:
+        ReportError: If the working copy does not exist, or `against` is
+            `committed` and there is no pointer file.
+        SetNotFoundError: If the set is not at its URL.
+        BaselineSetError: If a set name is malformed, the pointer does not parse,
+            or the download, hash check or extraction fails.
+    """
+    # Checked first, so a missing working copy costs no download.
+    if not baselines_dir.is_dir():
+        raise ReportError(
+            f"there is no working copy at {baselines_dir} to report on; `d invoke baselines.fetch` "
+            "installs the committed set, and a `visual` test run with --update-snapshots renders one"
+        )
+    if against == PREVIOUS_COPY:
+        previous_dir = baselines_dir.with_name(f"{baselines_dir.name}.prev")
+        if not previous_dir.is_dir():
+            return Previous(None, previous_dir.name)
+        stamp = read_stamp(previous_dir)
+        held = f"set {stamp.name}" if stamp else "no stamp"
+        return Previous(previous_dir, f"{previous_dir.name} ({held})")
+    into = scratch / "previous"
+    if against == COMMITTED_SET:
+        outcome = ensure_set(
+            pointer_path, into, fetch=fetch, log=log, lock=_unlocked, environ=_ignoring_fetch_switch(environ)
+        )
+        if outcome.pointer is None:
+            raise ReportError(f"there is no committed set to compare with: {pointer_path} does not exist")
+        return Previous(into, f"the committed set {outcome.pointer.name}")
+    pointer = install_set(against, into, fetch=fetch, log=log, lock=_unlocked, environ=environ)
+    return Previous(into, f"set {pointer.name}")
+
+
 def fetch_previous(into: Path) -> Pointer | None:
     """
     Install the set the committed pointer names into a directory, to compare a new render with.
@@ -412,9 +506,8 @@ def fetch_previous(into: Path) -> Pointer | None:
         BaselineSetError: If the pointer does not parse, or the set is missing,
             cannot be downloaded, has the wrong sha256 or cannot be extracted.
     """
-    environ = {key: value for key, value in os.environ.items() if key != FETCH_ENV}
     into.parent.mkdir(parents=True, exist_ok=True)
-    return ensure_set(POINTER_PATH, into, fetch=fetch_bytes, environ=environ).pointer
+    return ensure_set(POINTER_PATH, into, fetch=fetch_bytes, environ=_ignoring_fetch_switch(None)).pointer
 
 
 def _tolerance(value: str) -> int:

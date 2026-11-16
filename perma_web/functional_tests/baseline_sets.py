@@ -8,17 +8,23 @@ The PNG baselines live outside git. A committed pointer file,
     sha256=<64 lowercase hex digits>
 
 `ensure_set` makes the working copy, `functional_tests/baselines/`, hold that
-set. It downloads `<base><name>.tar` (base `DEFAULT_BASE_URL`, or the value of
-`PERMA_BASELINES_URL`), checks the hash, extracts the archive into a sibling
-staging directory, moves the old copy to `baselines.prev/`, moves the new one
-into place, and writes the stamp `baselines/.set` (the pointer's format) last.
-A copy whose stamp already matches the pointer is used without any network.
+set. It downloads `<base><tag>/<tag>.tar`, where the tag is `baselines-<name>`
+and base is `DEFAULT_BASE_URL` (this repository's release downloads) or the
+value of `PERMA_BASELINES_URL`, checks the hash, extracts the archive into a
+sibling staging directory, moves the old copy to `baselines.prev/`, moves the
+new one into place, and writes the stamp `baselines/.set` (the pointer's
+format) last. A copy whose stamp already matches the pointer is used without
+any network.
 
 `install_set` installs a set by name with no hash to check (a preview), and
 `adopt_set` writes the pointer for a set and counts the PNGs that changed
 (`diff_trees`). `tasks/baselines.py` exposes these and `ensure_set` as
 `d invoke baselines.fetch` and `d invoke baselines.adopt`.
 
+- Each set is the asset `<tag>.tar` of a GitHub release on the tag of the
+  same name, one release per set. GitHub answers the download URL with a 302
+  to its object store, which urllib follows; a release that does not exist,
+  or is still a draft, answers 404.
 - The archive holds the directory's contents, not a wrapping folder: its top
   level is `<browser>/...`. A leading `./`, as GNU tar writes it, is fine.
   Only regular files and directories are accepted.
@@ -57,7 +63,8 @@ STAMP_NAME = ".set"
 
 FETCH_ENV = "PERMA_BASELINES_FETCH"
 URL_ENV = "PERMA_BASELINES_URL"
-DEFAULT_BASE_URL = "https://test-baselines.perma.cc/sets/"
+DEFAULT_BASE_URL = "https://github.com/harvard-lil/perma/releases/download/"
+TAG_PREFIX = "baselines-"
 
 USER_AGENT = "perma-baselines/1 (+https://github.com/harvard-lil/perma)"
 FETCH_TIMEOUT_SECONDS = 120
@@ -74,7 +81,7 @@ class BaselineSetError(RuntimeError):
 
 
 class SetNotFoundError(BaselineSetError):
-    """No set at the URL. The bucket grants no ListBucket, so a missing key answers 403, not 404."""
+    """No set at the URL: a release that does not exist or is still a draft answers 404."""
 
 
 @dataclass(frozen=True)
@@ -250,48 +257,56 @@ def write_stamp(directory: Path, pointer: Pointer) -> Path:
     return stamp
 
 
-def set_url(name: str, environ: Mapping[str, str] | None = None) -> str:
+def set_tag(name: str) -> str:
     """
-    Build the download URL of a set.
+    Name the git tag, and the release on it, that holds a set.
 
     Args:
         name: The set name; validated before use.
-        environ: Where to look up `PERMA_BASELINES_URL`; `os.environ` by default.
 
-    Returns `<base><name>.tar`, where base is `PERMA_BASELINES_URL` if set
-    (given exactly one trailing slash) and `DEFAULT_BASE_URL` otherwise.
+    Returns `baselines-<name>`.
 
     Raises:
         BaselineSetError: If the name is malformed.
     """
     _validate_set_name(name)
+    return f"{TAG_PREFIX}{name}"
+
+
+def set_url(name: str, environ: Mapping[str, str] | None = None) -> str:
+    """
+    Build the download URL of a set: the `<tag>.tar` asset of the release on its tag.
+
+    Args:
+        name: The set name; validated before use.
+        environ: Where to look up `PERMA_BASELINES_URL`; `os.environ` by default.
+
+    Returns `<base><tag>/<tag>.tar`, where tag is `set_tag(name)` and base is
+    `PERMA_BASELINES_URL` if set (given exactly one trailing slash) and
+    `DEFAULT_BASE_URL` otherwise.
+
+    Raises:
+        BaselineSetError: If the name is malformed.
+    """
+    tag = set_tag(name)
     environ = os.environ if environ is None else environ
     base = environ.get(URL_ENV, "").strip() or DEFAULT_BASE_URL
-    return f"{base.rstrip('/')}/{name}.tar"
+    return f"{base.rstrip('/')}/{tag}/{tag}.tar"
 
 
 def _http_failure(url: str, error: urllib.error.HTTPError) -> BaselineSetError:
     """The exception `fetch_bytes` raises for an HTTP error status."""
-    headers = error.headers or {}
-    if error.code == 403 and headers.get("cf-mitigated"):
-        return BaselineSetError(
-            f"baselines: {url} answered with a Cloudflare challenge (HTTP 403, cf-mitigated), "
-            f"so the request never reached the bucket; the hostname's firewall skip is missing. {_OFFLINE_HINT}"
-        )
-    if error.code == 403:
-        return SetNotFoundError(f"baselines: {url} answered HTTP 403, which the bucket returns for a missing key")
-    origin_hint = (
-        " Cloudflare could not use the bucket as origin; check the hostname's origin rule."
-        if 520 <= error.code <= 530 else ""
-    )
-    return BaselineSetError(
-        f"baselines: {url} answered HTTP {error.code} {error.reason}.{origin_hint} {_RETRY_HINT} {_OFFLINE_HINT}"
-    )
+    if error.code == 404:
+        return SetNotFoundError(f"baselines: {url} answered HTTP 404")
+    return BaselineSetError(f"baselines: {url} answered HTTP {error.code} {error.reason}. {_RETRY_HINT} {_OFFLINE_HINT}")
 
 
 def fetch_bytes(url: str, timeout: float = FETCH_TIMEOUT_SECONDS) -> bytes:
     """
     Download a URL with a descriptive User-Agent; the default fetcher of this module. Never retries.
+
+    Redirects are followed, as GitHub's release downloads need: the 302 to the
+    object store keeps the User-Agent and the timeout.
 
     Args:
         url: What to download, normally from `set_url`.
@@ -300,9 +315,10 @@ def fetch_bytes(url: str, timeout: float = FETCH_TIMEOUT_SECONDS) -> bytes:
     Returns the response body.
 
     Raises:
-        SetNotFoundError: On HTTP 403, which is how the bucket reports a missing set.
-        BaselineSetError: On any other HTTP status, a Cloudflare challenge, a
-            malformed URL, or a network failure (offline, DNS, timeout, truncated body).
+        SetNotFoundError: On HTTP 404, which is how GitHub answers for a release
+            that does not exist or is still a draft.
+        BaselineSetError: On any other HTTP status, a malformed URL, or a
+            network failure (offline, DNS, timeout, truncated body).
     """
     try:
         request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
@@ -379,7 +395,7 @@ def _file_lock(path: Path) -> AbstractContextManager:
 
 def set_not_found_message(name: str, url: str, pointer_path: Path | None = None) -> str:
     """
-    Explain a set that is not at its URL (HTTP 403); every download in this module raises SetNotFoundError with it.
+    Explain a set that is not at its URL (HTTP 404); every download in this module raises SetNotFoundError with it.
 
     Args:
         name: The set asked for.
@@ -387,18 +403,23 @@ def set_not_found_message(name: str, url: str, pointer_path: Path | None = None)
         pointer_path: The pointer file naming the set, or None when the set was
             asked for by name (a preview or an adoption).
 
-    Returns the message: the set, the URL, both likely causes, and the note
-    that a cached 403 can hide a set uploaded minutes ago.
+    Returns the message: the set, the URL, and the three likely causes (no
+    release for the set's tag, a release still in draft, or a
+    `PERMA_BASELINES_URL` aimed at the wrong repository).
     """
+    # Not set_tag: a message must not raise, and the name was validated before any download.
+    tag = f"{TAG_PREFIX}{name}"
     if pointer_path is None:
         subject = f"set {name!r}"
-        cause = "no set by that name was ever uploaded (`git tag -l 'baselines/*'` lists the sets requested so far)"
+        cause = f"no release was published for tag {tag}"
     else:
         subject = f"set {name!r}, named in {pointer_path},"
-        cause = "the pointer names a set that was never uploaded"
+        cause = f"the pointer names a set for which no release was published on tag {tag}"
     return (
-        f"baselines: {subject} is not at {url} (HTTP 403). Either {cause}, or {URL_ENV} points at the wrong place. "
-        "A set uploaded in the last few minutes can still be hidden by a cached 403: retry shortly before suspecting the upload."
+        f"baselines: {subject} is not at {url} (HTTP 404). Either {cause} "
+        f"(`gh release list` or `git tag -l '{TAG_PREFIX}*'` shows what exists), "
+        "or the release is still a draft (the run that publishes it failed or has not finished), "
+        f"or {URL_ENV} points at the wrong repository."
     )
 
 

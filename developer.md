@@ -311,10 +311,11 @@ from the staged cutover release without dispatching a deployment; subsequent
 promotions use the workflow above. Confirm a successful deployment run and its
 image digest before treating a branch tip as proof of what is running.
 
-Tags are not part of the release flow. The repository has one tag namespace,
-`baselines/<name>`, which asks CI to render a set of visual baselines and nothing
-else; see [Publishing a set](#publishing-a-set). Those tags are never moved or reused,
-and only maintainers should create them.
+Tags are not part of the deploy flow, and GitHub releases are not used to version
+Perma. The repository has one tag namespace, `baselines-<name>`, which asks CI to
+render a set of visual baselines and nothing else. Every such tag carries a
+pre-release holding that baseline set; see [Publishing a set](#publishing-a-set).
+Those tags are never moved or reused, and only maintainers should create them.
 
 GitHub's `staging` and `prod` environments are restricted to their matching
 branches. Each needs `AWS_ROLE_TO_ASSUME`, `STATIC_BUCKET`,
@@ -799,7 +800,9 @@ def test_landing_looks_the_same(page, ui_urls, assert_snapshot):
   `functional_tests/BASELINE_SET` names (below); without that file, the directory is
   used as it is. Parametrized tests share a function name, so give each case its own
   `name`. A test can override the `snapshot_dir` fixture to use another directory (no
-  set is then fetched), and `update_snapshots` to force the flag.
+  set is then fetched), and `update_snapshots` to force the flag. CI's lint job refuses
+  any committed PNG under `functional_tests/` and any committed file under the baselines
+  or `failed_test_files` directories.
 - **When a comparison fails.** The test fails with the number of pixels over tolerance,
   the worst channel difference, the bounding box and both sizes. `<name>-expected.png`,
   `<name>-actual.png` and `<name>-diff.png` are written to the test's directory under
@@ -810,9 +813,11 @@ def test_landing_looks_the_same(page, ui_urls, assert_snapshot):
 #### Baseline sets
 
 Baseline PNGs are kept out of git, so the repository and the image never grow with
-them. A set of baselines is one immutable tarball, named `YYYY-MM-DD-<slug>`. The
-committed file `functional_tests/BASELINE_SET` names the set the code is tested
-against, with the tarball's sha256, so every commit records its baselines:
+them. A set of baselines is one immutable tarball, named `YYYY-MM-DD-<slug>` and
+published as an asset of a pre-release of this repository, on the tag
+`baselines-<name>`. The committed file `functional_tests/BASELINE_SET` names the set
+the code is tested against, with the tarball's sha256, so every commit records its
+baselines:
 
 ```
 set=2026-10-28-bootstrap3
@@ -827,15 +832,17 @@ first test that reads a baseline:
   This is the state until a first set is named.
 - **Stamp matches:** `functional_tests/baselines/.set` records the set the working copy
   holds. When it equals the pointer, nothing is downloaded.
-- **Otherwise** it downloads `https://test-baselines.perma.cc/sets/<name>.tar`, checks
-  the sha256 against the pointer, and extracts the tarball into
-  `functional_tests/baselines.tmp/`. The working copy moves to
-  `functional_tests/baselines.prev/` (replacing an older one), the new set takes its
-  place, the stamp is written last, and one line goes to stderr (pytest captures it with
-  the first test that needed it). A missing set (HTTP 403), a network failure or a hash
-  mismatch fails those tests with a message saying what to check, and leaves the working
-  copy as it was. Nothing is retried; the messages name the command below that retries or
-  repairs it.
+- **Otherwise** it downloads the release asset
+  `https://github.com/harvard-lil/perma/releases/download/baselines-<name>/baselines-<name>.tar`
+  (GitHub redirects to its object store, and the download follows), checks the sha256
+  against the pointer, and extracts the tarball into `functional_tests/baselines.tmp/`.
+  The working copy moves to `functional_tests/baselines.prev/` (replacing an older one),
+  the new set takes its place, the stamp is written last, and one line goes to stderr
+  (pytest captures it with the first test that needed it). A missing set, a network
+  failure or a hash mismatch fails those tests with a message saying what to check, and
+  leaves the working copy as it was. A missing set is HTTP 404: no release was published
+  for the tag, the release is still a draft, or the base URL names the wrong repository.
+  Nothing is retried; the messages name the command below that retries or repairs it.
 - **Workers.** Under `-n auto` every worker gets this far. A lock on
   `functional_tests/baselines.lock` lets one download while the others wait, then read
   the new stamp and skip the network.
@@ -847,12 +854,15 @@ first test that reads a baseline:
   it. Copy out anything you want to keep.
 - **`PERMA_BASELINES_FETCH=0`** (or `false`, `no`) turns all of this off and uses the
   directory as it is: for working offline, or for rendering a set from an empty directory.
-- **`PERMA_BASELINES_URL`** replaces the base URL. The default host is LIL's, read-only
-  for everyone; a fork that stores its own sets points this at its own host.
+- **`PERMA_BASELINES_URL`** replaces the base URL,
+  `https://github.com/harvard-lil/perma/releases/download/`. Anyone can read the default
+  without credentials. A fork that publishes its own sets points this at its own
+  repository's `https://github.com/<owner>/<repo>/releases/download/`.
 - **The `visual` marker** (in `pyproject.toml`) is for tests that call `assert_snapshot`,
   so that they can be run alone with `-m visual`.
 
-Two invoke tasks (`tasks/baselines.py`) manage the working copy and the pointer by hand.
+Two invoke tasks (`tasks/baselines.py`) manage the working copy and the pointer by hand;
+a third, `baselines.report`, compares sets (see "Looking at the images" below).
 `functional_tests/` is bind-mounted into the container, so `d invoke` and a pytest run on
 the host see the same files; don't run them at the same time.
 
@@ -877,17 +887,66 @@ the host see the same files; don't run them at the same time.
   nothing is committed for you. Adopting the set the pointer names and the working copy
   holds is a no-op, and says so. After a hash mismatch, if the stored set is the right
   one, `adopt` rewrites the pointer from a fresh download.
-- **Errors.** Both tasks exit with status 1 and the error's message, without a traceback,
-  when a set is missing, a download fails, a hash differs or a name is malformed.
+- **Errors.** `fetch` and `adopt` exit with status 1 and the error's message, without a
+  traceback, when a set is missing, a download fails, a hash differs or a name is
+  malformed.
   `--name` and `adopt` ignore `PERMA_BASELINES_FETCH`: they name a set explicitly.
-- **Which sets exist.** Every set has a `baselines/<name>` git tag; newest first:
+- **Which sets exist.** Every set is a pre-release on its `baselines-<name>` tag, so the
+  repository's Releases page lists them. From a terminal, newest first:
 
   ```
-  git fetch --tags && git tag -l 'baselines/*' --sort=-creatordate
+  gh release list
+  git fetch --tags && git tag -l 'baselines-*' --sort=-creatordate
   ```
+
+  A tag whose run failed has no release, or only a draft, and so no set.
 
   There is deliberately no `latest`. A commit names its set, so a newer set never
   changes what an older commit is tested against.
+
+**Looking at the images.** Three local directories hold baseline PNGs. All are ignored by
+git and sit under the bind-mounted `perma_web/`, so an image viewer on the host opens
+them directly.
+
+- **`functional_tests/baselines/`** is what the tests compare against now: the set its
+  stamp names, plus anything `--update-snapshots` has rewritten since.
+- **`functional_tests/baselines.prev/`** is what was there before the last swap (a pytest
+  run, `fetch` or `adopt` that installed a different set), including PNGs an update run
+  had rewritten. Look here to see what a switch replaced; the next switch discards it.
+- **`failed_test_files/<test>/`** holds `<name>-expected.png`, `-actual.png` and
+  `-diff.png` from the last run's failing comparisons, next to the failure screenshot.
+  Look here first when a visual test fails. The next pytest run empties it.
+
+**`d invoke baselines.report`** builds the review page the `Baselines` workflow publishes
+(see [Publishing a set](#publishing-a-set), step 4), with the working copy as the new
+side, so a whole set of local changes can be looked at before tagging:
+
+- **`--against prev`**, the default, compares with `baselines.prev/`, for instance after
+  `fetch --name` to see what the candidate changes. Without a previous copy, every image
+  counts as added, and the output says so.
+- **`--against committed`** compares with the set `functional_tests/BASELINE_SET` names,
+  for instance after `--update-snapshots` to see what the update rewrote. Without a
+  pointer file it exits with status 1.
+- **`--against NAME`** compares with a published set.
+- `committed` and `NAME` download the set into a temporary directory that is removed
+  afterwards; the working copy, its stamp and `baselines.prev/` are not touched.
+- **`--out DIR`** writes the report to DIR, which must be empty or absent. By default it
+  goes to `failed_test_files/baseline-report/`, which each report replaces and the next
+  pytest run empties; copy it out to keep it.
+
+It prints what it compared (naming the sets where known), the changed, added, removed
+and unchanged counts, and the path of `index.html` from the repository root, such as
+`perma_web/failed_test_files/baseline-report/index.html`. The page names the new side by
+the working copy's stamp, which still names the fetched set after `--update-snapshots`
+has rewritten some of its PNGs. A missing working copy, a failed download or a non-empty
+`--out` ends it with status 1 and the message.
+
+To look at a published set's report, download it from its release into a directory
+outside the repository, then unzip it and open `index.html`:
+
+```
+gh release download baselines-<name> --pattern '*-report.zip' --dir <a directory outside the repository>
+```
 
 The module's unit tests, `functional_tests/test_baseline_sets.py`, and the tasks' tests,
 `tasks/test_baselines.py`, use in-memory tarballs and a fake fetcher: no network, browser
@@ -895,50 +954,63 @@ or database.
 
 #### Publishing a set
 
-Sets are rendered and uploaded by the `Baselines` workflow
+Sets are rendered and published by the `Baselines` workflow
 (`.github/workflows/baselines.yml`) and by nothing else. Nothing publishes from a
-developer's machine, and no developer holds credentials that can write a set: pushing a
-tag is how you ask for one.
+developer's machine: the workflow creates the release with its own `GITHUB_TOKEN`, and
+pushing a tag is how you ask for a set.
 
 1. **Make the pages right locally.** Run the `visual` tests against the committed set and
    fix what fails; `--update-snapshots` shows locally what a new set would hold. Those
    local PNGs are not what gets published: the workflow renders its own.
-2. **Push a tag at the commit to render**, `baselines/` followed by the set name:
+2. **Push a tag at the commit to render**, `baselines-` followed by the set name:
 
    ```
-   git tag baselines/2026-11-02-new-header <commit>
-   git push origin baselines/2026-11-02-new-header
+   git tag baselines-2026-11-02-new-header <commit>
+   git push origin baselines-2026-11-02-new-header
    ```
 
-   The name is `YYYY-MM-DD-<slug>`, lowercase, with no further `/`; the workflow refuses
-   any other tag under `baselines/`. A tag can point at a branch commit, so a set can be
-   made and reviewed before the branch is merged.
-3. **The workflow renders and uploads.** It builds the test image as CI does and runs
-   every `visual` test with `--update-snapshots` in Chromium, Firefox and WebKit, starting
-   from an empty directory (`PERMA_BASELINES_FETCH=0`). It stops if any of those tests
-   fails or none wrote a baseline. It then fetches the set that the commit's
+   The name is `YYYY-MM-DD-<slug>`, lowercase; the workflow refuses any other tag that
+   starts with `baselines-`. A tag can point at a branch commit, so a set can be made and
+   reviewed before the branch is merged.
+3. **The workflow renders and publishes.** It first refuses a tag that already has a
+   release, published or draft. It builds the test image as CI does and runs every
+   `visual` test with `--update-snapshots` in Chromium, Firefox and WebKit, starting from
+   an empty directory (`PERMA_BASELINES_FETCH=0`). It stops if any of those tests fails or
+   none wrote a baseline. It then fetches the set that the commit's
    `functional_tests/BASELINE_SET` names and compares the new render with it (with no
-   pointer file, every image counts as added), packs the set reproducibly, and uploads it
-   once. An existing set is never overwritten: a re-run after a successful upload fails at
-   that last step (HTTP 412) and changes nothing. A run that failed earlier uploaded
-   nothing; re-run it, or, if the code has to change, tag the new commit with a new name.
-4. **Review.** The run's artifact `baseline-report-<name>` holds `index.html`: counts per
+   pointer file, every image counts as added), packs the set reproducibly, and zips the
+   report. Its last three steps create a draft release on the tag, titled "Visual
+   baselines <name>" and marked pre-release so that no set becomes the latest release;
+   upload `baselines-<name>.tar` and `baselines-<name>-report.zip` to it; and publish it.
+   Until then the draft answers 404 like a missing set, so nothing half-published is ever
+   fetched. A re-run after success stops at the first check and changes nothing. A run
+   that failed before creating the release left nothing behind: re-run it, or, if the
+   code has to change, tag the new commit with a new name. A run that failed after
+   creating it leaves a draft, which the first check names on a re-run: a maintainer
+   deletes the draft by hand (on the Releases page, or `gh release delete
+   baselines-<name>`, which keeps the tag), then re-runs.
+4. **Review.** The release's `baselines-<name>-report.zip` holds `index.html`: counts per
    browser; for every changed baseline the expected, actual and diff images with the
    comparison's numbers (differing pixels, worst channel difference, bounding box, both
    sizes); thumbnails of the added images; and the removed paths. A baseline within
-   `SNAPSHOT_TOLERANCE` of the previous one counts as unchanged. The job summary repeats
-   the counts and gives the set's two pointer lines.
+   `SNAPSHOT_TOLERANCE` of the previous one counts as unchanged. The release notes and the
+   job summary repeat the counts and give the set's two pointer lines, the commit and the
+   run.
 5. **Adopt and commit.** `d invoke baselines.adopt <name>` downloads the set, writes
-   `functional_tests/BASELINE_SET` (the job summary's two lines), and counts the changes
+   `functional_tests/BASELINE_SET` (the release notes' two lines), and counts the changes
    against your previous copy. Commit the pointer with the code it belongs to.
 
 A tag is never moved or reused: it names an immutable set. To change a set, tag again
-under a new name; a set that nothing adopts stays stored and unused.
+under a new name; a set that nothing adopts stays published and unused. The design
+expects the repository's immutable releases setting, under which a published release's
+assets and tag cannot be changed or deleted. Without it, a maintainer could still replace
+or delete an asset: the pointer's sha256 catches a replaced set, and a deleted one fails
+the fetch.
 
-**Forks.** The workflow uploads with the role that the repository variable
-`BASELINES_AWS_ROLE_TO_ASSUME` names. A fork has none, so in a fork the workflow stops at
-its first step and says why. A fork that wants its own sets stores the tarballs
-somewhere of its own, as `<base>/<name>.tar`, and sets `PERMA_BASELINES_URL` to that base.
+**Forks.** The workflow has no repository check. In a fork, a tag push renders the set
+and publishes it to the fork's own releases, with the fork's own token. To test against
+those sets, set `PERMA_BASELINES_URL` to the fork's
+`https://github.com/<owner>/<repo>/releases/download/`.
 
 The report is `functional_tests/baseline_report.py`. Its tests,
 `functional_tests/test_baseline_report.py`, draw their images with Pillow and use a fake

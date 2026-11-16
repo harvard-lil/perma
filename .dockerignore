@@ -17,6 +17,9 @@ perma_web/.pytest_cache
 perma_web/.hypothesis
 perma_web/.coverage
 perma_web/failed_test_files
+perma_web/failed_test_files_chromium
+perma_web/failed_test_files_firefox
+perma_web/failed_test_files_webkit
 perma_web/lib
 
 # Visual baselines are fetched at test time (functional_tests/baseline_sets.py);
