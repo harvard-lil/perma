@@ -81,7 +81,7 @@ def test_every_scoop_request_in_the_capture_path_is_pinned():
     without `api=` would re-read the switch and reintroduce the bug, which no
     unit test of the surrounding function would notice while the switch is off.
     """
-    source = Path(__file__).resolve().parents[1] / "celery_tasks.py"
+    source = Path(__file__).resolve().parents[1] / "celery_tasks" / "capture.py"
     tree = ast.parse(source.read_text())
 
     unpinned = []
@@ -101,7 +101,7 @@ def test_every_scoop_request_in_the_capture_path_is_pinned():
 
 def test_the_capture_path_resolves_the_instance_exactly_once():
     """One resolution per capture; a second would be a second chance to differ."""
-    source = Path(__file__).resolve().parents[1] / "celery_tasks.py"
+    source = Path(__file__).resolve().parents[1] / "celery_tasks" / "capture.py"
     tree = ast.parse(source.read_text())
 
     resolutions = 0
