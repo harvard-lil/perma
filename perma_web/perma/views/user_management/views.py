@@ -80,7 +80,7 @@ from perma.utils import (
 from perma.views.user_management.render import add_user_management_ui, render_user_management
 from perma.views.common import valid_member_sorts, valid_org_sorts, valid_registrar_sorts
 from perma.views.user_sign_up import email_new_user
-from perma.celery_tasks import send_user_email_from_bulk_addition
+from perma.celery_tasks.user_management import send_user_email_from_bulk_addition
 from waffle import flag_is_active
 
 logger = logging.getLogger(__name__)

@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
-from perma.celery_tasks import send_user_email_from_bulk_addition
+from perma.celery_tasks.user_management import send_user_email_from_bulk_addition
 from perma.email import (
     STAFF_INVITED_CUSTOM_TEMPLATE,
     get_activation_email_context,

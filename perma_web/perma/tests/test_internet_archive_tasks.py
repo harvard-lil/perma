@@ -9,7 +9,7 @@ import requests
 from django.conf import settings
 from psycopg2.extras import DateTimeTZRange
 
-from perma.celery_tasks import (
+from perma.celery_tasks.internet_archive import (
     confirm_file_deleted_from_daily_item,
     confirm_file_uploaded_to_internet_archive,
     delete_link_from_daily_item,
@@ -63,7 +63,7 @@ def test_upload_to_internet_archive_sends_expected_file_and_metadata(complete_li
     session = _fake_session(ia_item)
 
     with (
-        patch("perma.celery_tasks.get_ia_session", return_value=session),
+        patch("perma.celery_tasks.internet_archive.get_ia_session", return_value=session),
         patch.object(Link, "get_warc", return_value=nullcontext(BytesIO(b"warc"))),
     ):
         upload_link_to_internet_archive.run(complete_link.guid)
@@ -103,7 +103,7 @@ def test_upload_to_internet_archive_requeues_failed_upload(complete_link):
     session = _fake_session(ia_item)
 
     with (
-        patch("perma.celery_tasks.get_ia_session", return_value=session),
+        patch("perma.celery_tasks.internet_archive.get_ia_session", return_value=session),
         patch.object(Link, "get_warc", return_value=nullcontext(BytesIO(b"warc"))),
         patch.object(upload_link_to_internet_archive, "delay") as delay,
     ):
@@ -133,7 +133,7 @@ def test_upload_confirmation_caches_remote_metadata(complete_link):
     ia_item.get_file.return_value = ia_file
     session = _fake_session(ia_item)
 
-    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+    with patch("perma.celery_tasks.internet_archive.get_ia_session", return_value=session):
         confirm_file_uploaded_to_internet_archive.run(perma_file.id)
 
     perma_file.refresh_from_db()
@@ -164,7 +164,7 @@ def test_delete_from_internet_archive_sends_expected_request(complete_link):
     ia_item.get_file.return_value = ia_file
     session = _fake_session(ia_item)
 
-    with patch("perma.celery_tasks.get_ia_session", return_value=session):
+    with patch("perma.celery_tasks.internet_archive.get_ia_session", return_value=session):
         delete_link_from_daily_item.run(complete_link.guid)
 
     ia_file.delete.assert_called_once_with(
@@ -190,7 +190,7 @@ def test_deletion_confirmation_requeues_connection_errors(complete_link):
     session.get_item.side_effect = requests.exceptions.ConnectionError
 
     with (
-        patch("perma.celery_tasks.get_ia_session", return_value=session),
+        patch("perma.celery_tasks.internet_archive.get_ia_session", return_value=session),
         patch.object(confirm_file_deleted_from_daily_item, "delay") as delay,
     ):
         confirm_file_deleted_from_daily_item.run(perma_file.id)

@@ -12,7 +12,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework import status
 
-from perma.celery_tasks import run_next_capture
+from perma.celery_tasks.capture import run_next_capture
 from perma.models import Capture, CaptureJob, Folder, Link, LinkBatch
 from perma.utils import deployment_pending, stream_archive_if_permissible
 
