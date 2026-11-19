@@ -2,8 +2,7 @@
 Computed-style contract for Perma's current, Bootstrap-3-rendered appearance.
 
 The Bootstrap 3 -> 5 migration's fidelity target is "preserve current
-appearance" (see `.plans/plan_dependency-upgrade-roadmap-4.md`). Bootstrap 5
-renames almost every class Perma's overrides target
+appearance". Bootstrap 5 renames almost every class Perma's overrides target
 (`static/css/_bootstrap-mod.scss`), so a test asserting a Bootstrap class name
 would have to be rewritten during the migration and would prove nothing.
 Instead, computed style read through `getComputedStyle` is the visual
@@ -21,8 +20,7 @@ currently compiled `static/bundles/global.css`, not copied from
 overridden by later, equal-specificity Perma rules and are not what actually
 renders (e.g. generic `<input>` border/padding, and `.btn-info`'s
 background-color, which loses to Perma's own `.btn` rule on every real
-`.btn-info` element because they always carry `.btn` too). See
-`.plans/plan_bootstrap-4a-characterization-tests.md` for the full trace.
+`.btn-info` element because they always carry `.btn` too).
 """
 
 import pytest
@@ -44,6 +42,11 @@ def computed_after_style(locator, property_name: str) -> str:
     return locator.evaluate(
         "(el, prop) => getComputedStyle(el, '::after').getPropertyValue(prop)", property_name
     )
+
+
+def font_family_names(value: str) -> list[str]:
+    """Split a computed font-family into names; WebKit serializes them unquoted, Blink and Gecko quoted."""
+    return [name.strip().strip("\"'") for name in value.split(",")]
 
 
 def assert_chevron_sprite_is_the_only_arrow(toggle) -> None:
@@ -69,7 +72,7 @@ def test_body_base_typography_and_background(page, ui_urls) -> None:
     page.goto(ui_urls("landing"))
 
     body = page.locator("body")
-    assert computed_style(body, "font-family") == '"Roboto Slab", sans-serif'
+    assert font_family_names(computed_style(body, "font-family")) == ["Roboto Slab", "sans-serif"]
     assert computed_style(body, "font-size") == "14px"
     assert computed_style(body, "line-height") == "20px"
     assert computed_style(body, "color") == "rgb(34, 34, 34)"
@@ -107,7 +110,7 @@ def test_body_text_link_color_states(page, ui_urls) -> None:
     # #06a, but a later Perma rule restores $color-active for body-copy links,
     # so focus is visually indistinguishable from rest here. Pinned as-is --
     # giving focus its own color would be an accessibility improvement, and a
-    # product change this phase has no mandate to make.
+    # product change out of scope for these tests.
     assert computed_style(link, "color") == "rgb(34, 34, 34)"
 
 

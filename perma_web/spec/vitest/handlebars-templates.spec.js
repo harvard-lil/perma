@@ -1,5 +1,4 @@
-// Pins handlebars 4.7.8 behavior ahead of the 4.7.9 upgrade (see
-// .plans/plan_dependency-upgrade-roadmap-5.md, sub-batch 5A). 4.7.9 is a security
+// Pins handlebars 4.7.8 behavior ahead of the 4.7.9 upgrade. 4.7.9 is a security
 // patch: it validates pre-parsed ASTs passed to compile() (Perma only ever compiles
 // template *strings*, never a pre-parsed AST, so that path is not reached here) and
 // tightens prototype-access control (adds __lookupSetter__ to the default block
@@ -14,10 +13,8 @@ import * as HandlebarsHelpers from '../../static/js/helpers/handlebars.helpers.j
 const TEMPLATE_FILE = path.resolve(import.meta.dirname, '../../perma/templates/admin-stats.html')
 const TEMPLATE_SOURCE = fs.readFileSync(TEMPLATE_FILE, 'utf8')
 
-// admin-stats.html names nine template ids in the phase plan's coverage list, but the
-// file itself contains only these eight <script type="text/x-handlebars-template">
-// blocks (grepped directly) -- admin-stats.js's tabSections/fillSection agrees, also
-// naming only eight. Documentation mismatch in the plan, not a missing template.
+// The eight <script type="text/x-handlebars-template"> blocks in admin-stats.html;
+// admin-stats.js's tabSections/fillSection names the same eight.
 const TEMPLATE_IDS = [
   'random-template',
   'days-template',

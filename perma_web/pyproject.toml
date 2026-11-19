@@ -43,6 +43,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "axe-playwright-python~=0.1.8",
     "beautifulsoup4~=4.15.0",
     "coverage~=7.15.4",
     "django-admin-smoke-tests~=0.3.0",
@@ -55,6 +56,7 @@ dev = [
     "flake8-pyproject~=1.2.4",
     "hypothesis~=6.165.10",
     "lupa~=2.8",
+    "pillow~=12.3.0",
     "playwright~=1.62.0",
     "pytest~=9.1.1",
     "pytest-cov~=7.1.0",
@@ -62,6 +64,7 @@ dev = [
     "pytest-django-liveserver-ssl~=0.0.3",
     "pytest-mock~=3.15.1",
     "pytest-playwright~=0.9.0",
+    "pytest-timeout~=2.4.0",
     "pytest-xdist~=3.8.0",
     "watchdog~=6.0.0",
 ]
@@ -70,10 +73,15 @@ dev = [
 DJANGO_SETTINGS_MODULE = "perma.settings.deployments.settings_testing"
 norecursedirs = ["node_modules", ".hypothesis"]
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
-addopts = "-n auto --dist loadscope --browser chromium --screenshot only-on-failure --output failed_test_files"
+addopts = "-n auto --dist loadscope --screenshot only-on-failure --output failed_test_files --full-page-screenshot"
+# Thread method: a hang inside Playwright's sync API ignores signals; killing the xdist worker lets the run continue.
+timeout = 180
+timeout_method = "thread"
 filterwarnings = ["ignore:Unverified HTTPS request"]
 markers = [
     "uses_storage: marks tests that write to S3 storage (cleanup_storage teardown is skipped for unmarked tests)",
+    "sweep: visits every control page at every width; slow, so deselected unless --all is passed",
+    "visual: full-page screenshot comparison against a stored baseline set; selected alone by the baselines capture workflow",
 ]
 
 [tool.coverage.run]

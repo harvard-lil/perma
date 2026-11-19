@@ -1,0 +1,268 @@
+name: Baselines
+
+# Renders a set of visual baselines when a maintainer pushes a tag
+# `baselines-YYYY-MM-DD-<slug>`, and publishes the set and its review report as
+# a pre-release on that tag. See "Publishing a set" in developer.md.
+
+on:
+  push:
+    tags: ['baselines-*']
+
+# Runs for one tag queue: none is cancelled, since it may be mid-publish.
+concurrency:
+  group: perma-baselines-${{ github.ref }}
+  cancel-in-progress: false
+
+# Creating the release needs contents: write. The same token could also push,
+# which is why the tag ruleset limits who can start this workflow.
+permissions:
+  contents: write
+
+jobs:
+  # No `environment:`: the job needs no variable or secret, only its own token.
+  capture:
+    name: Capture, report and publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      # Compose reads this itself; it also keeps docker-compose.override.yml, which is developer-only, out.
+      COMPOSE_FILE: docker-compose.yml:docker-compose.ci.yml
+
+    steps:
+      # Before checkout, so a malformed tag stops in seconds. No repository
+      # check: a fork's run publishes to the fork's own releases.
+      - name: Check the tag name
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          # C locale: elsewhere [a-z] can match capitals.
+          export LC_ALL=C
+          pattern='^baselines-[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9][a-z0-9-]*$'
+          if ! [[ "${REF_NAME}" =~ ${pattern} ]]; then
+            echo "::error::Tag '${REF_NAME}' is not baselines-YYYY-MM-DD-<slug> (lowercase letters, digits and hyphens)."
+            exit 1
+          fi
+          echo "SET_NAME=${REF_NAME#baselines-}" >> "$GITHUB_ENV"
+          echo "TAG=${REF_NAME}" >> "$GITHUB_ENV"
+
+      # A read, and the only `gh` call before the last steps. `gh release view`
+      # finds a draft by its pending tag too. If this lookup itself fails,
+      # `gh release create` still refuses a tag that has a release.
+      - name: Refuse a tag that already has a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft >/dev/null 2>&1; then
+            echo "::error::A release already exists for ${TAG}, possibly a draft left by a failed run. A person must delete it by hand before this tag is retried."
+            exit 1
+          fi
+
+      # The job's token can write to the repository (it creates the release), and
+      # nothing after checkout uses git credentials, so they are not left in .git/config.
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # As in lint_test.yml: `test` is FROM `prod`, so the suite renders with the
+      # layers that ship, and the same PERMA_VERSION keeps the collectstatic layer shared.
+      - name: Build the prod and test images
+        run: |
+          set -euxo pipefail
+          docker buildx build \
+            --target prod \
+            --build-arg "PERMA_VERSION=${GITHUB_SHA::7}" \
+            --load \
+            -t "perma-prod:${GITHUB_SHA}" \
+            -f ./Dockerfile .
+
+          docker buildx build \
+            --target test \
+            --build-arg "PERMA_VERSION=${GITHUB_SHA::7}" \
+            --load \
+            -t perma-test:ci \
+            -f ./Dockerfile .
+
+      # Playwright will not accept an untrusted certificate for the TLS live server and S3 gateway.
+      - name: Install mkcert
+        run: |
+          set -euxo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends mkcert libnss3-tools
+          mkcert -install
+
+      # Before `up`: a bind mount of a missing file creates a directory in its
+      # place. The suite runs as the image's non-root user, which must read the key.
+      - name: Generate test certificates
+        run: |
+          bash make_cert.sh
+          chmod a+r perma_web/perma-test.key
+
+      # Perma's stack from COMPOSE_FILE, then the Scoop API services, which only docker-compose.override.yml defines.
+      - name: docker compose up
+        run: |
+          docker compose pull --ignore-pull-failures || true
+          docker compose up -d
+          docker compose -f docker-compose.yml -f docker-compose.override.yml \
+            up -d scoop-redis scoop-db scoop-rest-api
+          docker ps -a
+          docker compose logs
+
+      - name: Initialize the database
+        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
+        run: |
+          set -x
+          docker compose exec web invoke dev.init-db
+
+      # PERMA_BASELINES_FETCH=0 renders into the image's empty baselines
+      # directory instead of fetching the committed set. Each browser has its
+      # own --output, since pytest-playwright clears it at session start. No
+      # continue-on-error: a set with a failed render must not be published.
+      - name: Capture (Chromium)
+        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
+        run: |
+          set -x
+          docker compose exec web bash -c 'PERMA_BASELINES_FETCH=0 pytest -m visual --update-snapshots --browser chromium --output failed_test_files_chromium -vv'
+
+      - name: Capture (Firefox)
+        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
+        run: |
+          set -x
+          docker compose exec web bash -c 'PERMA_BASELINES_FETCH=0 pytest -m visual --update-snapshots --browser firefox --output failed_test_files_firefox -vv'
+
+      - name: Capture (WebKit)
+        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
+        run: |
+          set -x
+          docker compose exec web bash -c 'PERMA_BASELINES_FETCH=0 pytest -m visual --update-snapshots --browser webkit --output failed_test_files_webkit -vv'
+
+      # -T wherever output is captured: a TTY would end each line with a carriage return.
+      - name: Require at least one baseline
+        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
+        run: |
+          count="$(docker compose exec -T web bash -c 'find functional_tests/baselines -name "*.png" | wc -l' | tr -d '[:space:]')"
+          echo "PNG baselines rendered: ${count}"
+          if [ "${count}" -eq 0 ]; then
+            echo "::error::No visual test wrote a baseline, so there is no set to publish. Tests that call assert_snapshot need the visual marker."
+            exit 1
+          fi
+
+      # The committed pointer's set is what this one would replace. Fetching it
+      # from its release also exercises the read path. With no pointer this is
+      # the first set, and every image counts as added.
+      - name: Build the review report
+        shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
+        run: |
+          set -x
+          previous="$(docker compose exec -T web python -m functional_tests.baseline_report fetch-previous --into /tmp/previous-set | tr -d '\r')"
+          if [ "${previous}" = none ]; then
+            against=(--no-previous)
+          else
+            against=(--previous /tmp/previous-set)
+          fi
+          docker compose exec -T web python -m functional_tests.baseline_report "${against[@]}" \
+            --new functional_tests/baselines \
+            --out /tmp/baseline-report \
+            --name "${SET_NAME}" \
+            --summary-json /tmp/baseline-report/summary.json
+
+      - name: Copy the report and the set out of the container
+        run: |
+          set -euxo pipefail
+          rm -rf baseline-report baselines-out
+          docker compose cp web:/tmp/baseline-report baseline-report
+          docker compose cp web:/perma/perma_web/functional_tests/baselines baselines-out
+          test -s baseline-report/index.html
+          test -s baseline-report/summary.json
+
+      # Sorted names, one mtime and numeric root ownership, so a tree packs to
+      # the same bytes; packing twice checks it. `.set` is a fetched copy's stamp, never part of a set.
+      # The archive's name is the release asset's, which the fetch builds from the tag.
+      - name: Pack the set and zip the report
+        run: |
+          set -euxo pipefail
+          tar --version | sed -n 1p
+          archive="baselines-${SET_NAME}.tar"
+          for output in "${archive}" set.again.tar; do
+            tar --format=gnu --sort=name --mtime='1970-01-01 00:00:00Z' \
+              --owner=0 --group=0 --numeric-owner --exclude=.set \
+              -cf "${output}" -C baselines-out .
+          done
+          cmp "${archive}" set.again.tar
+          rm set.again.tar
+          sha256="$(sha256sum "${archive}" | cut -d' ' -f1)"
+          echo "SET_SHA256=${sha256}" >> "$GITHUB_ENV"
+          zip -r "baselines-${SET_NAME}-report.zip" baseline-report
+          ls -l "${archive}" "baselines-${SET_NAME}-report.zip"
+
+      - name: Write the job summary
+        run: |
+          set -euo pipefail
+          {
+            echo "## Baseline set ${SET_NAME}"
+            echo
+            echo "Pointer lines for \`perma_web/functional_tests/BASELINE_SET\`:"
+            echo
+            echo '```'
+            echo "set=${SET_NAME}"
+            echo "sha256=${SET_SHA256}"
+            echo '```'
+            echo
+            jq -r .markdown baseline-report/summary.json
+            echo "The report, \`baselines-${SET_NAME}-report.zip\` (expected, actual and diff for every changed image), is on the release: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/${TAG}"
+            echo
+            echo "Once the last step has published the release, adopt the set with \`d invoke baselines.adopt ${SET_NAME}\` and commit the pointer."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # The release page is the set's record: what rendered it, its pointer lines and what changed.
+      - name: Write the release notes
+        run: |
+          set -euo pipefail
+          {
+            echo "## Visual baselines ${SET_NAME}"
+            echo
+            echo "Rendered from commit ${GITHUB_SHA} by ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}."
+            echo
+            echo "Pointer lines for \`perma_web/functional_tests/BASELINE_SET\`:"
+            echo
+            echo '```'
+            echo "set=${SET_NAME}"
+            echo "sha256=${SET_SHA256}"
+            echo '```'
+            echo
+            jq -r .markdown baseline-report/summary.json
+            echo "\`baselines-${SET_NAME}-report.zip\` holds the review report: expected, actual and diff for every changed image."
+            echo
+            echo "Adopt the set with \`d invoke baselines.adopt ${SET_NAME}\` and commit the pointer."
+          } > release-notes.md
+          cat release-notes.md
+
+      # Draft first: once immutable releases are on, a published release takes
+      # no more assets. Pre-release, so no set becomes the repository's latest release.
+      - name: Create the release as a draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euxo pipefail
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --draft --prerelease --verify-tag \
+            --title "Visual baselines ${SET_NAME}" --notes-file release-notes.md
+
+      # Never --clobber: an uploaded asset is the set its tag names.
+      - name: Upload the set and the report
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euxo pipefail
+          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" "baselines-${SET_NAME}.tar" "baselines-${SET_NAME}-report.zip"
+
+      # Nothing may follow this step. Publishing last means a re-run after
+      # success stops at the existing-release check, and a run that failed
+      # between create and here leaves a draft that check names.
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euxo pipefail
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false

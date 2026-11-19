@@ -195,7 +195,7 @@ module.exports = {
       'bootstrap': 'bootstrap-sass/assets/stylesheets/bootstrap',
       'bootstrap-js': 'bootstrap-sass/assets/javascripts/bootstrap',
 
-      // Removed with their packages in Phase 5: 'jquery-form' (declared but
+      // Removed with their packages: 'jquery-form' (declared but
       // never imported), plus 'airbrake-js' and 'papaparse', which aliased
       // packages that were not even declared and so resolved to nothing.
 

@@ -1,7 +1,11 @@
+import io
+import json
 import os
 import re
+import shutil
 import subprocess
 from dataclasses import dataclass
+from pathlib import Path
 from random import choice
 
 import boto3
@@ -10,12 +14,17 @@ from django.core.files.storage import storages
 from django.core.management import call_command
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
+from axe_playwright_python.sync_playwright import Axe
 from filelock import FileLock
-from playwright.sync_api import Page, expect
+from PIL import Image
+from playwright.sync_api import expect
 import pytest
 from pytest_django.plugin import blocking_manager_key
 
 import frontend_assets
+from functional_tests import accessibility_baseline, baseline_sets
+from functional_tests.image_diff import SNAPSHOT_TOLERANCE, compare_images
+from functional_tests.page_settling import settle_page
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -33,15 +42,6 @@ def current_frontend_assets():
     """
     frontend_assets.ensure_current()
 
-# patch Playwright's screenshot method so that we get full-page screenshots
-# when functional tests fail, which is not presently configurable in pytest-playwright
-# https://github.com/microsoft/playwright-pytest/blob/456f8286f09f132d2e21f6bf71f27465e71ba17a/pytest_playwright/pytest_playwright.py#L249
-_orig = Page.screenshot
-def full_page_screenshot(*args, **kwargs):
-    kwargs['full_page'] = True
-    return _orig(*args, **kwargs)
-Page.screenshot = full_page_screenshot
-
 # Patch Playwright's expect timeout to 15 seconds (default: 5) to avoid spurious failures
 expect.set_options(timeout=15_000)
 
@@ -49,9 +49,56 @@ expect.set_options(timeout=15_000)
 os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--update-snapshots",
+        action="store_true",
+        default=False,
+        help="Write or overwrite visual baselines instead of comparing against them.",
+    )
+    parser.addoption(
+        "--all",
+        action="store_true",
+        default=False,
+        help="Also run tests marked sweep (slow).",
+    )
+    # Separate from --update-snapshots so that re-blessing pixels never blesses new violations.
+    parser.addoption(
+        "--update-a11y-baselines",
+        action="store_true",
+        default=False,
+        help="Write or overwrite accessibility violation baselines instead of comparing against them.",
+    )
+
+
+def _runs_sweeps(config) -> bool:
+    # An update run has to visit every page, so the update flags imply --all.
+    return any(config.getoption(flag) for flag in ("--all", "--update-a11y-baselines", "--update-snapshots"))
+
+
+def pytest_collection_modifyitems(config, items):
+    """Deselect `sweep` tests (visit every control page at every width) unless --all or an update flag is passed."""
+    if _runs_sweeps(config):
+        return
+    kept = [item for item in items if item.get_closest_marker("sweep") is None]
+    deselected = [item for item in items if item.get_closest_marker("sweep") is not None]
+    if deselected:
+        config.hook.pytest_deselected(items=deselected)
+        items[:] = kept
+
+
+def pytest_report_header(config):
+    if not _runs_sweeps(config):
+        return "sweep tests deselected (slow); pass --all to run them"
+
+
 @pytest.fixture(scope="session")
-def browser_context_args(browser_context_args):
-    return {**browser_context_args, "locale": "en-US"}
+def browser_context_args(browser_context_args, browser_name):
+    args = {**browser_context_args, "locale": "en-US"}
+    # Firefox and WebKit don't read the NSS DB that set_up_certs populates; Chromium keeps strict trust.
+    if browser_name != "chromium":
+        args["ignore_https_errors"] = True
+    return args
 
 
 # patch django-liveserver-ssl to be compatible with changes made to the LiveTestServer in Django 4.2
@@ -256,19 +303,34 @@ def user() -> User:
     return User("functional_test_user@example.com", "pass")
 
 
+def _log_in_and_settle(page, login_url, user):
+    """Submit the login form and return only once login has finished and the page has settled."""
+    page.goto(login_url)
+    username = page.locator('#id_username')
+    username.focus()
+    username.type(user.username)
+    password = page.locator('#id_password')
+    password.focus()
+    password.type(user.password)
+    page.locator("button.btn.login").click()
+    # The logout form renders only on the authenticated branch of
+    # upper_right_menu.html, so its presence proves the login took. Matched
+    # by DOM attachment rather than by role or visibility: below the tablet
+    # breakpoint the whole menu collapses out of the accessibility tree, and
+    # a role- or visibility-based wait would fail purely because the caller
+    # is testing a narrow viewport.
+    expect(page.locator("#upper_right_menu form")).to_be_attached()
+    # Networkidle, not a URL wait: the create page's folder tree rewrites the URL to
+    # ?folder=N ~100ms after load for some users only, and set_viewport_size has no
+    # timeout, so a caller resizing mid-settle hangs Firefox forever.
+    page.wait_for_load_state("networkidle")
+
+
 @pytest.fixture
 def log_in_user(urls):
     """A utility to log in the desired user"""
-    # TODO: if this login fails, the fixture should error out
     def f(page, user):
-        page.goto(urls.login)
-        username = page.locator('#id_username')
-        username.focus()
-        username.type(user.username)
-        password = page.locator('#id_password')
-        password.focus()
-        password.type(user.password)
-        page.locator("button.btn.login").click()
+        _log_in_and_settle(page, urls.login, user)
     return f
 
 
@@ -299,22 +361,168 @@ def ui_urls(transactional_db, live_server_ssl):
 def log_in(ui_urls):
     """Log a user in without pulling in the WARC-backed `urls` fixture."""
     def f(page, user):
-        page.goto(ui_urls('user_management_limited_login'))
-        username = page.locator('#id_username')
-        username.focus()
-        username.type(user.username)
-        password = page.locator('#id_password')
-        password.focus()
-        password.type(user.password)
-        page.locator("button.btn.login").click()
-        # The logout form renders only on the authenticated branch of
-        # upper_right_menu.html, so its presence proves the login took. Matched
-        # by DOM attachment rather than by role or visibility: below the tablet
-        # breakpoint the whole menu collapses out of the accessibility tree, and
-        # a role- or visibility-based wait would fail purely because the caller
-        # is testing a narrow viewport.
-        expect(page.locator("#upper_right_menu form")).to_be_attached()
+        _log_in_and_settle(page, ui_urls('user_management_limited_login'), user)
     return f
+
+
+
+@pytest.fixture(scope="session")
+def baseline_set() -> baseline_sets.Outcome:
+    """Bring `functional_tests/baselines` to the set `BASELINE_SET` names, once per worker; see `baseline_sets.ensure_set`."""
+    return baseline_sets.ensure_set()
+
+
+@pytest.fixture
+def snapshot_dir(baseline_set) -> Path:
+    """Root of the visual baselines; override in a test to point somewhere else (nothing is then fetched)."""
+    return baseline_set.directory
+
+
+@pytest.fixture
+def update_snapshots(request) -> bool:
+    """Whether `--update-snapshots` was passed; override in a test to force it."""
+    return request.config.getoption("--update-snapshots")
+
+
+@pytest.fixture
+def assert_snapshot(request, browser_name, snapshot_dir, update_snapshots, output_path):
+    """
+    Return `assert_snapshot(page, name, mask=())`, which checks a page against its stored baseline.
+
+    The callable settles the page, takes a full-page screenshot with animations
+    disabled, and compares it with
+    `<snapshot_dir>/<browser>/<test module>/<test function>/<name>.png`.
+    A pixel differs when any channel is off by more than `SNAPSHOT_TOLERANCE`.
+
+    Args (of the callable):
+        page: The Playwright page to photograph.
+        name: Baseline file stem, unique within the test, e.g. "landing@1200".
+        mask: Locators whose regions Playwright paints over before comparing.
+
+    Returns nothing on a match. With `--update-snapshots` it writes the baseline
+    only when it is missing or differs beyond the tolerance, and passes; a
+    baseline within tolerance is left untouched. Otherwise it raises
+    AssertionError, so the test fails in its call phase, when the baseline is
+    missing or the image differs; the expected, actual and diff PNGs are then
+    written to pytest-playwright's per-test output directory.
+    """
+    def check(page, name, mask=()):
+        settle_page(page)
+        actual_png = page.screenshot(full_page=True, animations="disabled", mask=list(mask))
+        baseline_path = snapshot_dir / browser_name / request.node.path.stem / request.node.originalname / f"{name}.png"
+
+        def write_baseline():
+            baseline_path.parent.mkdir(parents=True, exist_ok=True)
+            baseline_path.write_bytes(actual_png)
+
+        failure_dir = Path(output_path)
+        actual_path = failure_dir / f"{name}-actual.png"
+
+        if not baseline_path.is_file():
+            if update_snapshots:
+                write_baseline()
+                return
+            failure_dir.mkdir(parents=True, exist_ok=True)
+            actual_path.write_bytes(actual_png)
+            raise AssertionError(
+                f"No baseline at {baseline_path}. Run with --update-snapshots to create it. "
+                f"Actual image saved to {actual_path}."
+            )
+
+        with Image.open(baseline_path) as baseline, Image.open(io.BytesIO(actual_png)) as actual:
+            result = compare_images(baseline, actual, SNAPSHOT_TOLERANCE)
+        if result.passed:
+            return
+        if update_snapshots:
+            write_baseline()
+            return
+
+        expected_path = failure_dir / f"{name}-expected.png"
+        diff_path = failure_dir / f"{name}-diff.png"
+        failure_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(baseline_path, expected_path)
+        actual_path.write_bytes(actual_png)
+        result.diff_image.save(diff_path)
+        raise AssertionError(
+            f"Snapshot {name!r} differs from {baseline_path}: "
+            f"{result.differing_pixels} pixels over tolerance {SNAPSHOT_TOLERANCE}, "
+            f"worst channel difference {result.max_channel_difference}, "
+            f"bounding box {result.bbox}, "
+            f"baseline size {result.baseline_size}, actual size {result.actual_size}. "
+            f"Expected: {expected_path}; actual: {actual_path}; diff: {diff_path}."
+        )
+
+    return check
+
+
+@pytest.fixture
+def a11y_baseline_dir() -> Path:
+    """Root of the accessibility baselines; override in a test to point somewhere else."""
+    return Path(__file__).parent / "functional_tests" / "accessibility_baselines"
+
+
+@pytest.fixture
+def update_a11y_baselines(request) -> bool:
+    """Whether `--update-a11y-baselines` was passed; override in a test to force it."""
+    return request.config.getoption("--update-a11y-baselines")
+
+
+@pytest.fixture
+def assert_a11y_baseline(request, browser_name, a11y_baseline_dir, update_a11y_baselines, output_path):
+    """
+    Return `assert_a11y_baseline(page, name)`, which checks a page's axe violations against a stored baseline.
+
+    The callable runs axe-core with default options over the top frame only
+    (frames, such as an archive's replay, are not scanned) and compares the
+    violations, identified by rule id and target, with
+    `<a11y_baseline_dir>/<browser>/<test module>/<test function>/<name>.json`.
+    It does not settle the page; callers do that first. Impact, help text and
+    `html` do not take part in the comparison.
+
+    Args (of the callable):
+        page: The Playwright page to scan.
+        name: Baseline file stem, unique within the test, e.g. "landing@1200".
+
+    Returns nothing on a match; the file is left untouched even with
+    `--update-a11y-baselines`. Otherwise it raises AssertionError, so the test
+    fails in its call phase, when the baseline is missing or the violations
+    differ: the message lists new and fixed violations separately, and the full
+    axe response is saved as `<name>-axe-response.json` in pytest-playwright's
+    per-test output directory. With `--update-a11y-baselines` a missing or
+    differing baseline is written instead, and the test passes.
+
+    Raises (inside the callable):
+        ValueError: The baseline file exists but is malformed.
+    """
+    def check(page, name):
+        response = Axe().run(page).response
+        current = accessibility_baseline.violations_from_axe(response)
+        current_version = accessibility_baseline.axe_version(response)
+        baseline_path = a11y_baseline_dir / browser_name / request.node.path.stem / request.node.originalname / f"{name}.json"
+
+        def fail(message):
+            failure_dir = Path(output_path)
+            failure_dir.mkdir(parents=True, exist_ok=True)
+            response_path = failure_dir / f"{name}-axe-response.json"
+            response_path.write_text(json.dumps(response, indent=2))
+            raise AssertionError(f"{message}\nFull axe response saved to {response_path}.")
+
+        if not baseline_path.is_file():
+            if update_a11y_baselines:
+                accessibility_baseline.save_baseline(baseline_path, current_version, current)
+                return
+            fail(f"No baseline at {baseline_path}. Run with --update-a11y-baselines to create it.")
+
+        baseline = accessibility_baseline.load_baseline(baseline_path)
+        comparison = accessibility_baseline.compare(baseline.violations, current)
+        if comparison.matches:
+            return
+        if update_a11y_baselines:
+            accessibility_baseline.save_baseline(baseline_path, current_version, current)
+            return
+        fail(accessibility_baseline.format_failure(name, baseline_path, comparison, baseline.axe_version, current_version))
+
+    return check
 
 
 ###              ###

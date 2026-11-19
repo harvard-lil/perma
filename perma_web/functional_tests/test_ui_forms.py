@@ -7,11 +7,10 @@ renames or removes most of the classes this markup currently relies on
 these assertions describe *behavior and semantics* instead: accessible name,
 label<->input association, aria state, and visible/readable error text.
 
-Covers contact, login, sign-up, and profile-settings -- the forms named in the
-Phase 4 sub-batch 4A assignment. `test_contact.py` already covers the contact
-form's submission/honeypot/no-JS paths; this file extends the contract
-(label association, validation-failure display, aria-invalid wiring) rather
-than duplicating it.
+Covers contact, login, sign-up, and profile-settings. `test_contact.py` already
+covers the contact form's submission/honeypot/no-JS paths; this file extends
+the contract (label association, validation-failure display, aria-invalid
+wiring) rather than duplicating it.
 
 Two pre-existing facts about the current markup shaped what is and isn't
 asserted here:

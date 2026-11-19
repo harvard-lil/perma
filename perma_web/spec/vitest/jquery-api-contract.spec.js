@@ -1,7 +1,7 @@
-// Pins the exact jQuery API surface Perma depends on, ahead of the 3.7.1 -> 4.0.0 upgrade
-// (see .plans/plan_dependency-upgrade-roadmap-5.md, sub-batch 5A). jQuery 4.0.0 removes
-// jQuery.camelCase/cssNumber/cssProps/isArray/isFunction/isNumeric/isWindow/nodeName/now/
-// parseJSON/trim/type/unique and jQuery.fn.push/sort/splice. Every assertion below exercises
+// Pins the exact jQuery API surface Perma depends on, ahead of the 3.7.1 -> 4.0.0 upgrade.
+// jQuery 4.0.0 removes jQuery.camelCase/cssNumber/cssProps/isArray/isFunction/isNumeric/
+// isWindow/nodeName/now/parseJSON/trim/type/unique and jQuery.fn.push/sort/splice. Every
+// assertion below exercises
 // real behavior against jsdom, not just presence, so a removal that slips past the measured
 // inventory still trips this file.
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'

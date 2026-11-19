@@ -1,6 +1,6 @@
 // Form submission, validation-error, and failure-path coverage for the jQuery-driven legacy
-// modules ahead of the jQuery 3.7.1 -> 4.0.0 upgrade (.plans/plan_dependency-upgrade-roadmap-5.md,
-// sub-batch 5A). single.link.permissions.module.spec.js already covers the module's basic import;
+// modules ahead of the jQuery 3.7.1 -> 4.0.0 upgrade.
+// single.link.permissions.module.spec.js already covers the module's basic import;
 // this file exercises its actual DOM/network behavior instead and is not meant to duplicate it.
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest'
 import * as APIModule from '../../static/js/helpers/api.module.js'

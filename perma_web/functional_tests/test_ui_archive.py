@@ -135,8 +135,8 @@ def test_archive_nav_toggle_is_currently_unlabeled_for_logged_in_users(page, url
     accessible name and no aria-expanded, unlike the one in base-responsive.html
     which has both.
 
-    This is a pre-existing accessibility gap, recorded in the phase plan for
-    separate remediation. It is pinned here so the Bootstrap 5 migration neither
+    This is a pre-existing accessibility gap, left for separate
+    remediation. It is pinned here so the Bootstrap 5 migration neither
     silently fixes it (an unrequested product change) nor silently worsens it.
     Deleting this test is the correct move once the gap is fixed deliberately.
     """

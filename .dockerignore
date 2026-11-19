@@ -17,7 +17,17 @@ perma_web/.pytest_cache
 perma_web/.hypothesis
 perma_web/.coverage
 perma_web/failed_test_files
+perma_web/failed_test_files_chromium
+perma_web/failed_test_files_firefox
+perma_web/failed_test_files_webkit
 perma_web/lib
+
+# Visual baselines are fetched at test time (functional_tests/baseline_sets.py);
+# a developer's working copy, its previous copy and staging must not reach the image.
+perma_web/functional_tests/baselines
+perma_web/functional_tests/baselines.prev
+perma_web/functional_tests/baselines.tmp
+perma_web/functional_tests/baselines.lock
 
 # A developer's settings.py must never be baked in: the image selects its
 # settings at runtime through PERMA_SETTINGS_MODULE.

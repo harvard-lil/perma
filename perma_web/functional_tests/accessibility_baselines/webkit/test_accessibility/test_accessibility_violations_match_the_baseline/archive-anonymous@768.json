@@ -1,0 +1,109 @@
+{
+  "axe_version": "4.12.1",
+  "violations": [
+    {
+      "rule": "color-contrast",
+      "target": [
+        "#details-button > span"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".about"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".active"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".btn-outside > span"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".cat"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        ".creation"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "a[href=\"/7R2K-9M4X?type=image\"]"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "strong > ._verbose"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "color-contrast",
+      "target": [
+        "strong"
+      ],
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds"
+    },
+    {
+      "rule": "frame-title",
+      "target": [
+        "iframe"
+      ],
+      "impact": "serious",
+      "help": "Frames must have an accessible name"
+    },
+    {
+      "rule": "landmark-one-main",
+      "target": [
+        "html"
+      ],
+      "impact": "moderate",
+      "help": "Document should have one main landmark"
+    },
+    {
+      "rule": "meta-viewport",
+      "target": [
+        "meta[name=\"viewport\"]"
+      ],
+      "impact": "moderate",
+      "help": "Zooming and scaling must not be disabled"
+    },
+    {
+      "rule": "page-has-heading-one",
+      "target": [
+        "html"
+      ],
+      "impact": "moderate",
+      "help": "Page should contain a level-one heading"
+    }
+  ]
+}
