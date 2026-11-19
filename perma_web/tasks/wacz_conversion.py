@@ -11,7 +11,7 @@ import time
 from django.conf import settings
 from django.core.files.storage import storages
 
-from perma.celery_tasks import convert_warc_to_wacz, populate_wacz_size
+from perma.celery_tasks.link_maintenance import convert_warc_to_wacz, populate_wacz_size
 from perma.models import Link
 
 

@@ -9,7 +9,7 @@ from django.utils import timezone
 from rest_framework.settings import api_settings
 
 from perma.models import CaptureJob
-from perma.celery_tasks import clean_up_failed_captures
+from perma.celery_tasks.capture import clean_up_failed_captures
 
 
 def test_job_queue_order(link_user_factory, pending_capture_job_factory):
@@ -119,7 +119,7 @@ FACTS = {
 @pytest.mark.django_db
 def test_capture_facts_are_kept_per_attempt(pending_capture_job_factory):
     """ Retries reuse the CaptureJob, so facts are stored per attempt. """
-    from perma.celery_tasks import record_capture_facts
+    from perma.celery_tasks.capture import record_capture_facts
 
     job = pending_capture_job_factory()
     job.scoop_job_id = "job-1"
@@ -139,7 +139,7 @@ def test_capture_facts_are_kept_per_attempt(pending_capture_job_factory):
 
 @pytest.mark.django_db
 def test_nothing_is_recorded_without_capture_facts(pending_capture_job_factory):
-    from perma.celery_tasks import record_capture_facts
+    from perma.celery_tasks.capture import record_capture_facts
 
     job = pending_capture_job_factory()
     record_capture_facts(job, {"status": "failed"})
@@ -167,7 +167,7 @@ ECS_FAILURE = {
     ({**ECS_FAILURE, "stdout_logs": None, "stderr_logs": None}, "scoop-silent-failure"),
 ])
 def test_scoop_failures_are_tagged_from_either_log(pending_capture_job_factory, poll_data, tag):
-    from perma.celery_tasks import tag_scoop_failure
+    from perma.celery_tasks.capture import tag_scoop_failure
 
     job = pending_capture_job_factory()
     tag_scoop_failure(job, poll_data)
@@ -176,7 +176,7 @@ def test_scoop_failures_are_tagged_from_either_log(pending_capture_job_factory, 
 
 @pytest.mark.django_db
 def test_unrecognised_scoop_failures_are_reported(pending_capture_job_factory, caplog):
-    from perma.celery_tasks import tag_scoop_failure
+    from perma.celery_tasks.capture import tag_scoop_failure
 
     job = pending_capture_job_factory()
     tag_scoop_failure(job, {**ECS_FAILURE, "stdout_logs": "something else went wrong"})
@@ -201,6 +201,6 @@ def test_unrecognised_scoop_failures_are_reported(pending_capture_job_factory, c
     ({"scoop_capture_summary": None}, None),
 ])
 def test_the_failed_scoop_step_is_found(poll_data, step):
-    from perma.celery_tasks import failed_scoop_step
+    from perma.celery_tasks.capture import failed_scoop_step
 
     assert failed_scoop_step(poll_data) == step
