@@ -10,7 +10,7 @@ class names, which the migration is expected to change.
 import pytest
 from playwright.sync_api import expect
 
-# Matches the phase's declared support matrix: the SCSS breakpoints in
+# Matches the declared support matrix: the SCSS breakpoints in
 # static/css/_vars-global.scss. Below $width-tablet the nav collapses.
 MOBILE_VIEWPORT = {"width": 375, "height": 800}
 DESKTOP_VIEWPORT = {"width": 1200, "height": 900}

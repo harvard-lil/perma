@@ -83,8 +83,8 @@ def tablet_touch_page(browser, browser_context_args):
 
     Needed because Perma hides some controls below $width-tablet -- the account
     dropdown toggle among them (`style-responsive.scss`, `.nav > li >
-    .dropdown-toggle.navbar-link`), which is exactly the control this phase
-    most needs to tap.
+    .dropdown-toggle.navbar-link`), which is exactly the control these
+    tests most need to tap.
     """
     yield from _touch_pages(
         browser, browser_context_args,

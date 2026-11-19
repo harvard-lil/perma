@@ -1,13 +1,11 @@
 """
 Behavioral contract for Perma's responsive layout.
 
-The declared support matrix for this phase is `perma_web/browserslist` plus
+The declared support matrix is `perma_web/browserslist` plus
 the breakpoints computed in `static/css/_vars-global.scss`: $width-mobile
 (320px), $width-tablet (768px), $width-desktop (990px), and $width-wide /
 $width-max (1200px). These are the *computed* pixel values, confirmed against
-the SCSS source rather than its (partly stale) trailing comments -- see
-`.plans/plan_bootstrap-4a-characterization-tests.md` for the discrepancy this
-uncovered in $width-xmobile.
+the SCSS source rather than its (partly stale) trailing comments.
 
 These assertions are written against Bootstrap 3 and must keep passing on
 Bootstrap 5, so -- like `test_ui_navigation.py` -- they describe behavior and

@@ -103,7 +103,7 @@ describe('webpack entries', () => {
 })
 
 describe('bundle tracker output', () => {
-  // Tripwire: webpack-bundle-tracker 3.x (sub-batch 2F) changes this schema. If this test starts
+  // Tripwire: webpack-bundle-tracker 3.x changes this schema. If this test starts
   // failing after that upgrade, that is expected -- update the assertions deliberately, not by rote.
   it('writes status "done" with a chunks entry for every webpack entry', () => {
     expect(trackerJson.status).toBe('done')

@@ -703,8 +703,7 @@ certificate, and the engines trust it differently:
   `ignore_https_errors` for every engine except Chromium.
 
 The consequence is that **a certificate problem is only caught under Chromium**. That
-trade was made deliberately so the other engines could run at all; the history is in
-`.plans/plan_browser-testing-and-vite.md` (finding F12).
+trade was made deliberately so the other engines could run at all.
 
 In CI (`.github/workflows/lint_test.yml`), the full suite runs on Chromium with
 coverage, then the `test_ui_*.py` contract suite runs again on Firefox and on WebKit,

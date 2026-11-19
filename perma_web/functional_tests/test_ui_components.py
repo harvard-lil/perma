@@ -9,9 +9,8 @@ class names (`.nav-tabs`, `.tab-pane.active`, `.collapse`, `.pagination`,
 `.active`/`.disabled`, `.sr-only`, `data-toggle`, `data-dismiss`, `.close`),
 all of which the Bootstrap 5 migration is expected to rename or restructure.
 
-Two components named in the assignment turned out to be unreachable through
-any live page and are deliberately not covered here (see the final report
-rather than this docstring for the full explanation):
+Two components are unreachable through any live page and are deliberately
+not covered here:
 
 - `perma/templates/errors/view.html` is not wired to any URL in
   `perma/urls.py` -- the route that used to render it was removed years ago
@@ -27,7 +26,7 @@ rather than this docstring for the full explanation):
 import pytest
 from playwright.sync_api import expect
 
-# Matches the phase's declared support matrix: the SCSS breakpoints in
+# Matches the declared support matrix: the SCSS breakpoints in
 # static/css/_vars-global.scss.
 MOBILE_VIEWPORT = {"width": 375, "height": 800}
 DESKTOP_VIEWPORT = {"width": 1200, "height": 900}
@@ -118,7 +117,7 @@ def test_add_disclosure_toggles_open_and_closed(page, ui_urls, staff_user, log_i
 
 # --- Modals / dialogs (create_link page) ------------------------------------
 #
-# The Django-template modals named in the assignment are dead markup (no
+# The Django-template modals are dead markup (no
 # trigger anywhere reaches them -- see module docstring). The real, reachable
 # dialogs on the same page are these two Vue components, both built on a
 # native <dialog> element rather than Bootstrap's JS plugin.
@@ -129,7 +128,7 @@ def test_link_batch_dialog_opens_dismisses_and_escapes(page, ui_urls, user, log_
     The "create multiple links" control opens a real dialog; its close
     control and Escape both dismiss it. The dialog itself currently has no
     accessible name (no aria-label/aria-labelledby/title), so that is not
-    asserted here -- see the report for that finding.
+    asserted here.
     """
     log_in(page, user)
 

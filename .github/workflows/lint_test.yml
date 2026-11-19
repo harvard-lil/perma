@@ -299,8 +299,7 @@ jobs:
       - name: Contract tests (Firefox)
         if: github.event_name == 'pull_request' || steps.publication.outputs.state == 'absent'
         # test_skip_links_precede_the_navigation fails on a known Firefox CSS
-        # defect (body becomes a tab stop); remove this once Arc 2's fix lands
-        # (.plans/plan_browser-testing-and-vite.md, A2:P1).
+        # defect (body becomes a tab stop); remove this once the CSS fix lands.
         continue-on-error: true
         shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'  # avoid docker-compose "the input device is not a TTY" -- see https://github.com/actions/runner/issues/241#issuecomment-842566950
         run: |

@@ -1,8 +1,7 @@
 """
 Django-side asset-pipeline contract: what django-webpack-loader must keep
 resolving for Perma's templates once webpack-bundle-tracker/django-webpack-loader
-move from 1.x to 3.x (Arc 2 Phase 2, sub-batch 2F). See
-.plans/plan_dependency-upgrade-roadmap.md.
+move from 1.x to 3.x.
 """
 import json
 import re

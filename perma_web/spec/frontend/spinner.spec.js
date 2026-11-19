@@ -1,5 +1,5 @@
-// Spinner.vue is the sole spin.js consumer in Perma. These tests were written at sub-batch 5A
-// against spin.js 2.3.2 and rewritten at 5D for 4.1.2, because the two versions express animation
+// Spinner.vue is the sole spin.js consumer in Perma. These tests were written against
+// spin.js 2.3.2 and rewritten for 4.1.2, because the two versions express animation
 // through structurally different DOM: v2 computed inline `-webkit-animation` in JavaScript and
 // inserted its keyframes at runtime via CSSStyleSheet.insertRule, while v4 sets an unprefixed
 // inline `animation` naming a keyframe defined in the separately-imported `spin.js/spin.css`.
@@ -10,7 +10,6 @@
 // concrete animation evidence. The keyframes themselves cannot be asserted here (Vitest does not
 // process CSS imports by default), so the companion guard lives in spec/build/webpack-contract.js,
 // which checks the built stylesheet actually contains @keyframes spinner-line-fade-default.
-// See .plans/plan_dependency-upgrade-roadmap-5.md, sub-batches 5A item 4 and 5D step 3.
 import { mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import Spinner from '../../static/frontend/components/Spinner.vue'

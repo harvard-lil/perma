@@ -2,9 +2,8 @@
 // move to 4.0.0 without an npm `overrides` entry: jstree@3.3.17 declares
 // `peerDependencies: { jquery: "^3.5.0" }`, which excludes jQuery 4. These tests drive the real
 // jstree/jQuery event wiring under jsdom, against the CURRENT stack (jquery 3.7.1, jstree 3.3.16),
-// so they are the evidence that decides whether overriding that peer range at sub-batch 5C is
+// so they are the evidence that decides whether overriding that peer range is
 // safe -- the jQuery 4 and jstree 3.3.17 upgrades must cross this tripwire, not a guess.
-// See .plans/plan_dependency-upgrade-roadmap-5.md, sub-batch 5A, item 2.
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
