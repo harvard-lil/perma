@@ -171,7 +171,11 @@
             created {{ org.date_created|date:'N j, Y' }}
             <br>
             {% if org.organization_users %}
-            last active {{ org.last_active|date:'N j, Y'}}
+              {% if org.last_active %}
+                last active {{ org.last_active|date:'N j, Y'}}
+              {% else %}
+                no activity
+              {% endif %}
             {% else %}
             <span class="text-warning">no existing users</span>
             {% endif %}

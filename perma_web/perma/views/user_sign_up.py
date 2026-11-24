@@ -353,7 +353,7 @@ def approve_pending_registrar(request: HttpRequest, registrar_id: int):
             # user for another registrar, we exclude sponsored users here to avoid confusion
             sponsoring_registrars=None,
         )
-        users, sort = apply_sort_order(request, users, valid_member_sorts)
+        users, sort = apply_sort_order(request, users, valid_member_sorts, nulls_as_lowest=('last_login',))
         users, _ = apply_search_query(request, users, ['email', 'first_name', 'last_name'])
         users = apply_pagination(request, users)
 

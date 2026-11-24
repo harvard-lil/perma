@@ -303,7 +303,11 @@
               created {{ listed_user.date_joined|date:'N j, Y' }}
               {% if listed_user.is_confirmed %}
                 <br>
-                last active {{ listed_user.last_login|date:'N j, Y' }}
+                {% if listed_user.last_login %}
+                  last active {{ listed_user.last_login|date:'N j, Y' }}
+                {% else %}
+                  no activity
+                {% endif %}
               {% endif %}
             </div>
           </div>

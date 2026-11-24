@@ -570,16 +570,16 @@ class UserManagementViewsTestCase(PermaTestCase):
     def test_organization_user_export_user_list(self):
         expected_results = [
             ('case_one_lawyer@firm.com', 'Some Case'),
-            ('multi_registrar_org_user@example.com', 'Another Journal'),
-            ('multi_registrar_org_user@example.com', "Another Library's Journal"),
-            ('multi_registrar_org_user@example.com', 'A Third Journal'),
-            ('multi_registrar_org_user@example.com', 'Test Journal'),
-            ('test_another_library_org_user@example.com', "Another Library's Journal"),
             ('test_another_library_org_user@example.com', 'A Third Journal'),
+            ('test_another_library_org_user@example.com', "Another Library's Journal"),
+            ('multi_registrar_org_user@example.com', 'Test Journal'),
+            ('multi_registrar_org_user@example.com', 'Another Journal'),
+            ('multi_registrar_org_user@example.com', 'A Third Journal'),
+            ('multi_registrar_org_user@example.com', "Another Library's Journal"),
             ('test_yet_another_library_org_user@example.com', "Another Library's Journal"),
-            ('test_another_org_user@example.com', 'A Third Journal'),
-            ('test_org_rando_user@example.com', 'Test Journal'),
             ('test_org_user@example.com', 'Test Journal'),
+            ('test_org_rando_user@example.com', 'Test Journal'),
+            ('test_another_org_user@example.com', 'A Third Journal'),
         ]
 
         # Get CSV export output
@@ -617,11 +617,11 @@ class UserManagementViewsTestCase(PermaTestCase):
 
     def test_sponsored_user_export_user_list(self):
         expected_results = [
-            ('another_inactive_sponsored_user@example.com', 'Another Library', 'inactive'),
+            ('test_sponsored_user@example.com', 'Test Library', 'active'),
             ('another_sponsored_user@example.com', 'Another Library', 'active'),
             ('another_sponsored_user@example.com', 'A Third Library', 'active'),
             ('inactive_sponsored_user@example.com', 'Test Library', 'inactive'),
-            ('test_sponsored_user@example.com', 'Test Library', 'active'),
+            ('another_inactive_sponsored_user@example.com', 'Another Library', 'inactive'),
         ]
 
         # Get CSV export output

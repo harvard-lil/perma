@@ -138,10 +138,10 @@ def manage_registrar(request):
     )
 
     # handle sorting
-    registrars, sort = apply_sort_order(request, registrars, valid_registrar_sorts)
+    registrars, sort = apply_sort_order(request, registrars, valid_registrar_sorts, nulls_as_lowest=('last_active',))
     if sort.endswith('link_count'):
         total_link_count = F('link_count') + F('sponsored_link_count')
-        registrars = registrars.order_by(total_link_count.desc() if sort.startswith('-') else total_link_count.asc())
+        registrars = registrars.order_by(total_link_count.desc() if sort.startswith('-') else total_link_count.asc(), 'pk')
 
     # handle search
     registrars, search_query = apply_search_query(request, registrars, ['name', 'email', 'website'])
@@ -223,7 +223,7 @@ def manage_organization(request):
     )
 
     # handle sorting
-    orgs, sort = apply_sort_order(request, orgs, valid_org_sorts)
+    orgs, sort = apply_sort_order(request, orgs, valid_org_sorts, nulls_as_lowest=('last_active',))
 
     # handle search
     orgs, search_query = apply_search_query(request, orgs, ['name', 'registrar__name'])
@@ -353,7 +353,7 @@ def manage_sponsored_user_export_user_list(request: HttpRequest) -> HttpResponse
         sponsorship_status=F('sponsorships__status'),
         sponsorship_created_at=F('sponsorships__created_at'),
         sponsorship_expires_at=F('sponsorships__expires_at'),
-    ).values(*field_names)
+    ).values(*field_names).order_by(*records.query.order_by, 'sponsorships__registrar_id')
     filename = 'perma-sponsored-users'
 
     # Export records in appropriate format based on `format` URL parameter
@@ -414,7 +414,7 @@ def manage_organization_user_export_user_list(request: HttpRequest):
     org_users = records.annotate(
         organization_name=F('visible_organization_name'),
         affiliation_expires_at=F('visible_affiliation_expires_at'),
-    ).values(*field_names)
+    ).values(*field_names).order_by(*records.query.order_by, 'visible_organization_id')
     filename = 'perma-organization-users'
 
     # Export records in appropriate format based on `format` URL parameter
@@ -513,11 +513,12 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
             # introduce another reverse-relation join.
             visible_organization_name=F('userorganizationaffiliation__organization__name'),
             visible_affiliation_expires_at=F('userorganizationaffiliation__expires_at'),
+            visible_organization_id=F('userorganizationaffiliation__organization_id'),
         ).prefetch_related(None).prefetch_related(Prefetch('organizations', queryset=visible_orgs, to_attr='visible_organizations'))
         search_fields[-1] = 'visible_organization_name'
 
     # handle sorting
-    users, sort = apply_sort_order(request, users, valid_member_sorts)
+    users, sort = apply_sort_order(request, users, valid_member_sorts, nulls_as_lowest=('last_login',))
 
     # handle search
     users, search_query = apply_search_query(request, users, search_fields)
@@ -617,7 +618,7 @@ def list_users_in_group(request: HttpRequest, group_name: str, export: bool = Fa
         total_created_links_count = Link.objects.filter(organization__in=visible_orgs, created_by__in=users.order_by().values('pk')).count()
         if sort.endswith('link_count'):
             visible_link_count = links_created_in_orgs_count(visible_orgs)
-            users = users.order_by(visible_link_count.desc() if sort.startswith('-') else visible_link_count.asc())
+            users = users.order_by(visible_link_count.desc() if sort.startswith('-') else visible_link_count.asc(), 'pk')
     else:
         total_created_links_count = users.aggregate(count=Sum('link_count', default=0))['count']
 
@@ -725,7 +726,7 @@ def list_sponsored_users(
             users = users.filter(is_confirmed=False, is_active=False)
 
     # handle sorting
-    users, sort = apply_sort_order(request, users, valid_member_sorts)
+    users, sort = apply_sort_order(request, users, valid_member_sorts, nulls_as_lowest=('last_login',))
 
     # handle search
     users, search_query = apply_search_query(request, users, ['email', 'first_name', 'last_name'])
