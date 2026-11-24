@@ -31,7 +31,7 @@ from django.core.exceptions import PermissionDenied, ValidationError, BadRequest
 from django.core.files.storage import storages
 from django.core.paginator import EmptyPage, Page, Paginator
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Q
+from django.db.models import F, Q
 from django.db.models.query import QuerySet
 from django.http import (
     Http404,
@@ -215,10 +215,14 @@ def apply_sort_order(
     queryset: QuerySet[T],
     valid_sorts: list[str],
     default_sort: str | None = None,
+    nulls_as_lowest: tuple[str, ...] = (),
 ) -> tuple[QuerySet[T], str]:
     """
-        For the given `queryset`,
-        apply sort order based on request.GET['sort'].
+        Apply the requested sort order to the given queryset.
+        Uses the request's `sort` parameter, falls back to the default sort if the requested value isn't available.
+        NULL values in fields listed in `nulls_as_lowest` are treated as the smallest value: first when ascending,
+        last when descending (e.g. users who have never logged in).
+        Uses `pk` as a secondary sort field to consistently order records that have the same value.
     """
     if not default_sort:
         default_sort = valid_sorts[0]
@@ -229,7 +233,13 @@ def apply_sort_order(
     sort = params.get('sort', default_sort)
     if sort not in valid_sorts:
         sort = default_sort
-    return queryset.order_by(sort), sort
+
+    ordering = sort
+    field = sort.removeprefix('-')
+    if field in nulls_as_lowest:
+        ordering = F(field).desc(nulls_last=True) if sort.startswith('-') else F(field).asc(nulls_first=True)
+
+    return queryset.order_by(ordering, 'pk'), sort
 
 def apply_pagination(request: HttpRequest, queryset: QuerySet[T]) -> Page:
     """
