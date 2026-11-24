@@ -11,7 +11,7 @@ from django.utils.encoding import iri_to_uri
 from django.urls import reverse
 from django.views.decorators.cache import cache_control
 
-from perma.celery_tasks import convert_warc_to_wacz
+from perma.celery_tasks.link_maintenance import convert_warc_to_wacz
 from perma.models import Link
 from perma.utils import (if_anonymous, ratelimit_ip_key,
     memento_url, timemap_url, timegate_url,

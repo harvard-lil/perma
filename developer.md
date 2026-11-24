@@ -224,7 +224,7 @@ container needs to pick the change up.
 #### The js-wacz worker has its own manifest
 
 `services/js-wacz/` is a second, independent npm project holding only
-`@harvard-lil/js-wacz`, which `perma/celery_tasks.py` shells out to for WARC
+`@harvard-lil/js-wacz`, which `perma/celery_tasks/link_maintenance.py` shells out to for WARC
 to WACZ conversion. It is **not** part of `perma_web`'s dependency tree and is
 not covered by `npm-shrinkwrap.json`.
 

@@ -91,7 +91,7 @@ def test_unreadable_cache_counts_as_pending_only_where_required():
 def test_call_sites_use_the_helper():
     # Both places that used to test the file directly now go through the helper,
     # so the cache flag pauses them too.
-    from perma import celery_tasks
+    from perma.celery_tasks import capture
     from api.views import links
-    assert celery_tasks.deployment_pending is deployment_pending
+    assert capture.deployment_pending is deployment_pending
     assert links.deployment_pending is deployment_pending
